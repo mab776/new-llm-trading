@@ -1,0 +1,145 @@
+"""
+Configuration models using Pydantic for validation.
+Single source of truth for all configuration structures.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Literal
+
+from pydantic import BaseModel, Field, field_validator
+
+
+class OpenWebUIConfig(BaseModel):
+    base_url: str = "http://localhost:3000"
+    api_key: str = ""
+    model_ids: list[str] = ["llama3.1:8b"]
+    timeout_seconds: int = 120
+
+
+class LeverageTier(BaseModel):
+    leverage: int = 5
+    strong_threshold: float = 70
+    marginal_threshold_low: float = 45
+    marginal_threshold_high: float = 70
+    tp1_rr: float = 2.0
+    tp2_rr: float = 3.5
+    tp1_exit_pct: float = 0.5
+
+
+class TrailingStopConfig(BaseModel):
+    enabled: bool = False
+    activation_pct: float = 1.0
+    callback_pct: float = 0.5
+
+
+class TradingConfig(BaseModel):
+    symbol: str = "BTC-USDT"
+    yfinance_symbol: str = "BTC-USD"
+    timeframes: list[str] = ["1h", "4h", "1d"]
+    primary_timeframe: str = "4h"
+    leverage_tiers: dict[str, LeverageTier] = Field(default_factory=dict)
+    active_tier: str = "conservative"
+    stop_loss_strategy: Literal["atr", "structure", "hybrid"] = "hybrid"
+    trailing_stop: TrailingStopConfig = Field(default_factory=TrailingStopConfig)
+
+    @property
+    def active_leverage_tier(self) -> LeverageTier:
+        return self.leverage_tiers[self.active_tier]
+
+
+class ScoringConfig(BaseModel):
+    weights: dict[str, float] = Field(default_factory=lambda: {
+        "trend": 0.30, "momentum": 0.25, "volume": 0.15,
+        "support_resistance": 0.20, "risk": 0.10
+    })
+    atr_period: int = 14
+    atr_sl_multiplier: float = 1.5
+    atr_tp1_multiplier: float = 3.0
+    atr_tp2_multiplier: float = 5.0
+    adx_ranging_threshold: float = 20
+    min_volatility_pct: float = 0.3
+    confidence_min: float = 5
+    confidence_max: float = 95
+
+    @field_validator("weights")
+    @classmethod
+    def validate_weights(cls, v: dict[str, float]) -> dict[str, float]:
+        total = sum(v.values())
+        if abs(total - 1.0) > 0.01:
+            raise ValueError(f"Weights must sum to 1.0, got {total:.3f}")
+        return v
+
+
+class FiltersConfig(BaseModel):
+    min_adx: float = 20
+    min_volatility_pct: float = 0.3
+    min_profit_after_fees: bool = True
+
+
+class FeesConfig(BaseModel):
+    maker: float = 0.0002
+    taker: float = 0.0006
+    default_order_type: Literal["maker", "taker"] = "taker"
+
+    @property
+    def active_fee_rate(self) -> float:
+        return self.maker if self.default_order_type == "maker" else self.taker
+
+
+class BitgetConfig(BaseModel):
+    api_key: str = ""
+    api_secret: str = ""
+    passphrase: str = ""
+    testnet: bool = True
+    product_type: str = "USDT-FUTURES"
+
+
+class BacktestingConfig(BaseModel):
+    start_date: str = "2024-01-01"
+    end_date: str = "2025-12-31"
+    initial_balance: float = 10000
+    warmup_periods: int = 200
+    enable_partial_exits: bool = True
+    enable_trailing_stops: bool = False
+
+
+class SchedulingConfig(BaseModel):
+    interval_minutes: int = 60
+    check_positions_interval_minutes: int = 15
+
+
+class DataCacheConfig(BaseModel):
+    ttl_seconds: int = 300
+
+
+class DataSourceConfig(BaseModel):
+    """Data source configuration. Controls where OHLCV data comes from."""
+    source: str = "yfinance"      # "yfinance", "binance", "bitget", or any ccxt exchange
+    exchange_symbol: str = "BTC/USDT"  # Symbol format for ccxt exchanges
+
+
+class AppConfig(BaseModel):
+    """Root configuration — single source of truth."""
+    openwebui: OpenWebUIConfig = Field(default_factory=OpenWebUIConfig)
+    trading: TradingConfig = Field(default_factory=TradingConfig)
+    scoring: ScoringConfig = Field(default_factory=ScoringConfig)
+    filters: FiltersConfig = Field(default_factory=FiltersConfig)
+    fees: FeesConfig = Field(default_factory=FeesConfig)
+    bitget: BitgetConfig = Field(default_factory=BitgetConfig)
+    backtesting: BacktestingConfig = Field(default_factory=BacktestingConfig)
+    scheduling: SchedulingConfig = Field(default_factory=SchedulingConfig)
+    data_cache: DataCacheConfig = Field(default_factory=DataCacheConfig)
+    data_source: DataSourceConfig = Field(default_factory=DataSourceConfig)
+
+
+def load_config(path: str | Path = "config.json") -> AppConfig:
+    """Load and validate configuration from JSON file."""
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Config file not found: {path}")
+    with open(path, "r") as f:
+        raw = json.load(f)
+    return AppConfig(**raw)

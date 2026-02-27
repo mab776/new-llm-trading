@@ -1,0 +1,255 @@
+"""
+Scheduler — runs the trading bot on a schedule and manages positions.
+
+Handles:
+- Periodic market analysis
+- Position monitoring and trailing stop updates
+- Signal routing and trade execution
+- Decision logging
+"""
+
+from __future__ import annotations
+
+import json
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Optional
+
+import schedule
+
+from llm_trading_bot.config import AppConfig
+from llm_trading_bot.data import configure_cache, fetch_multi_timeframe
+from llm_trading_bot.exchange import BitgetClient, SafetyViolation
+from llm_trading_bot.openwebui_client import run_consensus
+from llm_trading_bot.routing import RoutingDecision, route_signal
+from llm_trading_bot.scoring import Direction, SignalStrength, calculate_indicators
+
+
+class TradingScheduler:
+    """
+    Main automation controller.
+
+    Runs on a schedule:
+    1. Fetch market data
+    2. Score and route signal
+    3. Execute trade (if applicable)
+    4. Monitor existing positions
+    """
+
+    def __init__(self, config: AppConfig):
+        self.config = config
+        self.exchange = BitgetClient(config.bitget)
+        self.decision_log: list[dict] = []
+        self._log_dir = Path("logs")
+        self._log_dir.mkdir(exist_ok=True)
+
+        configure_cache(config.data_cache.ttl_seconds)
+
+    def _log(self, msg: str) -> None:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        line = f"[{timestamp}] {msg}"
+        print(line)
+        with open(self._log_dir / "trading.log", "a") as f:
+            f.write(line + "\n")
+
+    def _log_decision(self, decision: dict) -> None:
+        decision["timestamp"] = datetime.now().isoformat()
+        self.decision_log.append(decision)
+        # Append to persistent log
+        log_file = self._log_dir / "decisions.jsonl"
+        with open(log_file, "a") as f:
+            f.write(json.dumps(decision, default=str) + "\n")
+
+    def analyze_market(self) -> Optional[RoutingDecision]:
+        """Fetch data, score, and route the signal."""
+        self._log("Fetching market data...")
+
+        try:
+            ds = self.config.data_source
+            symbol = ds.exchange_symbol if ds.source != "yfinance" else self.config.trading.yfinance_symbol
+            data_by_tf = fetch_multi_timeframe(
+                symbol=symbol,
+                timeframes=self.config.trading.timeframes,
+                warmup_periods=self.config.scoring.atr_period * 15,
+                source=ds.source,
+            )
+        except Exception as e:
+            self._log(f"ERROR fetching data: {e}")
+            return None
+
+        if not data_by_tf:
+            self._log("No data available")
+            return None
+
+        # Calculate indicators for each timeframe
+        indicators_by_tf = {}
+        for tf, df in data_by_tf.items():
+            try:
+                indicators_by_tf[tf] = calculate_indicators(df, tf)
+            except Exception as e:
+                self._log(f"Warning: Failed to calculate {tf} indicators: {e}")
+
+        if not indicators_by_tf:
+            self._log("No indicators calculated")
+            return None
+
+        # Route signal
+        decision = route_signal(indicators_by_tf, self.config)
+
+        self._log(
+            f"Signal: {decision.signal_strength.value} | "
+            f"Direction: {decision.scoring_result.direction.value} | "
+            f"Score: {decision.scoring_result.raw_score:+.1f} | "
+            f"Confidence: {decision.scoring_result.confidence:.0f}%"
+        )
+
+        return decision
+
+    def execute_decision(self, decision: RoutingDecision) -> None:
+        """Act on a routing decision."""
+        if decision.signal_strength == SignalStrength.WAIT:
+            self._log(f"WAIT — {decision.skip_reason or 'Score too low'}")
+            self._log_decision({
+                "action": "WAIT",
+                "reason": decision.skip_reason,
+                "score": decision.scoring_result.raw_score,
+            })
+            return
+
+        if decision.signal_strength == SignalStrength.STRONG:
+            self._log("STRONG signal — using deterministic template")
+            self._log(decision.template_response or "")
+            self._execute_trade(decision)
+            return
+
+        if decision.signal_strength == SignalStrength.MARGINAL:
+            self._log("MARGINAL signal — querying LLM consensus...")
+            consensus = run_consensus(
+                config=self.config.openwebui,
+                scoring_result=decision.scoring_result,
+                targets=decision.targets,
+            )
+
+            self._log(f"Consensus: {consensus.decision} ({consensus.agreement_pct:.0f}% agreement)")
+            self._log(consensus.reasoning_summary)
+
+            if consensus.decision in ("LONG", "SHORT"):
+                # Update direction based on consensus
+                if consensus.decision == "LONG":
+                    decision.scoring_result.direction = Direction.BULLISH
+                else:
+                    decision.scoring_result.direction = Direction.BEARISH
+                self._execute_trade(decision)
+            else:
+                self._log("Consensus: WAIT — not trading")
+                self._log_decision({
+                    "action": "LLM_WAIT",
+                    "consensus": consensus.decision,
+                    "agreement": consensus.agreement_pct,
+                })
+
+    def _execute_trade(self, decision: RoutingDecision) -> None:
+        """Execute a trade via the exchange."""
+        if not decision.targets:
+            self._log("No targets calculated — cannot trade")
+            return
+
+        # Check for existing positions
+        try:
+            positions = self.exchange.get_positions(self.config.trading.symbol)
+            if positions:
+                self._log(f"Already have {len(positions)} open position(s) — skipping")
+                return
+        except Exception as e:
+            self._log(f"Warning: Could not check positions: {e}")
+
+        targets = decision.targets
+        tier = self.config.trading.active_leverage_tier
+        side = "buy" if targets.direction == Direction.BULLISH else "sell"
+
+        self._log(
+            f"Executing {side.upper()} @ ${targets.entry:,.2f} | "
+            f"SL: ${targets.stop_loss:,.2f} | "
+            f"TP1: ${targets.take_profit_1:,.2f} | "
+            f"TP2: ${targets.take_profit_2:,.2f}"
+        )
+
+        try:
+            result = self.exchange.place_order(
+                symbol=self.config.trading.symbol,
+                side=side,
+                size=0.001,  # TODO: proper position sizing
+                targets=targets,
+                leverage=tier.leverage,
+            )
+            self._log(f"Order placed: {result.order_id}")
+            self._log_decision({
+                "action": f"TRADE_{side.upper()}",
+                "order_id": result.order_id,
+                "entry": targets.entry,
+                "sl": targets.stop_loss,
+                "tp1": targets.take_profit_1,
+                "tp2": targets.take_profit_2,
+                "leverage": tier.leverage,
+                "score": decision.scoring_result.raw_score,
+                "confidence": decision.scoring_result.confidence,
+            })
+
+        except SafetyViolation as e:
+            self._log(f"SAFETY VIOLATION: {e}")
+        except Exception as e:
+            self._log(f"Trade execution error: {e}")
+
+    def check_positions(self) -> None:
+        """Check and manage existing positions."""
+        try:
+            positions = self.exchange.get_positions(self.config.trading.symbol)
+            if not positions:
+                return
+
+            for pos in positions:
+                self._log(
+                    f"Position: {pos.side} {pos.size} @ ${pos.entry_price:,.2f} | "
+                    f"Unrealized PnL: ${pos.unrealized_pnl:,.2f}"
+                )
+
+                # TODO: Implement trailing stop updates on the exchange
+                # This would require tracking the trade's original targets
+                # and updating the exchange's TP/SL orders
+
+        except Exception as e:
+            self._log(f"Position check error: {e}")
+
+    def run_cycle(self) -> None:
+        """Run one full analysis + execution cycle."""
+        self._log("=" * 50)
+        self._log("Starting analysis cycle")
+
+        decision = self.analyze_market()
+        if decision:
+            self.execute_decision(decision)
+
+        self._log("Cycle complete")
+        self._log("")
+
+    def start(self) -> None:
+        """Start the scheduled trading loop."""
+        interval = self.config.scheduling.interval_minutes
+        pos_interval = self.config.scheduling.check_positions_interval_minutes
+
+        self._log(f"Starting scheduler — analysis every {interval}min, position checks every {pos_interval}min")
+
+        # Run immediately
+        self.run_cycle()
+
+        # Schedule recurring
+        schedule.every(interval).minutes.do(self.run_cycle)
+        schedule.every(pos_interval).minutes.do(self.check_positions)
+
+        try:
+            while True:
+                schedule.run_pending()
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self._log("Scheduler stopped by user")
