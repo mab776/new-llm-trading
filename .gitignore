@@ -23,6 +23,7 @@ reports/
 logs/
 history/
 *.log
+*.csv
 
 # Secrets / local overrides
 .env
