@@ -16,8 +16,8 @@
                 "strong_threshold": 35,
                 "marginal_threshold_low": 25,
                 "marginal_threshold_high": 35,
-                "tp1_rr": 2.0,
-                "tp2_rr": 3.5,
+                "tp1_rr": 1.5,
+                "tp2_rr": 2.5,
                 "tp1_exit_pct": 0.5
             },
             "aggressive": {
@@ -25,8 +25,8 @@
                 "strong_threshold": 40,
                 "marginal_threshold_low": 30,
                 "marginal_threshold_high": 40,
-                "tp1_rr": 1.5,
-                "tp2_rr": 2.5,
+                "tp1_rr": 1.2,
+                "tp2_rr": 2.0,
                 "tp1_exit_pct": 0.6
             }
         },
@@ -58,7 +58,11 @@
     "filters": {
         "min_adx": 20,
         "min_volatility_pct": 0.3,
-        "min_profit_after_fees": true
+        "min_profit_after_fees": true,
+        "min_category_agreement": 3,
+        "require_trend_momentum_agree": true,
+        "skip_choppy_regime": true,
+        "skip_volatile_regime": false
     },
     "fees": {
         "maker": 0.0002,

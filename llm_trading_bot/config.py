@@ -77,6 +77,10 @@ class FiltersConfig(BaseModel):
     min_adx: float = 20
     min_volatility_pct: float = 0.3
     min_profit_after_fees: bool = True
+    min_category_agreement: int = 3        # At least N/5 categories must agree
+    require_trend_momentum_agree: bool = True  # Trend + momentum must agree
+    skip_choppy_regime: bool = True        # Skip trades in choppy markets
+    skip_volatile_regime: bool = False     # Skip trades in extremely volatile markets
 
 
 class FeesConfig(BaseModel):

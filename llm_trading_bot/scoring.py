@@ -31,6 +31,14 @@ class SignalStrength(str, Enum):
     WAIT = "WAIT"
 
 
+class MarketRegime(str, Enum):
+    TRENDING = "trending"          # ADX > 25, clear direction — ideal
+    WEAK_TREND = "weak_trend"      # ADX 20-25, slight direction
+    RANGING = "ranging"            # ADX < 20, no direction — avoid
+    VOLATILE = "volatile"          # High ATR, wide BB — risky
+    CHOPPY = "choppy"              # Low ADX + narrow BB — worst
+
+
 @dataclass
 class IndicatorSet:
     """All calculated indicators for a single timeframe."""
@@ -719,6 +727,40 @@ def score_risk(indicators: IndicatorSet) -> CategoryScore:
 
 
 # ──────────────────────────────────────────────────────────────────────
+# Market Regime Detection
+# ──────────────────────────────────────────────────────────────────────
+
+def detect_market_regime(indicators: IndicatorSet) -> MarketRegime:
+    """
+    Classify the current market regime using ADX, ATR, and Bollinger Band width.
+
+    Returns a regime that can be used to filter or adjust trade sizing.
+    """
+    adx = indicators.adx if indicators.adx is not None else 15
+    atr_pct = indicators.atr_pct if indicators.atr_pct is not None else 1.0
+    bb_width = indicators.bb_width if indicators.bb_width is not None else 5.0
+
+    # Choppy: ranging + narrow bands = whipsaw city
+    if adx < 18 and bb_width < 3:
+        return MarketRegime.CHOPPY
+
+    # Volatile: extreme ATR or very wide BB
+    if atr_pct > 5.0 or bb_width > 12:
+        return MarketRegime.VOLATILE
+
+    # Ranging: no trend strength
+    if adx < 20:
+        return MarketRegime.RANGING
+
+    # Weak trend: marginal ADX
+    if adx < 25:
+        return MarketRegime.WEAK_TREND
+
+    # Trending: strong ADX
+    return MarketRegime.TRENDING
+
+
+# ──────────────────────────────────────────────────────────────────────
 # Combined Scoring
 # ──────────────────────────────────────────────────────────────────────
 
@@ -817,11 +859,15 @@ def calculate_targets(
     direction: Direction,
     sl_strategy: str = "hybrid",
     atr_sl_mult: float = 1.5,
+    tp1_rr: float = 2.0,
+    tp2_rr: float = 3.5,
+    # Legacy params (ignored if tp1_rr/tp2_rr provided)
     atr_tp1_mult: float = 3.0,
     atr_tp2_mult: float = 5.0,
 ) -> Optional[TradeTargets]:
     """
     Calculate entry, SL, TP1, TP2 based on ATR and optionally S/R levels.
+    TP1/TP2 are calculated as R:R multiples of the SL distance.
     Returns None if direction is NEUTRAL.
     """
     if direction == Direction.NEUTRAL:
@@ -863,12 +909,12 @@ def calculate_targets(
 
     if is_long:
         stop_loss = entry - sl_distance
-        tp1 = entry + sl_distance * atr_tp1_mult / atr_sl_mult
-        tp2 = entry + sl_distance * atr_tp2_mult / atr_sl_mult
+        tp1 = entry + sl_distance * tp1_rr
+        tp2 = entry + sl_distance * tp2_rr
     else:
         stop_loss = entry + sl_distance
-        tp1 = entry - sl_distance * atr_tp1_mult / atr_sl_mult
-        tp2 = entry - sl_distance * atr_tp2_mult / atr_sl_mult
+        tp1 = entry - sl_distance * tp1_rr
+        tp2 = entry - sl_distance * tp2_rr
 
     return TradeTargets(
         entry=round(entry, 2),
@@ -895,6 +941,12 @@ def apply_pre_trade_filters(
     fee_rate: float = 0.0006,
     leverage: int = 5,
     check_profit_after_fees: bool = True,
+    category_scores: Optional[list[CategoryScore]] = None,
+    direction: Optional[Direction] = None,
+    min_category_agreement: int = 0,
+    require_trend_momentum_agree: bool = False,
+    skip_choppy_regime: bool = True,
+    skip_volatile_regime: bool = False,
 ) -> list[str]:
     """
     Returns a list of filter failure reasons. Empty list = all filters passed.
@@ -913,9 +965,7 @@ def apply_pre_trade_filters(
 
     # Profit-after-fees check
     if check_profit_after_fees and targets:
-        # Fee cost: entry fee + exit fee, on leveraged notional
-        # fee_per_trade = 2 * fee_rate (open + close)
-        total_fee_pct = 2 * fee_rate * leverage * 100  # as percentage of position
+        total_fee_pct = 2 * fee_rate * leverage * 100
         profit_at_tp1_pct = (targets.reward_1 / targets.entry * 100 * leverage) if targets.entry else 0
 
         if profit_at_tp1_pct <= total_fee_pct:
@@ -923,6 +973,44 @@ def apply_pre_trade_filters(
                 f"TP1 profit ({profit_at_tp1_pct:.2f}%) wouldn't cover fees "
                 f"({total_fee_pct:.2f}%) at {leverage}x leverage"
             )
+
+    # Category agreement filter — require N categories to agree on direction
+    if category_scores and direction and direction != Direction.NEUTRAL and min_category_agreement > 0:
+        is_bullish = direction == Direction.BULLISH
+        agreeing = sum(
+            1 for cat in category_scores
+            if (cat.raw_score > 0 and is_bullish) or (cat.raw_score < 0 and not is_bullish)
+        )
+        if agreeing < min_category_agreement:
+            failures.append(
+                f"Category agreement too low ({agreeing}/{len(category_scores)} agree, "
+                f"need {min_category_agreement})"
+            )
+
+    # Trend + momentum must agree on direction
+    if require_trend_momentum_agree and category_scores and direction and direction != Direction.NEUTRAL:
+        is_bullish = direction == Direction.BULLISH
+        trend_cat = next((c for c in category_scores if c.name == "trend"), None)
+        momentum_cat = next((c for c in category_scores if c.name == "momentum"), None)
+        if trend_cat and momentum_cat:
+            trend_agrees = (trend_cat.raw_score > 0) == is_bullish
+            momentum_agrees = (momentum_cat.raw_score > 0) == is_bullish
+            if not (trend_agrees and momentum_agrees):
+                disagree_parts = []
+                if not trend_agrees:
+                    disagree_parts.append(f"trend={trend_cat.raw_score:+.0f}")
+                if not momentum_agrees:
+                    disagree_parts.append(f"momentum={momentum_cat.raw_score:+.0f}")
+                failures.append(
+                    f"Trend/momentum disagree with {direction.value}: {', '.join(disagree_parts)}"
+                )
+
+    # Market regime filter
+    regime = detect_market_regime(indicators)
+    if skip_choppy_regime and regime == MarketRegime.CHOPPY:
+        failures.append(f"Market regime is CHOPPY (ADX={indicators.adx:.1f}, BB_width={indicators.bb_width:.1f}) — whipsaw risk")
+    if skip_volatile_regime and regime == MarketRegime.VOLATILE:
+        failures.append(f"Market regime is VOLATILE (ATR%={indicators.atr_pct:.1f}%) — extreme risk")
 
     return failures
 

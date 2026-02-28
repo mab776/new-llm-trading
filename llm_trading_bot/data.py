@@ -177,7 +177,7 @@ def _fetch_yfinance(
 
 
 # ---------------------------------------------------------------------------
-# Source: CCXT (Binance, Bitget, etc.)
+# Source: CCXT (Binance, Bitget, etc.) — live API fallback
 # ---------------------------------------------------------------------------
 
 def _ccxt_timeframe(timeframe: str) -> str:
@@ -195,10 +195,9 @@ def _fetch_ccxt(
     warmup_periods: int = 200,
 ) -> pd.DataFrame:
     """
-    Fetch OHLCV data from a CCXT-supported exchange.
+    Fetch OHLCV data from a CCXT-supported exchange (live API).
+    Used as fallback when CSV archive is not available.
     No API key needed for public market data.
-    Supports years of historical data — no 730-day cap.
-    Exchanges natively support 4H candles.
     """
     import ccxt
 
@@ -281,6 +280,40 @@ def _fetch_ccxt(
 
 
 # ---------------------------------------------------------------------------
+# Source: Binance CSV archive (preferred — cached on disk)
+# ---------------------------------------------------------------------------
+
+def _fetch_binance_csv(
+    symbol: str,
+    timeframe: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    warmup_periods: int = 200,
+    market: str = "spot",
+) -> pd.DataFrame:
+    """
+    Fetch from Binance's public CSV archive (data.binance.vision).
+    Downloads monthly/daily ZIPs, caches as CSVs on disk.
+    Subsequent runs are instant — no network calls needed.
+    """
+    from llm_trading_bot.binance_csv import download_binance_csv
+
+    extra_days, _ = _period_for_warmup(timeframe, warmup_periods)
+
+    # Convert symbol format: "BTC/USDT" -> "BTCUSDT"
+    csv_symbol = symbol.replace("/", "")
+
+    return download_binance_csv(
+        symbol=csv_symbol,
+        timeframe=timeframe,
+        start_date=start_date,
+        end_date=end_date,
+        warmup_days=extra_days,
+        market=market,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Unified fetch interface
 # ---------------------------------------------------------------------------
 
@@ -297,13 +330,18 @@ def fetch_ohlcv(
     Fetch OHLCV data from the configured source.
 
     Args:
-        symbol: Trading pair (e.g. "BTC-USD" for yfinance, "BTC/USDT" for ccxt)
+        symbol: Trading pair (e.g. "BTC-USD" for yfinance, "BTC/USDT" for ccxt/binance)
         timeframe: "1h", "4h", "1d"
         start_date: Start of test period (warmup is added automatically)
         end_date: End of test period
         warmup_periods: Extra bars before start_date for indicator warmup
         source: "yfinance", "binance", "bitget", or any ccxt exchange name
         exchange: Alias for source when using ccxt
+
+    Source routing:
+        "yfinance" -> Yahoo Finance (capped at 730 days hourly)
+        "binance"  -> Binance CSV archive (disk-cached, years of data) with ccxt fallback
+        "bitget", other -> CCXT live API
     """
     cache_key = f"{source}_{symbol}_{timeframe}_{start_date}_{end_date}"
     cached = _cache.get(cache_key)
@@ -312,6 +350,13 @@ def fetch_ohlcv(
 
     if source == "yfinance":
         df = _fetch_yfinance(symbol, timeframe, start_date, end_date, warmup_periods)
+    elif source == "binance":
+        # Prefer CSV archive (fast, disk-cached), fall back to ccxt API
+        try:
+            df = _fetch_binance_csv(symbol, timeframe, start_date, end_date, warmup_periods)
+        except Exception as e:
+            print(f"    CSV archive failed ({e}), falling back to ccxt API...")
+            df = _fetch_ccxt(symbol, timeframe, "binance", start_date, end_date, warmup_periods)
     else:
         # Treat source as a ccxt exchange ID
         exchange_id = source if source != "ccxt" else exchange

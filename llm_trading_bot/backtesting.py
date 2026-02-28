@@ -23,12 +23,14 @@ from llm_trading_bot.portfolio import Portfolio, PortfolioStats, Trade
 from llm_trading_bot.scoring import (
     Direction,
     IndicatorSet,
+    MarketRegime,
     SignalStrength,
     TradeTargets,
     apply_pre_trade_filters,
     calculate_indicators,
     calculate_targets,
     compute_composite_score,
+    detect_market_regime,
 )
 
 
@@ -265,14 +267,14 @@ class BacktestEngine:
                 confidence_max=scoring_cfg.confidence_max,
             )
 
-            # 4. Calculate targets
+            # 4. Calculate targets (use tier R:R ratios)
             targets = calculate_targets(
                 indicators=primary_ind,
                 direction=result.direction,
                 sl_strategy=self.config.trading.stop_loss_strategy,
                 atr_sl_mult=scoring_cfg.atr_sl_multiplier,
-                atr_tp1_mult=scoring_cfg.atr_tp1_multiplier,
-                atr_tp2_mult=scoring_cfg.atr_tp2_multiplier,
+                tp1_rr=self.tier.tp1_rr,
+                tp2_rr=self.tier.tp2_rr,
             )
 
             # 5. Signal classification
@@ -284,7 +286,7 @@ class BacktestEngine:
             else:
                 signal = SignalStrength.WAIT
 
-            # 6. Pre-trade filters
+            # 6. Pre-trade filters (enhanced with category agreement + regime)
             trade_action = None
             if signal in (SignalStrength.STRONG, SignalStrength.MARGINAL) and targets:
                 filter_failures = apply_pre_trade_filters(
@@ -295,6 +297,12 @@ class BacktestEngine:
                     fee_rate=self.config.fees.active_fee_rate,
                     leverage=self.tier.leverage,
                     check_profit_after_fees=self.config.filters.min_profit_after_fees,
+                    category_scores=result.category_scores,
+                    direction=result.direction,
+                    min_category_agreement=self.config.filters.min_category_agreement,
+                    require_trend_momentum_agree=self.config.filters.require_trend_momentum_agree,
+                    skip_choppy_regime=self.config.filters.skip_choppy_regime,
+                    skip_volatile_regime=self.config.filters.skip_volatile_regime,
                 )
 
                 if not filter_failures and not self.portfolio.open_trades:

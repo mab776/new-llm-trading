@@ -21,6 +21,7 @@ env/
 # Project outputs
 reports/
 logs/
+history/
 *.log
 
 # Secrets / local overrides

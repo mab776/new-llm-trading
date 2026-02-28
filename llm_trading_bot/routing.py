@@ -16,12 +16,14 @@ from llm_trading_bot.config import AppConfig, LeverageTier
 from llm_trading_bot.scoring import (
     Direction,
     IndicatorSet,
+    MarketRegime,
     ScoringResult,
     SignalStrength,
     TradeTargets,
     apply_pre_trade_filters,
     calculate_targets,
     compute_composite_score,
+    detect_market_regime,
     format_scoring_report,
 )
 
@@ -143,7 +145,7 @@ def route_signal(
         confidence_max=scoring_cfg.confidence_max,
     )
 
-    # 2. Calculate targets
+    # 2. Calculate targets (use tier R:R ratios)
     primary_tf = config.trading.primary_timeframe
     primary_ind = indicators_by_tf.get(primary_tf) or next(iter(indicators_by_tf.values()))
     targets = calculate_targets(
@@ -151,11 +153,11 @@ def route_signal(
         direction=result.direction,
         sl_strategy=config.trading.stop_loss_strategy,
         atr_sl_mult=scoring_cfg.atr_sl_multiplier,
-        atr_tp1_mult=scoring_cfg.atr_tp1_multiplier,
-        atr_tp2_mult=scoring_cfg.atr_tp2_multiplier,
+        tp1_rr=tier.tp1_rr,
+        tp2_rr=tier.tp2_rr,
     )
 
-    # 3. Pre-trade filters
+    # 3. Pre-trade filters (with category agreement + regime)
     filter_failures = apply_pre_trade_filters(
         indicators=primary_ind,
         targets=targets,
@@ -164,6 +166,12 @@ def route_signal(
         fee_rate=config.fees.active_fee_rate,
         leverage=tier.leverage,
         check_profit_after_fees=config.filters.min_profit_after_fees,
+        category_scores=result.category_scores,
+        direction=result.direction,
+        min_category_agreement=config.filters.min_category_agreement,
+        require_trend_momentum_agree=config.filters.require_trend_momentum_agree,
+        skip_choppy_regime=config.filters.skip_choppy_regime,
+        skip_volatile_regime=config.filters.skip_volatile_regime,
     )
     result.filter_failures = filter_failures
     result.passed_filters = len(filter_failures) == 0

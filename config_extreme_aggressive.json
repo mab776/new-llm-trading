@@ -1,0 +1,98 @@
+{
+    "openwebui": {
+        "base_url": "http://localhost:3000",
+        "api_key": "",
+        "model_ids": ["llama3.1:8b", "deepseek-r1:14b", "gemma2:9b"],
+        "timeout_seconds": 120
+    },
+    "trading": {
+        "symbol": "BTC-USDT",
+        "yfinance_symbol": "BTC-USD",
+        "timeframes": ["1h", "4h", "1d"],
+        "primary_timeframe": "4h",
+        "leverage_tiers": {
+            "conservative": {
+                "leverage": 20,
+                "strong_threshold": 30,
+                "marginal_threshold_low": 25,
+                "marginal_threshold_high": 30,
+                "tp1_rr": 3.0,
+                "tp2_rr": 6.0,
+                "tp1_exit_pct": 0.5
+            },
+            "aggressive": {
+                "leverage": 20,
+                "strong_threshold": 30,
+                "marginal_threshold_low": 25,
+                "marginal_threshold_high": 30,
+                "tp1_rr": 3.0,
+                "tp2_rr": 6.0,
+                "tp1_exit_pct": 0.5
+            }
+        },
+        "active_tier": "conservative",
+        "stop_loss_strategy": "hybrid",
+        "trailing_stop": {
+            "enabled": false,
+            "activation_pct": 1.0,
+            "callback_pct": 0.5
+        }
+    },
+    "scoring": {
+        "weights": {
+            "trend": 0.30,
+            "momentum": 0.25,
+            "volume": 0.15,
+            "support_resistance": 0.20,
+            "risk": 0.10
+        },
+        "atr_period": 14,
+        "atr_sl_multiplier": 1.0,
+        "atr_tp1_multiplier": 3.0,
+        "atr_tp2_multiplier": 5.0,
+        "adx_ranging_threshold": 20,
+        "min_volatility_pct": 0.3,
+        "confidence_min": 5,
+        "confidence_max": 95
+    },
+    "filters": {
+        "min_adx": 20,
+        "min_volatility_pct": 0.3,
+        "min_profit_after_fees": true,
+        "min_category_agreement": 2,
+        "require_trend_momentum_agree": false,
+        "skip_choppy_regime": true,
+        "skip_volatile_regime": false
+    },
+    "fees": {
+        "maker": 0.0002,
+        "taker": 0.0006,
+        "default_order_type": "taker"
+    },
+    "bitget": {
+        "api_key": "",
+        "api_secret": "",
+        "passphrase": "",
+        "testnet": true,
+        "product_type": "USDT-FUTURES"
+    },
+    "backtesting": {
+        "start_date": "2024-06-01",
+        "end_date": "2025-06-01",
+        "initial_balance": 100,
+        "warmup_periods": 200,
+        "enable_partial_exits": true,
+        "enable_trailing_stops": false
+    },
+    "scheduling": {
+        "interval_minutes": 60,
+        "check_positions_interval_minutes": 15
+    },
+    "data_cache": {
+        "ttl_seconds": 300
+    },
+    "data_source": {
+        "source": "binance",
+        "exchange_symbol": "BTC/USDT"
+    }
+}
