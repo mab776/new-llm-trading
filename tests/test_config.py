@@ -30,10 +30,10 @@ class TestDefaultConfig:
 
     def test_default_leverage_tier(self):
         tier = LeverageTier()
-        assert tier.leverage == 5
-        assert tier.tp1_rr == 2.0
-        assert tier.tp2_rr == 3.5
-        assert tier.tp1_exit_pct == 0.5
+        assert tier.leverage == 20
+        assert tier.tp1_rr == 3.0
+        assert tier.tp2_rr == 6.0
+        assert tier.tp1_exit_pct == 0.3
 
 
 class TestWeightValidation:
@@ -129,7 +129,7 @@ class TestFiltersConfig:
     def test_defaults(self):
         f = FiltersConfig()
         assert f.min_adx == 20
-        assert f.min_category_agreement == 3
+        assert f.min_category_agreement == 2
         assert f.require_trend_momentum_agree is True
         assert f.skip_choppy_regime is True
         assert f.skip_volatile_regime is False

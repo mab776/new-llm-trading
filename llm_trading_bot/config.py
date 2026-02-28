@@ -20,13 +20,13 @@ class OpenWebUIConfig(BaseModel):
 
 
 class LeverageTier(BaseModel):
-    leverage: int = 5
-    strong_threshold: float = 70
-    marginal_threshold_low: float = 45
-    marginal_threshold_high: float = 70
-    tp1_rr: float = 2.0
-    tp2_rr: float = 3.5
-    tp1_exit_pct: float = 0.5
+    leverage: int = 20
+    strong_threshold: float = 30
+    marginal_threshold_low: float = 25
+    marginal_threshold_high: float = 30
+    tp1_rr: float = 3.0
+    tp2_rr: float = 6.0
+    tp1_exit_pct: float = 0.3
 
 
 class TrailingStopConfig(BaseModel):
@@ -58,7 +58,7 @@ class ScoringConfig(BaseModel):
     atr_period: int = 14
     atr_sl_multiplier: float = 1.5
     atr_tp1_multiplier: float = 3.0
-    atr_tp2_multiplier: float = 5.0
+    atr_tp2_multiplier: float = 6.0
     adx_ranging_threshold: float = 20
     min_volatility_pct: float = 0.3
     confidence_min: float = 5
@@ -77,7 +77,7 @@ class FiltersConfig(BaseModel):
     min_adx: float = 20
     min_volatility_pct: float = 0.3
     min_profit_after_fees: bool = True
-    min_category_agreement: int = 3        # At least N/5 categories must agree
+    min_category_agreement: int = 2        # At least N/5 categories must agree
     require_trend_momentum_agree: bool = True  # Trend + momentum must agree
     skip_choppy_regime: bool = True        # Skip trades in choppy markets
     skip_volatile_regime: bool = False     # Skip trades in extremely volatile markets

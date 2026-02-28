@@ -247,6 +247,24 @@ def _compute_analysis(df: pd.DataFrame, timeframe: str) -> dict:
         if bb_range > 0:
             result["bb_position"] = round((float(c.iloc[-1]) - float(bb_low.iloc[-1])) / bb_range, 2)
 
+    # CCI (Commodity Channel Index)
+    tp = (h + l + c) / 3
+    tp_sma = _sma(tp, 20)
+    tp_mad = tp.rolling(20).apply(lambda x: np.abs(x - x.mean()).mean(), raw=True)
+    cci_s = (tp - tp_sma) / (0.015 * tp_mad.replace(0, np.nan))
+    if not pd.isna(cci_s.iloc[-1]):
+        result["cci_20"] = round(float(cci_s.iloc[-1]), 1)
+
+    # ROC (Rate of Change)
+    if len(c) > 10:
+        roc_val = float((c.iloc[-1] - c.iloc[-11]) / c.iloc[-11] * 100)
+        result["roc_10"] = round(roc_val, 2)
+
+    # BB width
+    if not pd.isna(bb_up.iloc[-1]):
+        bb_w = (float(bb_up.iloc[-1]) - float(bb_low.iloc[-1])) / float(bb_mid.iloc[-1]) * 100
+        result["bb_width"] = round(bb_w, 2)
+
     # S/R from previous candle
     if len(df) >= 2:
         prev = df.iloc[-2]
@@ -257,37 +275,192 @@ def _compute_analysis(df: pd.DataFrame, timeframe: str) -> dict:
         result["resistance_1"] = round(pivots["r1"], 2)
         result["resistance_2"] = round(pivots["r2"], 2)
 
-    # Simple scoring
-    score = 0
-    # EMA alignment
-    if result.get("ema_9", 0) > result.get("ema_21", 0) > result.get("ema_50", 0):
-        score += 25
-    elif result.get("ema_9", 0) < result.get("ema_21", 0) < result.get("ema_50", 0):
-        score -= 25
-    # MACD
-    if result.get("macd_hist", 0) > 0:
-        score += 15
+    # ── 5-Category Weighted Scoring (mirrors scoring.py) ──
+    # Weights: trend=0.30, momentum=0.25, volume=0.15, S/R=0.20, risk=0.10
+    WEIGHTS = {"trend": 0.30, "momentum": 0.25, "volume": 0.15,
+               "support_resistance": 0.20, "risk": 0.10}
+
+    # --- TREND (max ±100) ---
+    trend_score = 0.0
+    ema9 = result.get("ema_9", 0)
+    ema21 = result.get("ema_21", 0)
+    ema50 = result.get("ema_50", 0)
+    if ema9 > ema21 > ema50:
+        trend_score += 30
+    elif ema9 < ema21 < ema50:
+        trend_score -= 30
     else:
-        score -= 15
-    # RSI
+        trend_score += 10 if ema9 > ema21 else -10
+    if "ema_200" in result:
+        trend_score += 15 if result["price"] > result["ema_200"] else -15
+    adx_val = result.get("adx", 0)
+    if adx_val > 40:
+        adx_mult = 1.0
+    elif adx_val > 25:
+        adx_mult = 0.7
+    elif adx_val > 20:
+        adx_mult = 0.4
+    else:
+        adx_mult = 0.1
+    pdi = result.get("plus_di", 0)
+    mdi = result.get("minus_di", 0)
+    if pdi and mdi:
+        trend_score += 20 * adx_mult if pdi > mdi else -20 * adx_mult
+    macd_h = result.get("macd_hist", 0)
+    trend_score += 15 if macd_h > 0 else -15
+    ml_val = result.get("macd", 0)
+    ms_val = result.get("macd_signal", 0)
+    trend_score += 5 if ml_val > ms_val else -5
+    trend_score = max(-100, min(100, trend_score))
+
+    # --- MOMENTUM (max ±100) ---
+    mom_score = 0.0
     rsi_val = result.get("rsi_14", 50)
     if rsi_val > 70:
-        score -= 10
-    elif rsi_val < 30:
-        score += 10
-    elif rsi_val > 55:
-        score += 5
-    elif rsi_val < 45:
-        score -= 5
-    # ADX
-    adx_val = result.get("adx", 0)
-    if adx_val < 20:
-        score = int(score * 0.5)
+        mom_score -= 20
+    elif rsi_val > 60:
+        mom_score += 15
+    elif rsi_val > 40:
+        pass  # neutral
+    elif rsi_val > 30:
+        mom_score -= 15
+    else:
+        mom_score += 20
+    sk_val = result.get("stoch_k")
+    sd_val = result.get("stoch_d")
+    if sk_val is not None and sd_val is not None:
+        if sk_val > 80:
+            mom_score -= 10
+        elif sk_val < 20:
+            mom_score += 10
+        elif sk_val > sd_val:
+            mom_score += 10
+        else:
+            mom_score -= 10
+    cci_val = result.get("cci_20")
+    if cci_val is not None:
+        if cci_val > 100:
+            mom_score += 10
+        elif cci_val < -100:
+            mom_score -= 10
+    roc_val = result.get("roc_10")
+    if roc_val is not None:
+        if roc_val > 5:
+            mom_score += 15
+        elif roc_val > 0:
+            mom_score += 5
+        elif roc_val > -5:
+            mom_score -= 5
+        else:
+            mom_score -= 15
+    mom_score = max(-100, min(100, mom_score))
 
-    result["composite_score"] = score
-    if score > 15:
+    # --- VOLUME (max ±100) ---
+    vol_score = 0.0
+    vr = result.get("volume_ratio")
+    if vr is not None:
+        if vr > 2.0:
+            vol_score += 30
+        elif vr > 1.5:
+            vol_score += 20
+        elif vr > 1.0:
+            vol_score += 5
+        elif vr > 0.5:
+            vol_score -= 10
+        else:
+            vol_score -= 25
+    chg_pct = result.get("change_pct", 0)
+    if vr is not None:
+        price_up = chg_pct > 0
+        high_vol = vr > 1.0
+        if price_up and high_vol:
+            vol_score += 20
+        elif not price_up and high_vol:
+            vol_score -= 20
+    obv_t = result.get("obv_trend")
+    if obv_t == "accumulation":
+        vol_score += 15
+    elif obv_t == "distribution":
+        vol_score -= 15
+    vol_score = max(-100, min(100, vol_score))
+
+    # --- SUPPORT/RESISTANCE (max ±100) ---
+    sr_score = 0.0
+    price = result.get("price", 0)
+    s1 = result.get("support_1")
+    r1 = result.get("resistance_1")
+    if price and s1 and r1:
+        dist_sup = (price - s1) / price * 100
+        dist_res = (r1 - price) / price * 100
+        if dist_sup > 0:
+            sr_ratio = dist_res / dist_sup
+        else:
+            sr_ratio = 0
+        if dist_sup < 1.0:
+            sr_score += 25
+        elif dist_res < 1.0:
+            sr_score -= 25
+        if sr_ratio > 3:
+            sr_score += 25
+        elif sr_ratio > 2:
+            sr_score += 15
+        elif sr_ratio > 1:
+            sr_score += 5
+        else:
+            sr_score -= 15
+    bbp = result.get("bb_position")
+    if bbp is not None:
+        if bbp > 0.95:
+            sr_score -= 15
+        elif bbp < 0.05:
+            sr_score += 15
+    sr_score = max(-100, min(100, sr_score))
+
+    # --- RISK (max ±100) ---
+    risk_score = 0.0
+    atr_pct = result.get("atr_pct", 0)
+    if atr_pct > 8:
+        risk_score -= 40
+    elif atr_pct > 5:
+        risk_score -= 20
+    elif atr_pct > 2:
+        risk_score += 10
+    elif atr_pct > 0.5:
+        risk_score += 5
+    else:
+        risk_score -= 30
+    if adx_val < 15:
+        risk_score -= 30
+    elif adx_val < 20:
+        risk_score -= 15
+    else:
+        risk_score += 10
+    bb_w = result.get("bb_width", 5)
+    if bb_w < 2:
+        risk_score -= 10
+    risk_score = max(-100, min(100, risk_score))
+
+    # --- WEIGHTED COMPOSITE ---
+    weighted_total = (
+        trend_score * WEIGHTS["trend"]
+        + mom_score * WEIGHTS["momentum"]
+        + vol_score * WEIGHTS["volume"]
+        + sr_score * WEIGHTS["support_resistance"]
+        + risk_score * WEIGHTS["risk"]
+    )
+    composite = max(-100, min(100, weighted_total))
+
+    result["category_scores"] = {
+        "trend": round(trend_score, 1),
+        "momentum": round(mom_score, 1),
+        "volume": round(vol_score, 1),
+        "support_resistance": round(sr_score, 1),
+        "risk": round(risk_score, 1),
+    }
+    result["composite_score"] = round(composite, 1)
+    if composite > 10:
         result["bias"] = "BULLISH"
-    elif score < -15:
+    elif composite < -10:
         result["bias"] = "BEARISH"
     else:
         result["bias"] = "NEUTRAL"
@@ -315,7 +488,15 @@ def _format_analysis_text(analyses: list[dict]) -> str:
         lines.append(f"  {tf} TIMEFRAME")
         lines.append(f"{'─' * 40}")
         lines.append(f"  Price: ${a.get('price', 0):,.2f} ({a.get('change_pct', 0):+.2f}%)")
-        lines.append(f"  Bias: {a.get('bias', 'N/A')} (score: {a.get('composite_score', 0):+d})")
+        comp = a.get('composite_score', 0)
+        lines.append(f"  Bias: {a.get('bias', 'N/A')} (composite: {comp:+.1f})")
+        cats = a.get("category_scores", {})
+        if cats:
+            lines.append(f"  Category Scores: trend={cats.get('trend', 0):+.0f}×0.30  "
+                         f"momentum={cats.get('momentum', 0):+.0f}×0.25  "
+                         f"volume={cats.get('volume', 0):+.0f}×0.15  "
+                         f"S/R={cats.get('support_resistance', 0):+.0f}×0.20  "
+                         f"risk={cats.get('risk', 0):+.0f}×0.10")
 
         lines.append(f"\n  Trend:")
         lines.append(f"    EMA 9/21/50: ${a.get('ema_9', 0):,.2f} / ${a.get('ema_21', 0):,.2f} / ${a.get('ema_50', 0):,.2f}")
@@ -329,6 +510,10 @@ def _format_analysis_text(analyses: list[dict]) -> str:
         lines.append(f"    RSI(14): {a.get('rsi_14', 0):.1f}")
         if "stoch_k" in a:
             lines.append(f"    Stochastic K/D: {a['stoch_k']:.1f} / {a['stoch_d']:.1f}")
+        if "cci_20" in a:
+            lines.append(f"    CCI(20): {a['cci_20']:.1f}")
+        if "roc_10" in a:
+            lines.append(f"    ROC(10): {a['roc_10']:.2f}%")
 
         lines.append(f"\n  Volume:")
         if "volume_ratio" in a:

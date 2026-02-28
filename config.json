@@ -12,22 +12,22 @@
         "primary_timeframe": "4h",
         "leverage_tiers": {
             "conservative": {
-                "leverage": 7,
+                "leverage": 10,
                 "strong_threshold": 35,
                 "marginal_threshold_low": 25,
                 "marginal_threshold_high": 35,
-                "tp1_rr": 1.5,
-                "tp2_rr": 2.5,
+                "tp1_rr": 2.0,
+                "tp2_rr": 4.0,
                 "tp1_exit_pct": 0.5
             },
             "aggressive": {
-                "leverage": 15,
-                "strong_threshold": 40,
-                "marginal_threshold_low": 30,
-                "marginal_threshold_high": 40,
-                "tp1_rr": 1.2,
-                "tp2_rr": 2.0,
-                "tp1_exit_pct": 0.6
+                "leverage": 20,
+                "strong_threshold": 30,
+                "marginal_threshold_low": 25,
+                "marginal_threshold_high": 30,
+                "tp1_rr": 3.0,
+                "tp2_rr": 6.0,
+                "tp1_exit_pct": 0.3
             }
         },
         "active_tier": "conservative",
@@ -49,7 +49,7 @@
         "atr_period": 14,
         "atr_sl_multiplier": 1.5,
         "atr_tp1_multiplier": 3.0,
-        "atr_tp2_multiplier": 5.0,
+        "atr_tp2_multiplier": 6.0,
         "adx_ranging_threshold": 20,
         "min_volatility_pct": 0.3,
         "confidence_min": 5,
@@ -59,7 +59,7 @@
         "min_adx": 20,
         "min_volatility_pct": 0.3,
         "min_profit_after_fees": true,
-        "min_category_agreement": 3,
+        "min_category_agreement": 2,
         "require_trend_momentum_agree": true,
         "skip_choppy_regime": true,
         "skip_volatile_regime": false
