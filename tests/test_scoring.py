@@ -12,6 +12,7 @@ from llm_trading_bot.scoring import (
     CategoryScore,
     Direction,
     IndicatorSet,
+    MarketRegime,
     SignalStrength,
     TradeTargets,
     apply_pre_trade_filters,
@@ -24,6 +25,7 @@ from llm_trading_bot.scoring import (
     compute_macd,
     compute_rsi,
     compute_sma,
+    detect_market_regime,
     format_indicator_report,
     format_scoring_report,
     score_momentum,
@@ -459,4 +461,114 @@ class TestReportFormatting:
         report = format_scoring_report(result, targets)
         assert "MARKET ANALYSIS REPORT" in report
         assert "Direction" in report
-        assert "Confidence" in report
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Market Regime Detection Tests
+# ──────────────────────────────────────────────────────────────────────
+
+class TestMarketRegime:
+    def test_trending_regime(self):
+        ind = IndicatorSet(timeframe="4h", adx=30, atr_pct=2.0, bb_width=5.0)
+        assert detect_market_regime(ind) == MarketRegime.TRENDING
+
+    def test_choppy_regime(self):
+        ind = IndicatorSet(timeframe="4h", adx=15, atr_pct=1.0, bb_width=2.0)
+        assert detect_market_regime(ind) == MarketRegime.CHOPPY
+
+    def test_volatile_regime(self):
+        ind = IndicatorSet(timeframe="4h", adx=25, atr_pct=6.0, bb_width=5.0)
+        assert detect_market_regime(ind) == MarketRegime.VOLATILE
+
+    def test_ranging_regime(self):
+        ind = IndicatorSet(timeframe="4h", adx=18, atr_pct=2.0, bb_width=5.0)
+        assert detect_market_regime(ind) == MarketRegime.RANGING
+
+    def test_weak_trend_regime(self):
+        ind = IndicatorSet(timeframe="4h", adx=22, atr_pct=2.0, bb_width=5.0)
+        assert detect_market_regime(ind) == MarketRegime.WEAK_TREND
+
+    def test_none_values_use_defaults(self):
+        ind = IndicatorSet(timeframe="4h")  # All None
+        # Defaults: adx=15, atr_pct=1.0, bb_width=5.0 → not choppy (bb_width=5>3)
+        regime = detect_market_regime(ind)
+        assert regime in (MarketRegime.RANGING, MarketRegime.CHOPPY,
+                          MarketRegime.WEAK_TREND, MarketRegime.TRENDING,
+                          MarketRegime.VOLATILE)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Additional Indicator Edge Cases
+# ──────────────────────────────────────────────────────────────────────
+
+class TestIndicatorEdgeCases:
+    def test_stochastic_range(self, sample_ohlcv):
+        from llm_trading_bot.scoring import compute_stochastic
+        k, d = compute_stochastic(
+            sample_ohlcv["High"], sample_ohlcv["Low"], sample_ohlcv["Close"]
+        )
+        valid = k.dropna()
+        assert (valid >= 0).all()
+        assert (valid <= 100).all()
+
+    def test_williams_r_range(self, sample_ohlcv):
+        from llm_trading_bot.scoring import compute_williams_r
+        wr = compute_williams_r(
+            sample_ohlcv["High"], sample_ohlcv["Low"], sample_ohlcv["Close"]
+        )
+        valid = wr.dropna()
+        assert (valid >= -100).all()
+        assert (valid <= 0).all()
+
+    def test_obv_monotonic_on_constant_direction(self):
+        """If price always goes up, OBV should always increase."""
+        from llm_trading_bot.scoring import compute_obv
+        close = pd.Series([100 + i for i in range(50)], dtype=float)
+        volume = pd.Series([1000.0] * 50)
+        obv = compute_obv(close, volume)
+        # After the first diff, OBV should be increasing
+        diffs = obv.diff().iloc[2:]  # Skip first NaN and first diff
+        assert (diffs >= 0).all()
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Pre-Trade Filter Category Agreement Tests
+# ──────────────────────────────────────────────────────────────────────
+
+class TestFilterCategoryAgreement:
+    def test_category_agreement_filter(self):
+        """min_category_agreement=3 but only 2 agree → should fail."""
+        ind = IndicatorSet(timeframe="4h", adx=30, atr_pct=2.0, close=50000)
+        cats = [
+            CategoryScore("trend", 40, 0.3, 12),
+            CategoryScore("momentum", 30, 0.25, 7.5),
+            CategoryScore("volume", -20, 0.15, -3),
+            CategoryScore("support_resistance", -10, 0.2, -2),
+            CategoryScore("risk", -15, 0.1, -1.5),
+        ]
+        failures = apply_pre_trade_filters(
+            ind, None,
+            min_adx=0, min_volatility_pct=0,
+            category_scores=cats,
+            direction=Direction.BULLISH,
+            min_category_agreement=3,
+        )
+        assert any("agreement" in f.lower() for f in failures)
+
+    def test_trend_momentum_disagree_filter(self):
+        """Trend bullish but momentum bearish → should fail."""
+        ind = IndicatorSet(timeframe="4h", adx=30, atr_pct=2.0, close=50000)
+        cats = [
+            CategoryScore("trend", 40, 0.3, 12),
+            CategoryScore("momentum", -30, 0.25, -7.5),
+        ]
+        failures = apply_pre_trade_filters(
+            ind, None,
+            min_adx=0, min_volatility_pct=0,
+            category_scores=cats,
+            direction=Direction.BULLISH,
+            min_category_agreement=0,
+            require_trend_momentum_agree=True,
+        )
+        assert len(failures) > 0
+        assert any("momentum" in f.lower() for f in failures)

@@ -144,7 +144,7 @@ def fast_backtest(
             sl_hit = (l <= trade.stop_loss) if is_long else (h >= trade.stop_loss)
             if sl_hit:
                 gross = ((trade.stop_loss - trade.entry_price) if is_long
-                         else (trade.entry_price - trade.stop_loss)) * trade.remaining_size * trade.leverage
+                         else (trade.entry_price - trade.stop_loss)) * trade.remaining_size
                 ex_fee = _sim_fee(trade.remaining_size, trade.stop_loss, fee_rate)
                 net = gross - ex_fee
                 trade.net_pnl += net
@@ -166,7 +166,7 @@ def fast_backtest(
                     if tp1_hit:
                         exit_size = trade.remaining_size * trade.tp1_exit_pct
                         gross = ((trade.tp1 - trade.entry_price) if is_long
-                                 else (trade.entry_price - trade.tp1)) * exit_size * trade.leverage
+                                 else (trade.entry_price - trade.tp1)) * exit_size
                         ex_fee = _sim_fee(exit_size, trade.tp1, fee_rate)
                         net = gross - ex_fee
                         trade.net_pnl += net
@@ -180,7 +180,7 @@ def fast_backtest(
                     tp2_hit = (h >= trade.tp2) if is_long else (l <= trade.tp2)
                     if tp2_hit:
                         gross = ((trade.tp2 - trade.entry_price) if is_long
-                                 else (trade.entry_price - trade.tp2)) * trade.remaining_size * trade.leverage
+                                 else (trade.entry_price - trade.tp2)) * trade.remaining_size
                         ex_fee = _sim_fee(trade.remaining_size, trade.tp2, fee_rate)
                         net = gross - ex_fee
                         trade.net_pnl += net
@@ -305,7 +305,7 @@ def fast_backtest(
         last = bars[-1]
         is_long = trade.direction == "LONG"
         gross = ((last.close - trade.entry_price) if is_long
-                 else (trade.entry_price - last.close)) * trade.remaining_size * trade.leverage
+                 else (trade.entry_price - last.close)) * trade.remaining_size
         ex_fee = _sim_fee(trade.remaining_size, last.close, fee_rate)
         net = gross - ex_fee
         trade.net_pnl += net

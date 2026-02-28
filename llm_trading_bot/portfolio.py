@@ -185,14 +185,16 @@ class Portfolio:
         """
         Compute PnL for a (partial) exit.
         Returns (gross_pnl, exit_fee, net_pnl).
-        All on the LEVERAGED notional.
+
+        NOTE: position size already includes leverage (size = margin * leverage / price),
+        so we do NOT multiply by leverage again here.
         """
         if trade.direction == "LONG":
             price_diff = exit_price - trade.entry_price
         else:
             price_diff = trade.entry_price - exit_price
 
-        gross_pnl = price_diff * exit_size * trade.leverage
+        gross_pnl = price_diff * exit_size
         exit_fee = self._calculate_fee(exit_size, exit_price, trade.leverage)
         net_pnl = gross_pnl - exit_fee
 
@@ -268,10 +270,11 @@ class Portfolio:
         """Record a point-in-time snapshot."""
         unrealized = 0.0
         for trade in self.open_trades:
+            # Size already includes leverage, so no extra leverage multiplier
             if trade.direction == "LONG":
-                unrealized += (current_price - trade.entry_price) * trade.remaining_size * trade.leverage
+                unrealized += (current_price - trade.entry_price) * trade.remaining_size
             else:
-                unrealized += (trade.entry_price - current_price) * trade.remaining_size * trade.leverage
+                unrealized += (trade.entry_price - current_price) * trade.remaining_size
 
         equity = self.balance + unrealized
         if equity > self.peak_balance:
