@@ -85,6 +85,12 @@ class SimTrade:
     net_pnl: float = 0.0
     partial_done: bool = False
     is_open: bool = True
+    # Trailing stop fields
+    peak_price: float = 0.0
+    trail_distance: float = 0.0
+    trail_activation_price: float = 0.0
+    trail_active: bool = False
+    bars_held: int = 0
 
 
 def _sim_fee(size: float, price: float, fee_rate: float) -> float:
@@ -122,6 +128,9 @@ def fast_backtest(
     initial_balance: float,
     fee_rate: float,
     risk_pct: float = 0.02,
+    exit_strategy: str = "tp1_tp2",
+    trail_atr_mult: float = 2.0,
+    trail_activation_atr: float = 1.0,
 ) -> dict:
     """
     Run a complete backtest on pre-computed bars. Returns stats dict.
@@ -139,18 +148,141 @@ def fast_backtest(
         if trade and trade.is_open:
             is_long = trade.direction == "LONG"
             h, l = bar.high, bar.low
+            trade.bars_held += 1
+            exited = False
 
-            # SL check first (conservative)
-            sl_hit = (l <= trade.stop_loss) if is_long else (h >= trade.stop_loss)
-            if sl_hit:
-                gross = ((trade.stop_loss - trade.entry_price) if is_long
-                         else (trade.entry_price - trade.stop_loss)) * trade.remaining_size
-                ex_fee = _sim_fee(trade.remaining_size, trade.stop_loss, fee_rate)
-                net = gross - ex_fee
-                trade.net_pnl += net
-                balance += net
-                total_fees += ex_fee
-                trade.is_open = False
+            # Update peak price for trailing strategies
+            if exit_strategy in ("trailing", "tp1_trail"):
+                if is_long:
+                    trade.peak_price = max(trade.peak_price, h)
+                else:
+                    trade.peak_price = min(trade.peak_price, l)
+
+            if exit_strategy == "tp1_tp2":
+                # === Fixed TP1 (partial) + TP2 (full) ===
+                sl_hit = (l <= trade.stop_loss) if is_long else (h >= trade.stop_loss)
+                if sl_hit:
+                    gross = ((trade.stop_loss - trade.entry_price) if is_long
+                             else (trade.entry_price - trade.stop_loss)) * trade.remaining_size
+                    ex_fee = _sim_fee(trade.remaining_size, trade.stop_loss, fee_rate)
+                    net = gross - ex_fee
+                    trade.net_pnl += net
+                    balance += net
+                    total_fees += ex_fee
+                    trade.is_open = False
+                    exited = True
+                else:
+                    # TP1 partial
+                    if not trade.partial_done:
+                        tp1_hit = (h >= trade.tp1) if is_long else (l <= trade.tp1)
+                        if tp1_hit:
+                            exit_size = trade.remaining_size * trade.tp1_exit_pct
+                            gross = ((trade.tp1 - trade.entry_price) if is_long
+                                     else (trade.entry_price - trade.tp1)) * exit_size
+                            ex_fee = _sim_fee(exit_size, trade.tp1, fee_rate)
+                            net = gross - ex_fee
+                            trade.net_pnl += net
+                            trade.remaining_size -= exit_size
+                            balance += net
+                            total_fees += ex_fee
+                            trade.partial_done = True
+                    # TP2 full exit
+                    if trade.is_open:
+                        tp2_hit = (h >= trade.tp2) if is_long else (l <= trade.tp2)
+                        if tp2_hit:
+                            gross = ((trade.tp2 - trade.entry_price) if is_long
+                                     else (trade.entry_price - trade.tp2)) * trade.remaining_size
+                            ex_fee = _sim_fee(trade.remaining_size, trade.tp2, fee_rate)
+                            net = gross - ex_fee
+                            trade.net_pnl += net
+                            balance += net
+                            total_fees += ex_fee
+                            trade.is_open = False
+                            exited = True
+
+            elif exit_strategy == "trailing":
+                # === Pure trailing stop — no fixed TPs ===
+                # Check activation
+                if not trade.trail_active:
+                    if is_long:
+                        trade.trail_active = trade.peak_price >= trade.trail_activation_price
+                    else:
+                        trade.trail_active = trade.peak_price <= trade.trail_activation_price
+                # Compute effective SL (ratchet: only tighten, never loosen)
+                if trade.trail_active:
+                    if is_long:
+                        trail_sl = trade.peak_price - trade.trail_distance
+                        effective_sl = max(trade.stop_loss, trail_sl)
+                    else:
+                        trail_sl = trade.peak_price + trade.trail_distance
+                        effective_sl = min(trade.stop_loss, trail_sl)
+                else:
+                    effective_sl = trade.stop_loss
+
+                sl_hit = (l <= effective_sl) if is_long else (h >= effective_sl)
+                if sl_hit:
+                    gross = ((effective_sl - trade.entry_price) if is_long
+                             else (trade.entry_price - effective_sl)) * trade.remaining_size
+                    ex_fee = _sim_fee(trade.remaining_size, effective_sl, fee_rate)
+                    net = gross - ex_fee
+                    trade.net_pnl += net
+                    balance += net
+                    total_fees += ex_fee
+                    trade.is_open = False
+                    exited = True
+
+            elif exit_strategy == "tp1_trail":
+                # === TP1 partial exit, then trail remainder ===
+                if not trade.partial_done:
+                    # Phase 1: SL or TP1
+                    sl_hit = (l <= trade.stop_loss) if is_long else (h >= trade.stop_loss)
+                    if sl_hit:
+                        gross = ((trade.stop_loss - trade.entry_price) if is_long
+                                 else (trade.entry_price - trade.stop_loss)) * trade.remaining_size
+                        ex_fee = _sim_fee(trade.remaining_size, trade.stop_loss, fee_rate)
+                        net = gross - ex_fee
+                        trade.net_pnl += net
+                        balance += net
+                        total_fees += ex_fee
+                        trade.is_open = False
+                        exited = True
+                    else:
+                        tp1_hit = (h >= trade.tp1) if is_long else (l <= trade.tp1)
+                        if tp1_hit:
+                            exit_size = trade.remaining_size * trade.tp1_exit_pct
+                            gross = ((trade.tp1 - trade.entry_price) if is_long
+                                     else (trade.entry_price - trade.tp1)) * exit_size
+                            ex_fee = _sim_fee(exit_size, trade.tp1, fee_rate)
+                            net = gross - ex_fee
+                            trade.net_pnl += net
+                            trade.remaining_size -= exit_size
+                            balance += net
+                            total_fees += ex_fee
+                            trade.partial_done = True
+                            trade.trail_active = True
+                else:
+                    # Phase 2: trailing stop on remainder
+                    if is_long:
+                        trail_sl = trade.peak_price - trade.trail_distance
+                        effective_sl = max(trade.stop_loss, trail_sl)
+                    else:
+                        trail_sl = trade.peak_price + trade.trail_distance
+                        effective_sl = min(trade.stop_loss, trail_sl)
+
+                    sl_hit = (l <= effective_sl) if is_long else (h >= effective_sl)
+                    if sl_hit:
+                        gross = ((effective_sl - trade.entry_price) if is_long
+                                 else (trade.entry_price - effective_sl)) * trade.remaining_size
+                        ex_fee = _sim_fee(trade.remaining_size, effective_sl, fee_rate)
+                        net = gross - ex_fee
+                        trade.net_pnl += net
+                        balance += net
+                        total_fees += ex_fee
+                        trade.is_open = False
+                        exited = True
+
+            # Common post-exit bookkeeping
+            if exited:
                 closed_pnls.append(trade.net_pnl)
                 if balance > peak_balance:
                     peak_balance = balance
@@ -158,42 +290,6 @@ def fast_backtest(
                 if dd > max_dd_pct:
                     max_dd_pct = dd
                 trade = None
-                # Continue to potentially open a new trade this bar
-            else:
-                # TP1 partial
-                if not trade.partial_done:
-                    tp1_hit = (h >= trade.tp1) if is_long else (l <= trade.tp1)
-                    if tp1_hit:
-                        exit_size = trade.remaining_size * trade.tp1_exit_pct
-                        gross = ((trade.tp1 - trade.entry_price) if is_long
-                                 else (trade.entry_price - trade.tp1)) * exit_size
-                        ex_fee = _sim_fee(exit_size, trade.tp1, fee_rate)
-                        net = gross - ex_fee
-                        trade.net_pnl += net
-                        trade.remaining_size -= exit_size
-                        balance += net
-                        total_fees += ex_fee
-                        trade.partial_done = True
-
-                # TP2 full exit
-                if trade.is_open:
-                    tp2_hit = (h >= trade.tp2) if is_long else (l <= trade.tp2)
-                    if tp2_hit:
-                        gross = ((trade.tp2 - trade.entry_price) if is_long
-                                 else (trade.entry_price - trade.tp2)) * trade.remaining_size
-                        ex_fee = _sim_fee(trade.remaining_size, trade.tp2, fee_rate)
-                        net = gross - ex_fee
-                        trade.net_pnl += net
-                        balance += net
-                        total_fees += ex_fee
-                        trade.is_open = False
-                        closed_pnls.append(trade.net_pnl)
-                        if balance > peak_balance:
-                            peak_balance = balance
-                        dd = (peak_balance - balance) / peak_balance * 100 if peak_balance > 0 else 0
-                        if dd > max_dd_pct:
-                            max_dd_pct = dd
-                        trade = None
 
         # --- 2. Try opening a new trade if no position ---
         if trade is not None:
@@ -251,7 +347,10 @@ def fast_backtest(
 
         # Profit-after-fees filter
         total_fee_pct = 2 * fee_rate * leverage * 100
-        reward_1 = abs(tp1 - entry)
+        if exit_strategy == "trailing":
+            reward_1 = trail_activation_atr * atr if trail_activation_atr > 0 else atr
+        else:
+            reward_1 = abs(tp1 - entry)
         profit_at_tp1_pct = (reward_1 / entry * 100 * leverage) if entry else 0
         if profit_at_tp1_pct <= total_fee_pct:
             continue
@@ -287,6 +386,13 @@ def fast_backtest(
         balance -= entry_fee
         total_fees += entry_fee
 
+        # Trailing parameters
+        trail_dist = atr * trail_atr_mult if exit_strategy in ("trailing", "tp1_trail") else 0.0
+        if exit_strategy == "trailing":
+            trail_act = entry + trail_activation_atr * atr if is_long else entry - trail_activation_atr * atr
+        else:
+            trail_act = 0.0
+
         trade = SimTrade(
             direction="LONG" if is_long else "SHORT",
             entry_price=entry,
@@ -298,6 +404,9 @@ def fast_backtest(
             tp2=tp2,
             tp1_exit_pct=tp1_exit_pct,
             entry_fee=entry_fee,
+            peak_price=entry,
+            trail_distance=trail_dist,
+            trail_activation_price=trail_act,
         )
 
     # Force-close at end
@@ -457,36 +566,63 @@ def precompute_bars(
 # Grid definition
 # ---------------------------------------------------------------------------
 
-def build_grid() -> list[dict]:
+def build_grid(strategy: str = "tp1_tp2") -> list[dict]:
     """
-    Build the full parameter grid. Filters out invalid combinations
-    (e.g. tp2 <= tp1, strong <= marginal).
+    Build the parameter grid for a given exit strategy.
+    Filters out invalid combinations (e.g. tp2 <= tp1, strong <= marginal).
     """
-    grid = {
+    common = {
         "leverage":        [3, 5, 7, 10, 15, 20],
         "atr_sl_mult":     [0.8, 1.0, 1.2, 1.5, 2.0, 2.5],
-        "tp1_rr":          [1.0, 1.5, 2.0, 2.5, 3.0],
-        "tp2_rr":          [2.0, 3.0, 4.0, 5.0, 6.0],
-        "tp1_exit_pct":    [0.3, 0.5, 0.7],
         "marginal_low":    [15, 20, 25, 30],
         "strong_thresh":   [25, 30, 35, 40, 45],
-        "min_cat_agree":   [2, 3, 4],
+        "min_cat_agree":   [2, 3],
         "trend_mom_agree": [True, False],
         "skip_choppy":     [True, False],
         "skip_volatile":   [False],
     }
 
+    if strategy == "tp1_tp2":
+        specific = {
+            "tp1_rr":               [1.0, 1.5, 2.0, 2.5, 3.0],
+            "tp2_rr":               [2.0, 3.0, 4.0, 5.0, 6.0],
+            "tp1_exit_pct":         [0.3, 0.5, 0.7],
+            "trail_atr_mult":       [0.0],
+            "trail_activation_atr": [0.0],
+        }
+    elif strategy == "trailing":
+        specific = {
+            "tp1_rr":               [0.0],
+            "tp2_rr":               [0.0],
+            "tp1_exit_pct":         [0.0],
+            "trail_atr_mult":       [1.0, 1.5, 2.0, 2.5, 3.0, 4.0],
+            "trail_activation_atr": [0.0, 0.5, 1.0, 1.5, 2.0],
+        }
+    elif strategy == "tp1_trail":
+        specific = {
+            "tp1_rr":               [1.0, 1.5, 2.0, 2.5, 3.0],
+            "tp2_rr":               [0.0],
+            "tp1_exit_pct":         [0.3, 0.5, 0.7],
+            "trail_atr_mult":       [1.0, 1.5, 2.0, 3.0, 4.0],
+            "trail_activation_atr": [0.0],
+        }
+    else:
+        raise ValueError(f"Unknown strategy: {strategy}")
+
+    grid = {**common, **specific}
     keys = list(grid.keys())
     combos = list(itertools.product(*[grid[k] for k in keys]))
 
     valid = []
     for combo in combos:
         params = dict(zip(keys, combo))
-        # Constraints
-        if params["tp2_rr"] <= params["tp1_rr"]:
-            continue
+        # Common constraint: strong threshold must exceed marginal
         if params["strong_thresh"] <= params["marginal_low"]:
             continue
+        # Strategy-specific constraints
+        if strategy == "tp1_tp2":
+            if params["tp2_rr"] <= params["tp1_rr"]:
+                continue
         valid.append(params)
 
     return valid
@@ -506,6 +642,9 @@ def main():
     parser.add_argument("--sort-by", "-s", default="return_pct",
                         choices=["return_pct", "sharpe", "profit_factor", "calmar"],
                         help="Metric to optimize for")
+    parser.add_argument("--strategy", default="tp1_tp2",
+                        choices=["tp1_tp2", "trailing", "tp1_trail"],
+                        help="Exit strategy to test")
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -521,6 +660,7 @@ def main():
     print(f"Period: {config.backtesting.start_date} to {config.backtesting.end_date}")
     print(f"Initial balance: ${config.backtesting.initial_balance:,.2f}")
     print(f"Optimizing for: {args.sort_by}")
+    print(f"Exit strategy: {args.strategy}")
     print()
 
     # --- 1. Fetch data (cached) ---
@@ -543,7 +683,7 @@ def main():
     print()
 
     # --- 3. Build grid ---
-    grid = build_grid()
+    grid = build_grid(args.strategy)
     print(f"Phase 3: Running {len(grid)} parameter combinations...")
     print()
 
@@ -557,7 +697,9 @@ def main():
     # Progressive CSV output
     csv_path = Path(args.output)
     csv_fields = [
-        "rank", "leverage", "atr_sl_mult", "tp1_rr", "tp2_rr", "tp1_exit_pct",
+        "rank", "exit_strategy", "leverage", "atr_sl_mult",
+        "tp1_rr", "tp2_rr", "tp1_exit_pct",
+        "trail_atr_mult", "trail_activation_atr",
         "marginal_low", "strong_thresh", "min_cat_agree", "trend_mom_agree",
         "skip_choppy", "skip_volatile",
         "trades", "win_rate", "return_pct", "net_pnl", "max_dd_pct",
@@ -589,13 +731,16 @@ def main():
             sl_strategy=sl_strategy,
             initial_balance=initial_bal,
             fee_rate=fee_rate,
+            exit_strategy=args.strategy,
+            trail_atr_mult=params.get("trail_atr_mult", 0.0),
+            trail_activation_atr=params.get("trail_activation_atr", 0.0),
         )
 
         # Calmar ratio
         calmar = stats["return_pct"] / stats["max_dd_pct"] if stats["max_dd_pct"] > 0 else 0
         stats["calmar"] = round(calmar, 2)
 
-        row = {**params, **stats}
+        row = {"exit_strategy": args.strategy, **params, **stats}
         all_results.append(row)
         combos_done += 1
 
@@ -646,16 +791,18 @@ def main():
     print("=" * 120)
     print(
         f"{'#':>3} | {'Lev':>3} | {'SL':>4} | {'TP1':>4} | {'TP2':>4} | {'Exit%':>5} | "
+        f"{'Trail':>5} | {'TrAct':>5} | "
         f"{'Marg':>4} | {'Str':>3} | {'Cat':>3} | {'T+M':>3} | {'Chop':>4} |"
         f" {'Trades':>6} | {'WR%':>5} | {'Return':>8} | {'MaxDD':>6} | {'PF':>5} | "
         f"{'Sharpe':>6} | {'Calmar':>6} | {'Balance':>10}"
     )
-    print("-" * 120)
+    print("-" * 140)
 
     for r in meaningful[:args.top]:
         print(
             f"{r['rank']:>3} | {r['leverage']:>3} | {r['atr_sl_mult']:>4.1f} | "
             f"{r['tp1_rr']:>4.1f} | {r['tp2_rr']:>4.1f} | {r['tp1_exit_pct']:>5.1f} | "
+            f"{r.get('trail_atr_mult', 0):>5.1f} | {r.get('trail_activation_atr', 0):>5.1f} | "
             f"{r['marginal_low']:>4} | {r['strong_thresh']:>3} | {r['min_cat_agree']:>3} | "
             f"{'Y' if r['trend_mom_agree'] else 'N':>3} | "
             f"{'Y' if r['skip_choppy'] else 'N':>4} | "
@@ -678,9 +825,15 @@ def main():
         best_safe = max(safe, key=lambda x: x["return_pct"]) if safe else None
 
         def _fmt(r, label):
+            trail_info = ""
+            if r.get("trail_atr_mult", 0) > 0:
+                trail_info = f" Trail={r['trail_atr_mult']}"
+                if r.get("trail_activation_atr", 0) > 0:
+                    trail_info += f" TrAct={r['trail_activation_atr']}"
             return (
                 f"  {label}: Lev={r['leverage']} SL={r['atr_sl_mult']} "
-                f"TP1={r['tp1_rr']} TP2={r['tp2_rr']} Exit={r['tp1_exit_pct']} "
+                f"TP1={r['tp1_rr']} TP2={r['tp2_rr']} Exit={r['tp1_exit_pct']}"
+                f"{trail_info} "
                 f"Marg={r['marginal_low']} Strong={r['strong_thresh']} "
                 f"Cat={r['min_cat_agree']} T+M={'Y' if r['trend_mom_agree'] else 'N'} "
                 f"Choppy={'Y' if r['skip_choppy'] else 'N'}"
