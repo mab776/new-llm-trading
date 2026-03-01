@@ -101,6 +101,16 @@ class BitgetConfig(BaseModel):
     product_type: str = "USDT-FUTURES"
 
 
+class RiskManagementConfig(BaseModel):
+    """Risk management rules imported from the predecessor project."""
+    max_holding_hours: int = 168        # Force close after this many hours (0 = disabled)
+    cooldown_candles_after_sl: int = 3  # Skip N candles after a SL hit
+    consecutive_loss_penalty: float = 5.0   # Add this to entry threshold per consecutive loss
+    max_consecutive_loss_penalty: float = 20.0  # Cap on total penalty
+    loss_penalty_decay_candles: int = 10    # Candles after last loss before penalty starts decaying
+    use_maker_fee_for_tp: bool = True       # TP exits (limit) use maker fee, SL (market) uses taker
+
+
 class BacktestingConfig(BaseModel):
     start_date: str = "2024-01-01"
     end_date: str = "2025-12-31"
@@ -135,6 +145,7 @@ class AppConfig(BaseModel):
     bitget: BitgetConfig = Field(default_factory=BitgetConfig)
     backtesting: BacktestingConfig = Field(default_factory=BacktestingConfig)
     scheduling: SchedulingConfig = Field(default_factory=SchedulingConfig)
+    risk_management: RiskManagementConfig = Field(default_factory=RiskManagementConfig)
     data_cache: DataCacheConfig = Field(default_factory=DataCacheConfig)
     data_source: DataSourceConfig = Field(default_factory=DataSourceConfig)
 

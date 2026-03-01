@@ -148,6 +148,13 @@ def fast_backtest(
     trail_activation_atr: float = 1.0,
     scoring_weights: Optional[dict[str, float]] = None,
     score_override_fn: Optional[Callable[["PrecomputedBar"], tuple[float, Direction]]] = None,
+    # Risk management (imported from predecessor project)
+    max_holding_bars: int = 42,          # 168h / 4h = 42 bars; 0 = disabled
+    cooldown_candles_after_sl: int = 3,  # skip N bars after SL hit
+    consecutive_loss_penalty: float = 5.0,   # add to threshold per consecutive loss
+    max_loss_penalty: float = 20.0,          # cap on penalty
+    loss_penalty_decay_candles: int = 10,    # decay starts after N candles
+    maker_fee: float = 0.0,             # if >0 use for TP exits, else use fee_rate for all
 ) -> dict:
     """
     Run a complete backtest on pre-computed bars. Returns stats dict.
@@ -163,7 +170,17 @@ def fast_backtest(
     closed_pnls: list[float] = []
     total_fees = 0.0
 
+    # Risk management state
+    consecutive_losses = 0
+    candles_since_last_loss = 999
+    cooldown_remaining = 0
+
     for bar in bars:
+        # Tick risk-management counters
+        candles_since_last_loss += 1
+        if cooldown_remaining > 0:
+            cooldown_remaining -= 1
+
         # --- 1. Check exits on open trade ---
         if trade and trade.is_open:
             is_long = trade.direction == "LONG"
@@ -171,20 +188,36 @@ def fast_backtest(
             trade.bars_held += 1
             exited = False
 
+            # --- Max holding time check (force close) ---
+            if max_holding_bars > 0 and trade.bars_held >= max_holding_bars:
+                gross = ((bar.close - trade.entry_price) if is_long
+                         else (trade.entry_price - bar.close)) * trade.remaining_size
+                ex_fee = _sim_fee(trade.remaining_size, bar.close, fee_rate)
+                net = gross - ex_fee
+                trade.net_pnl += net
+                balance += net
+                total_fees += ex_fee
+                trade.is_open = False
+                exited = True
+
             # Update peak price for trailing strategies
-            if exit_strategy in ("trailing", "tp1_trail"):
+            if not exited and exit_strategy in ("trailing", "tp1_trail"):
                 if is_long:
                     trade.peak_price = max(trade.peak_price, h)
                 else:
                     trade.peak_price = min(trade.peak_price, l)
 
-            if exit_strategy == "tp1_tp2":
+            # Helper: pick fee rate based on exit type
+            _tp_fee = maker_fee if maker_fee > 0 else fee_rate
+            _sl_fee = fee_rate  # SL is always taker (market order)
+
+            if not exited and exit_strategy == "tp1_tp2":
                 # === Fixed TP1 (partial) + TP2 (full) ===
                 sl_hit = (l <= trade.stop_loss) if is_long else (h >= trade.stop_loss)
                 if sl_hit:
                     gross = ((trade.stop_loss - trade.entry_price) if is_long
                              else (trade.entry_price - trade.stop_loss)) * trade.remaining_size
-                    ex_fee = _sim_fee(trade.remaining_size, trade.stop_loss, fee_rate)
+                    ex_fee = _sim_fee(trade.remaining_size, trade.stop_loss, _sl_fee)
                     net = gross - ex_fee
                     trade.net_pnl += net
                     balance += net
@@ -199,7 +232,7 @@ def fast_backtest(
                             exit_size = trade.remaining_size * trade.tp1_exit_pct
                             gross = ((trade.tp1 - trade.entry_price) if is_long
                                      else (trade.entry_price - trade.tp1)) * exit_size
-                            ex_fee = _sim_fee(exit_size, trade.tp1, fee_rate)
+                            ex_fee = _sim_fee(exit_size, trade.tp1, _tp_fee)
                             net = gross - ex_fee
                             trade.net_pnl += net
                             trade.remaining_size -= exit_size
@@ -212,7 +245,7 @@ def fast_backtest(
                         if tp2_hit:
                             gross = ((trade.tp2 - trade.entry_price) if is_long
                                      else (trade.entry_price - trade.tp2)) * trade.remaining_size
-                            ex_fee = _sim_fee(trade.remaining_size, trade.tp2, fee_rate)
+                            ex_fee = _sim_fee(trade.remaining_size, trade.tp2, _tp_fee)
                             net = gross - ex_fee
                             trade.net_pnl += net
                             balance += net
@@ -220,7 +253,7 @@ def fast_backtest(
                             trade.is_open = False
                             exited = True
 
-            elif exit_strategy == "trailing":
+            elif not exited and exit_strategy == "trailing":
                 # === Pure trailing stop — no fixed TPs ===
                 # Check activation
                 if not trade.trail_active:
@@ -243,7 +276,7 @@ def fast_backtest(
                 if sl_hit:
                     gross = ((effective_sl - trade.entry_price) if is_long
                              else (trade.entry_price - effective_sl)) * trade.remaining_size
-                    ex_fee = _sim_fee(trade.remaining_size, effective_sl, fee_rate)
+                    ex_fee = _sim_fee(trade.remaining_size, effective_sl, _sl_fee)
                     net = gross - ex_fee
                     trade.net_pnl += net
                     balance += net
@@ -251,7 +284,7 @@ def fast_backtest(
                     trade.is_open = False
                     exited = True
 
-            elif exit_strategy == "tp1_trail":
+            elif not exited and exit_strategy == "tp1_trail":
                 # === TP1 partial exit, then trail remainder ===
                 if not trade.partial_done:
                     # Phase 1: SL or TP1
@@ -259,7 +292,7 @@ def fast_backtest(
                     if sl_hit:
                         gross = ((trade.stop_loss - trade.entry_price) if is_long
                                  else (trade.entry_price - trade.stop_loss)) * trade.remaining_size
-                        ex_fee = _sim_fee(trade.remaining_size, trade.stop_loss, fee_rate)
+                        ex_fee = _sim_fee(trade.remaining_size, trade.stop_loss, _sl_fee)
                         net = gross - ex_fee
                         trade.net_pnl += net
                         balance += net
@@ -272,7 +305,7 @@ def fast_backtest(
                             exit_size = trade.remaining_size * trade.tp1_exit_pct
                             gross = ((trade.tp1 - trade.entry_price) if is_long
                                      else (trade.entry_price - trade.tp1)) * exit_size
-                            ex_fee = _sim_fee(exit_size, trade.tp1, fee_rate)
+                            ex_fee = _sim_fee(exit_size, trade.tp1, _tp_fee)
                             net = gross - ex_fee
                             trade.net_pnl += net
                             trade.remaining_size -= exit_size
@@ -293,7 +326,7 @@ def fast_backtest(
                     if sl_hit:
                         gross = ((effective_sl - trade.entry_price) if is_long
                                  else (trade.entry_price - effective_sl)) * trade.remaining_size
-                        ex_fee = _sim_fee(trade.remaining_size, effective_sl, fee_rate)
+                        ex_fee = _sim_fee(trade.remaining_size, effective_sl, _sl_fee)
                         net = gross - ex_fee
                         trade.net_pnl += net
                         balance += net
@@ -309,10 +342,22 @@ def fast_backtest(
                 dd = (peak_balance - balance) / peak_balance * 100 if peak_balance > 0 else 0
                 if dd > max_dd_pct:
                     max_dd_pct = dd
+                # Consecutive loss tracking
+                if trade.net_pnl <= 0:
+                    consecutive_losses += 1
+                    candles_since_last_loss = 0
+                    cooldown_remaining = cooldown_candles_after_sl
+                else:
+                    consecutive_losses = 0
+                    candles_since_last_loss = 999
                 trade = None
 
         # --- 2. Try opening a new trade if no position ---
         if trade is not None:
+            continue
+
+        # Cooldown check — skip entries for N candles after SL
+        if cooldown_remaining > 0:
             continue
 
         # Re-derive score with custom weights or override function
@@ -330,8 +375,19 @@ def fast_backtest(
             eff_dir = bar.direction
 
         abs_score = abs(eff_raw)
-        if abs_score < marginal_low:
-            continue  # WAIT signal
+
+        # Apply consecutive loss penalty to entry threshold
+        loss_pen = 0.0
+        if consecutive_losses > 0 and consecutive_loss_penalty > 0:
+            loss_pen = min(consecutive_losses * consecutive_loss_penalty, max_loss_penalty)
+            # Decay after N candles without new loss
+            if loss_penalty_decay_candles > 0 and candles_since_last_loss > loss_penalty_decay_candles:
+                decay_factor = max(0.0, 1.0 - (candles_since_last_loss - loss_penalty_decay_candles) / loss_penalty_decay_candles)
+                loss_pen *= decay_factor
+
+        effective_marginal = marginal_low + loss_pen
+        if abs_score < effective_marginal:
+            continue  # WAIT signal (possibly raised by loss penalty)
 
         if eff_dir == Direction.NEUTRAL:
             continue
@@ -762,6 +818,13 @@ def run_scoring_mode(args, config, bars):
     min_vol = config.filters.min_volatility_pct
     min_adx = config.filters.min_adx
 
+    # Risk management params (from predecessor project)
+    risk_cfg = config.risk_management
+    tf = config.trading.primary_timeframe
+    _hours_per_bar = {"1h": 1, "4h": 4, "1d": 24}.get(tf, 4)
+    _max_hold_bars = risk_cfg.max_holding_hours // _hours_per_bar if risk_cfg.max_holding_hours > 0 else 0
+    _maker_fee = config.fees.maker if risk_cfg.use_maker_fee_for_tp else 0.0
+
     all_profile_results: dict[str, list[dict]] = {}
 
     for profile_name in profiles_to_run:
@@ -794,6 +857,12 @@ def run_scoring_mode(args, config, bars):
                 initial_balance=initial_bal,
                 fee_rate=fee_rate,
                 scoring_weights=weights,
+                max_holding_bars=_max_hold_bars,
+                cooldown_candles_after_sl=risk_cfg.cooldown_candles_after_sl,
+                consecutive_loss_penalty=risk_cfg.consecutive_loss_penalty,
+                max_loss_penalty=risk_cfg.max_consecutive_loss_penalty,
+                loss_penalty_decay_candles=risk_cfg.loss_penalty_decay_candles,
+                maker_fee=_maker_fee,
             )
 
             calmar = (stats["return_pct"] / stats["max_dd_pct"]
@@ -1290,6 +1359,13 @@ def run_strategy_mode(args, config, bars):
     min_vol = config.filters.min_volatility_pct
     min_adx_cfg = config.filters.min_adx
 
+    # Risk management params
+    risk_cfg = config.risk_management
+    tf = config.trading.primary_timeframe
+    _hours_per_bar = {"1h": 1, "4h": 4, "1d": 24}.get(tf, 4)
+    _max_hold_bars = risk_cfg.max_holding_hours // _hours_per_bar if risk_cfg.max_holding_hours > 0 else 0
+    _maker_fee = config.fees.maker if risk_cfg.use_maker_fee_for_tp else 0.0
+
     all_results: list[dict] = []
     best_per_strategy: dict[str, dict] = {}  # strategy×profile → best result
 
@@ -1335,6 +1411,12 @@ def run_strategy_mode(args, config, bars):
                     initial_balance=initial_bal,
                     fee_rate=fee_rate,
                     score_override_fn=score_fn,
+                    max_holding_bars=_max_hold_bars,
+                    cooldown_candles_after_sl=risk_cfg.cooldown_candles_after_sl,
+                    consecutive_loss_penalty=risk_cfg.consecutive_loss_penalty,
+                    max_loss_penalty=risk_cfg.max_consecutive_loss_penalty,
+                    loss_penalty_decay_candles=risk_cfg.loss_penalty_decay_candles,
+                    maker_fee=_maker_fee,
                 )
 
                 calmar = (stats["return_pct"] / stats["max_dd_pct"]
@@ -1548,6 +1630,13 @@ def main():
     min_vol = config.filters.min_volatility_pct
     min_adx_default = config.filters.min_adx
 
+    # Risk management params
+    risk_cfg = config.risk_management
+    tf = config.trading.primary_timeframe
+    _hours_per_bar = {"1h": 1, "4h": 4, "1d": 24}.get(tf, 4)
+    _max_hold_bars = risk_cfg.max_holding_hours // _hours_per_bar if risk_cfg.max_holding_hours > 0 else 0
+    _maker_fee = config.fees.maker if risk_cfg.use_maker_fee_for_tp else 0.0
+
     # Progressive CSV output
     csv_path = Path(args.output)
     csv_fields = [
@@ -1588,6 +1677,12 @@ def main():
             exit_strategy=args.strategy,
             trail_atr_mult=params.get("trail_atr_mult", 0.0),
             trail_activation_atr=params.get("trail_activation_atr", 0.0),
+            max_holding_bars=_max_hold_bars,
+            cooldown_candles_after_sl=risk_cfg.cooldown_candles_after_sl,
+            consecutive_loss_penalty=risk_cfg.consecutive_loss_penalty,
+            max_loss_penalty=risk_cfg.max_consecutive_loss_penalty,
+            loss_penalty_decay_candles=risk_cfg.loss_penalty_decay_candles,
+            maker_fee=_maker_fee,
         )
 
         # Calmar ratio

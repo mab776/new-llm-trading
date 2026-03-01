@@ -72,11 +72,13 @@ class BacktestEngine:
     def __init__(self, config: AppConfig):
         self.config = config
         bt_cfg = config.backtesting
+        risk_cfg = config.risk_management
         self.portfolio = Portfolio(
             initial_balance=bt_cfg.initial_balance,
             maker_fee=config.fees.maker,
             taker_fee=config.fees.taker,
             default_order_type=config.fees.default_order_type,
+            use_maker_fee_for_tp=risk_cfg.use_maker_fee_for_tp,
         )
         self.tier = config.trading.active_leverage_tier
         self.enable_partial = bt_cfg.enable_partial_exits
@@ -85,16 +87,43 @@ class BacktestEngine:
         self.warmup = bt_cfg.warmup_periods
         self.decision_log: list[dict] = []
 
-    def _check_exits(self, trade: Trade, bar_high: float, bar_low: float, bar_time: str) -> None:
+        # Risk management state (imported from predecessor project)
+        self.risk_cfg = risk_cfg
+        self.consecutive_losses = 0
+        self.candles_since_last_loss = 999  # large initial = no penalty
+        self.cooldown_remaining = 0  # candles to skip after SL
+
+    def _check_exits(self, trade: Trade, bar_high: float, bar_low: float,
+                     bar_close: float, bar_time: str) -> None:
         """
         Check if any open trade should be exited based on the current bar.
         Uses high/low to check SL/TP hits — assumes worst-case execution order:
         SL checked first (conservative assumption).
+        Also checks max holding time (force close after N hours).
         """
         if not trade.is_open:
             return
 
+        trade.bars_held += 1
         is_long = trade.direction == "LONG"
+
+        # Check max holding time first (force close on current bar close)
+        max_hours = self.risk_cfg.max_holding_hours
+        if max_hours > 0:
+            # Convert hours to bars based on primary timeframe
+            tf = self.config.trading.primary_timeframe
+            hours_per_bar = {"1h": 1, "4h": 4, "1d": 24}.get(tf, 4)
+            max_bars = max_hours // hours_per_bar
+            if trade.bars_held >= max_bars:
+                self.portfolio.close_trade(trade, bar_close, bar_time, "time_expired")
+                print(f"    << TIME_EXPIRED {trade.direction} after {trade.bars_held} bars @ ${bar_close:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
+                self.decision_log.append({
+                    "time": bar_time, "action": "TIME_EXPIRED",
+                    "price": bar_close, "trade_id": trade.trade_id,
+                    "pnl": trade.net_pnl, "bars_held": trade.bars_held,
+                })
+                self._on_trade_closed(trade)
+                return
 
         # Check Stop Loss first (conservative)
         sl_hit = (bar_low <= trade.stop_loss) if is_long else (bar_high >= trade.stop_loss)
@@ -106,6 +135,7 @@ class BacktestEngine:
                 "price": trade.stop_loss, "trade_id": trade.trade_id,
                 "pnl": trade.net_pnl,
             })
+            self._on_trade_closed(trade)
             return
 
         # Check TP1 (partial exit)
@@ -138,6 +168,44 @@ class BacktestEngine:
                     "price": trade.take_profit_2, "trade_id": trade.trade_id,
                     "pnl": trade.net_pnl,
                 })
+                self._on_trade_closed(trade)
+
+    def _on_trade_closed(self, trade: Trade) -> None:
+        """
+        Update consecutive loss tracking and cooldown after a trade closes.
+        Imported from predecessor project's risk management system.
+        """
+        if trade.net_pnl <= 0:
+            self.consecutive_losses += 1
+            self.candles_since_last_loss = 0
+            # Activate cooldown after SL hits (not after time_expired)
+            if trade.exit_reason in ("sl", "trailing_stop"):
+                self.cooldown_remaining = self.risk_cfg.cooldown_candles_after_sl
+        else:
+            # Win resets consecutive losses
+            self.consecutive_losses = 0
+            self.candles_since_last_loss = 999
+
+    def _get_loss_penalty(self) -> float:
+        """
+        Calculate how much to raise the entry threshold based on consecutive losses.
+        Penalty decays after N candles without a new loss.
+        """
+        if self.consecutive_losses == 0:
+            return 0.0
+
+        base_penalty = min(
+            self.consecutive_losses * self.risk_cfg.consecutive_loss_penalty,
+            self.risk_cfg.max_consecutive_loss_penalty,
+        )
+
+        # Apply time decay: reduce penalty linearly after decay_candles
+        decay = self.risk_cfg.loss_penalty_decay_candles
+        if decay > 0 and self.candles_since_last_loss > decay:
+            decay_factor = max(0.0, 1.0 - (self.candles_since_last_loss - decay) / decay)
+            return base_penalty * decay_factor
+
+        return base_penalty
 
     def _update_trailing_stop(self, trade: Trade, bar_high: float, bar_low: float) -> None:
         """Update trailing stop if enabled and activated."""
@@ -235,7 +303,12 @@ class BacktestEngine:
             # 1. Check exits on existing positions FIRST (on this bar's high/low)
             for trade in list(self.portfolio.open_trades):
                 self._update_trailing_stop(trade, bar_high, bar_low)
-                self._check_exits(trade, bar_high, bar_low, bar_time)
+                self._check_exits(trade, bar_high, bar_low, bar_close, bar_time)
+
+            # Tick risk-management counters
+            self.candles_since_last_loss += 1
+            if self.cooldown_remaining > 0:
+                self.cooldown_remaining -= 1
 
             # 2. Calculate indicators on data UP TO this bar
             indicators_by_tf: dict[str, IndicatorSet] = {}
@@ -277,11 +350,15 @@ class BacktestEngine:
                 tp2_rr=self.tier.tp2_rr,
             )
 
-            # 5. Signal classification
+            # 5. Signal classification (with consecutive loss penalty)
             abs_score = abs(result.raw_score)
-            if abs_score >= self.tier.strong_threshold:
+            loss_penalty = self._get_loss_penalty()
+            effective_marginal_low = self.tier.marginal_threshold_low + loss_penalty
+            effective_strong = self.tier.strong_threshold + loss_penalty
+
+            if abs_score >= effective_strong:
                 signal = SignalStrength.STRONG
-            elif abs_score >= self.tier.marginal_threshold_low:
+            elif abs_score >= effective_marginal_low:
                 signal = SignalStrength.MARGINAL
             else:
                 signal = SignalStrength.WAIT
@@ -289,49 +366,53 @@ class BacktestEngine:
             # 6. Pre-trade filters (enhanced with category agreement + regime)
             trade_action = None
             if signal in (SignalStrength.STRONG, SignalStrength.MARGINAL) and targets:
-                filter_failures = apply_pre_trade_filters(
-                    indicators=primary_ind,
-                    targets=targets,
-                    min_adx=self.config.filters.min_adx,
-                    min_volatility_pct=self.config.filters.min_volatility_pct,
-                    fee_rate=self.config.fees.active_fee_rate,
-                    leverage=self.tier.leverage,
-                    check_profit_after_fees=self.config.filters.min_profit_after_fees,
-                    category_scores=result.category_scores,
-                    direction=result.direction,
-                    min_category_agreement=self.config.filters.min_category_agreement,
-                    require_trend_momentum_agree=self.config.filters.require_trend_momentum_agree,
-                    skip_choppy_regime=self.config.filters.skip_choppy_regime,
-                    skip_volatile_regime=self.config.filters.skip_volatile_regime,
-                )
-
-                if not filter_failures and not self.portfolio.open_trades:
-                    # No open positions — open a new trade
-                    # For backtesting, MARGINAL signals are treated as trades too
-                    # (we can't call the LLM in a backtest)
-                    direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
-                    trade = self.portfolio.open_trade(
-                        direction=direction_str,
-                        entry_price=bar_close,
-                        entry_time=bar_time,
-                        stop_loss=targets.stop_loss,
-                        take_profit_1=targets.take_profit_1,
-                        take_profit_2=targets.take_profit_2,
+                # Cooldown check — skip entries for N candles after SL
+                if self.cooldown_remaining > 0:
+                    pass  # blocked by cooldown
+                else:
+                    filter_failures = apply_pre_trade_filters(
+                        indicators=primary_ind,
+                        targets=targets,
+                        min_adx=self.config.filters.min_adx,
+                        min_volatility_pct=self.config.filters.min_volatility_pct,
+                        fee_rate=self.config.fees.active_fee_rate,
                         leverage=self.tier.leverage,
-                        risk_pct=0.02,
-                        tp1_exit_pct=self.tier.tp1_exit_pct,
+                        check_profit_after_fees=self.config.filters.min_profit_after_fees,
+                        category_scores=result.category_scores,
+                        direction=result.direction,
+                        min_category_agreement=self.config.filters.min_category_agreement,
+                        require_trend_momentum_agree=self.config.filters.require_trend_momentum_agree,
+                        skip_choppy_regime=self.config.filters.skip_choppy_regime,
+                        skip_volatile_regime=self.config.filters.skip_volatile_regime,
                     )
-                    trade_action = f"OPEN_{direction_str}"
-                    print(f"    >> {trade_action} @ ${bar_close:,.2f} | Score: {result.raw_score:+.1f} | SL: ${targets.stop_loss:,.2f} | TP1: ${targets.take_profit_1:,.2f} | TP2: ${targets.take_profit_2:,.2f}")
 
-                    self.decision_log.append({
-                        "time": bar_time, "action": trade_action,
-                        "price": bar_close, "score": result.raw_score,
-                        "confidence": result.confidence,
-                        "signal": signal.value,
-                        "sl": targets.stop_loss, "tp1": targets.take_profit_1,
-                        "tp2": targets.take_profit_2,
-                    })
+                    if not filter_failures and not self.portfolio.open_trades:
+                        # No open positions — open a new trade
+                        # For backtesting, MARGINAL signals are treated as trades too
+                        # (we can't call the LLM in a backtest)
+                        direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                        trade = self.portfolio.open_trade(
+                            direction=direction_str,
+                            entry_price=bar_close,
+                            entry_time=bar_time,
+                            stop_loss=targets.stop_loss,
+                            take_profit_1=targets.take_profit_1,
+                            take_profit_2=targets.take_profit_2,
+                            leverage=self.tier.leverage,
+                            risk_pct=0.02,
+                            tp1_exit_pct=self.tier.tp1_exit_pct,
+                        )
+                        trade_action = f"OPEN_{direction_str}"
+                        print(f"    >> {trade_action} @ ${bar_close:,.2f} | Score: {result.raw_score:+.1f} | SL: ${targets.stop_loss:,.2f} | TP1: ${targets.take_profit_1:,.2f} | TP2: ${targets.take_profit_2:,.2f}")
+
+                        self.decision_log.append({
+                            "time": bar_time, "action": trade_action,
+                            "price": bar_close, "score": result.raw_score,
+                            "confidence": result.confidence,
+                            "signal": signal.value,
+                            "sl": targets.stop_loss, "tp1": targets.take_profit_1,
+                            "tp2": targets.take_profit_2,
+                        })
 
             # Record bar
             backtest_bar = BacktestBar(

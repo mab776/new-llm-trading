@@ -38,11 +38,12 @@ class Trade:
     total_fees: float = 0.0
     gross_pnl: float = 0.0
     net_pnl: float = 0.0
-    exit_reason: str = ""  # "tp1", "tp2", "sl", "trailing_stop", "manual"
+    exit_reason: str = ""  # "tp1", "tp2", "sl", "trailing_stop", "manual", "time_expired"
 
     # Partial exit tracking
     partial_exits: list[dict] = field(default_factory=list)
     remaining_size: float = 0.0
+    bars_held: int = 0  # Number of bars since entry
 
     @property
     def is_open(self) -> bool:
@@ -103,12 +104,14 @@ class Portfolio:
         maker_fee: float = 0.0002,
         taker_fee: float = 0.0006,
         default_order_type: str = "taker",
+        use_maker_fee_for_tp: bool = True,
     ):
         self.initial_balance = initial_balance
         self.balance = initial_balance
         self.maker_fee = maker_fee
         self.taker_fee = taker_fee
         self.default_order_type = default_order_type
+        self.use_maker_fee_for_tp = use_maker_fee_for_tp
 
         self.trades: list[Trade] = []
         self.open_trades: list[Trade] = []
@@ -121,13 +124,32 @@ class Portfolio:
     def fee_rate(self) -> float:
         return self.maker_fee if self.default_order_type == "maker" else self.taker_fee
 
-    def _calculate_fee(self, size: float, price: float, leverage: int) -> float:
+    def _fee_rate_for_exit(self, reason: str) -> float:
+        """
+        Return the appropriate fee rate based on exit type.
+        TP exits use limit orders (maker fee), SL exits use market orders (taker fee).
+        """
+        if not self.use_maker_fee_for_tp:
+            return self.fee_rate
+        # TP exits are limit orders → maker fee
+        if reason in ("tp1", "tp2"):
+            return self.maker_fee
+        # SL / trailing / manual / end_of_backtest → taker fee (market order)
+        return self.taker_fee
+
+    def _calculate_fee(self, size: float, price: float, leverage: int,
+                       exit_reason: str = "") -> float:
         """
         Calculate fee on leveraged notional.
         Fee = size * price * fee_rate (the notional IS the leveraged amount).
+        When exit_reason is provided, uses maker/taker differentiation.
         """
         notional = size * price
-        return notional * self.fee_rate
+        if exit_reason:
+            rate = self._fee_rate_for_exit(exit_reason)
+        else:
+            rate = self.fee_rate  # Entry fee uses default
+        return notional * rate
 
     def _calculate_position_size(
         self, price: float, leverage: int, risk_pct: float = 0.02
@@ -181,7 +203,8 @@ class Portfolio:
 
         return trade
 
-    def _compute_pnl(self, trade: Trade, exit_price: float, exit_size: float) -> tuple[float, float, float]:
+    def _compute_pnl(self, trade: Trade, exit_price: float, exit_size: float,
+                     exit_reason: str = "") -> tuple[float, float, float]:
         """
         Compute PnL for a (partial) exit.
         Returns (gross_pnl, exit_fee, net_pnl).
@@ -195,7 +218,8 @@ class Portfolio:
             price_diff = trade.entry_price - exit_price
 
         gross_pnl = price_diff * exit_size
-        exit_fee = self._calculate_fee(exit_size, exit_price, trade.leverage)
+        exit_fee = self._calculate_fee(exit_size, exit_price, trade.leverage,
+                                       exit_reason=exit_reason)
         net_pnl = gross_pnl - exit_fee
 
         return gross_pnl, exit_fee, net_pnl
@@ -210,7 +234,8 @@ class Portfolio:
         if exit_size <= 0:
             return 0.0
 
-        gross_pnl, exit_fee, net_pnl = self._compute_pnl(trade, exit_price, exit_size)
+        gross_pnl, exit_fee, net_pnl = self._compute_pnl(trade, exit_price, exit_size,
+                                                          exit_reason=reason)
 
         trade.partial_exits.append({
             "price": exit_price,
@@ -243,7 +268,8 @@ class Portfolio:
             return 0.0
 
         remaining = trade.remaining_size
-        gross_pnl, exit_fee, net_pnl = self._compute_pnl(trade, exit_price, remaining)
+        gross_pnl, exit_fee, net_pnl = self._compute_pnl(trade, exit_price, remaining,
+                                                          exit_reason=reason)
 
         trade.exit_price = exit_price
         trade.exit_time = exit_time

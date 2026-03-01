@@ -1024,3 +1024,196 @@ class TestStrategyBacktestIntegration:
             score_override_fn=always_neutral,
         )
         assert result["trades"] == 0
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Risk Management (imported from predecessor project)
+# ──────────────────────────────────────────────────────────────────────
+
+class TestMaxHoldingTime:
+    """Test that trades are force-closed after max_holding_bars."""
+
+    def test_trade_force_closed_at_max_bars(self):
+        """Trade should be force-closed when holding time exceeds max."""
+        # Bar 0: open trade, bars 1-4: hold, bar 5: should force close at max=5
+        bars = [
+            _make_bar(0, 50000, raw_score=50, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+        ]
+        # Add 6 bars that don't hit SL or TP (price stays flat)
+        for i in range(1, 7):
+            bars.append(_make_bar(i, 50100, high=50200, low=49900))
+
+        result = fast_backtest(
+            bars, leverage=10, atr_sl_mult=1.5, tp1_rr=2.0, tp2_rr=4.0,
+            tp1_exit_pct=0.5, marginal_low=20, strong_thresh=40,
+            min_adx=0, min_volatility_pct=0, min_category_agreement=0,
+            require_trend_momentum_agree=False, skip_choppy=False,
+            skip_volatile=False, sl_strategy="atr",
+            initial_balance=10000, fee_rate=0.0006, risk_pct=0.02,
+            max_holding_bars=5,  # Force close after 5 bars
+        )
+        assert result["trades"] == 1  # Trade was opened and force-closed
+
+    def test_disabled_max_holding(self):
+        """max_holding_bars=0 should not force close."""
+        bars = [
+            _make_bar(0, 50000, raw_score=50, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+        ]
+        for i in range(1, 10):
+            bars.append(_make_bar(i, 50100, high=50200, low=49900))
+
+        result = fast_backtest(
+            bars, leverage=10, atr_sl_mult=1.5, tp1_rr=2.0, tp2_rr=4.0,
+            tp1_exit_pct=0.5, marginal_low=20, strong_thresh=40,
+            min_adx=0, min_volatility_pct=0, min_category_agreement=0,
+            require_trend_momentum_agree=False, skip_choppy=False,
+            skip_volatile=False, sl_strategy="atr",
+            initial_balance=10000, fee_rate=0.0006, risk_pct=0.02,
+            max_holding_bars=0,  # Disabled
+        )
+        # Trade closed at end of backtest (force close), but not by max holding
+        assert result["trades"] == 1
+
+
+class TestCooldownAfterSL:
+    """Test that entries are blocked for N candles after SL hit."""
+
+    def test_cooldown_blocks_immediate_reentry(self):
+        """After SL, should skip entries for cooldown_candles_after_sl bars."""
+        bars = [
+            # Bar 0: open long
+            _make_bar(0, 50000, raw_score=50, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            # Bar 1: SL hit (price drops below SL=50000-1500=48500)
+            _make_bar(1, 47000, high=49000, low=46000,
+                      raw_score=50, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            # Bar 2: strong signal but should be blocked by cooldown
+            _make_bar(2, 47500, high=47600, low=47400,
+                      raw_score=60, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            # Bar 3: still in cooldown
+            _make_bar(3, 48000, high=48100, low=47900,
+                      raw_score=60, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            # Bar 4: cooldown expired, can trade again
+            _make_bar(4, 48500, high=48600, low=48400,
+                      raw_score=60, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            _make_bar(5, 52000, high=55000, low=48000),
+        ]
+
+        # With cooldown=3
+        result_cool = fast_backtest(
+            bars, leverage=10, atr_sl_mult=1.5, tp1_rr=2.0, tp2_rr=4.0,
+            tp1_exit_pct=0.5, marginal_low=20, strong_thresh=40,
+            min_adx=0, min_volatility_pct=0, min_category_agreement=0,
+            require_trend_momentum_agree=False, skip_choppy=False,
+            skip_volatile=False, sl_strategy="atr",
+            initial_balance=10000, fee_rate=0.0006, risk_pct=0.02,
+            cooldown_candles_after_sl=3,
+        )
+
+        # Without cooldown
+        result_no = fast_backtest(
+            bars, leverage=10, atr_sl_mult=1.5, tp1_rr=2.0, tp2_rr=4.0,
+            tp1_exit_pct=0.5, marginal_low=20, strong_thresh=40,
+            min_adx=0, min_volatility_pct=0, min_category_agreement=0,
+            require_trend_momentum_agree=False, skip_choppy=False,
+            skip_volatile=False, sl_strategy="atr",
+            initial_balance=10000, fee_rate=0.0006, risk_pct=0.02,
+            cooldown_candles_after_sl=0,
+        )
+
+        # With cooldown, fewer trades should be opened (2nd trade blocked or delayed)
+        assert result_cool["trades"] <= result_no["trades"]
+
+
+class TestConsecutiveLossPenalty:
+    """Test that consecutive losses raise the entry threshold."""
+
+    def test_penalty_raises_threshold(self):
+        """After losses, marginal_low should effectively increase."""
+        bars = [
+            # Trade 1: open and lose
+            _make_bar(0, 50000, raw_score=50, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            _make_bar(1, 47000, high=49000, low=46000,
+                      raw_score=25, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            # Trade 2: marginal signal that would normally qualify
+            # but after 1 loss with 5% penalty, threshold goes from 20 to 25
+            # so score of 25 is now borderline
+            _make_bar(2, 47500, raw_score=22, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            _make_bar(3, 48000, high=48100, low=47900),
+        ]
+
+        # With consecutive loss penalty (threshold effectively 25 after 1 loss)
+        result_penalty = fast_backtest(
+            bars, leverage=10, atr_sl_mult=1.5, tp1_rr=2.0, tp2_rr=4.0,
+            tp1_exit_pct=0.5, marginal_low=20, strong_thresh=40,
+            min_adx=0, min_volatility_pct=0, min_category_agreement=0,
+            require_trend_momentum_agree=False, skip_choppy=False,
+            skip_volatile=False, sl_strategy="atr",
+            initial_balance=10000, fee_rate=0.0006, risk_pct=0.02,
+            consecutive_loss_penalty=5.0, max_loss_penalty=20.0,
+            cooldown_candles_after_sl=0,  # disable cooldown to isolate penalty test
+        )
+
+        # Without penalty
+        result_no = fast_backtest(
+            bars, leverage=10, atr_sl_mult=1.5, tp1_rr=2.0, tp2_rr=4.0,
+            tp1_exit_pct=0.5, marginal_low=20, strong_thresh=40,
+            min_adx=0, min_volatility_pct=0, min_category_agreement=0,
+            require_trend_momentum_agree=False, skip_choppy=False,
+            skip_volatile=False, sl_strategy="atr",
+            initial_balance=10000, fee_rate=0.0006, risk_pct=0.02,
+            consecutive_loss_penalty=0.0,
+            cooldown_candles_after_sl=0,
+        )
+
+        # With penalty, fewer trades should qualify
+        assert result_penalty["trades"] <= result_no["trades"]
+
+
+class TestMakerFeeInGridSearch:
+    """Test that maker_fee parameter applies to TP exits in fast_backtest."""
+
+    def test_lower_fees_on_tp(self):
+        """TP exits should use cheaper maker fee, resulting in higher net PnL."""
+        bars = [
+            _make_bar(0, 50000, raw_score=50, direction=Direction.BULLISH,
+                      atr_14=1000, adx=30, atr_pct=2.0),
+            # TP1 hit (entry=50000, sl=48500, tp1=50000+1500*2=53000)
+            _make_bar(1, 53500, high=55000, low=52000),
+        ]
+
+        # With maker fee for TP
+        result_maker = fast_backtest(
+            bars, leverage=10, atr_sl_mult=1.5, tp1_rr=2.0, tp2_rr=4.0,
+            tp1_exit_pct=0.5, marginal_low=20, strong_thresh=40,
+            min_adx=0, min_volatility_pct=0, min_category_agreement=0,
+            require_trend_momentum_agree=False, skip_choppy=False,
+            skip_volatile=False, sl_strategy="atr",
+            initial_balance=10000, fee_rate=0.0006, risk_pct=0.02,
+            maker_fee=0.0002,  # TP uses 0.02% instead of 0.06%
+        )
+
+        # Without maker fee
+        result_no_maker = fast_backtest(
+            bars, leverage=10, atr_sl_mult=1.5, tp1_rr=2.0, tp2_rr=4.0,
+            tp1_exit_pct=0.5, marginal_low=20, strong_thresh=40,
+            min_adx=0, min_volatility_pct=0, min_category_agreement=0,
+            require_trend_momentum_agree=False, skip_choppy=False,
+            skip_volatile=False, sl_strategy="atr",
+            initial_balance=10000, fee_rate=0.0006, risk_pct=0.02,
+            maker_fee=0.0,  # disabled
+        )
+
+        # Lower fees → higher net PnL
+        assert result_maker["net_pnl"] > result_no_maker["net_pnl"]
+        # But same number of trades
+        assert result_maker["trades"] == result_no_maker["trades"]

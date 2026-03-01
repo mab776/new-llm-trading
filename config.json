@@ -91,6 +91,14 @@
     "data_cache": {
         "ttl_seconds": 300
     },
+    "risk_management": {
+        "max_holding_hours": 0,
+        "cooldown_candles_after_sl": 3,
+        "consecutive_loss_penalty": 5.0,
+        "max_consecutive_loss_penalty": 20.0,
+        "loss_penalty_decay_candles": 10,
+        "use_maker_fee_for_tp": true
+    },
     "data_source": {
         "source": "binance",
         "exchange_symbol": "BTC/USDT"

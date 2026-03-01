@@ -15,6 +15,7 @@ from llm_trading_bot.config import (
     FeesConfig,
     FiltersConfig,
     LeverageTier,
+    RiskManagementConfig,
     ScoringConfig,
     TradingConfig,
     load_config,
@@ -141,3 +142,29 @@ class TestBacktestingConfig:
         assert bc.warmup_periods == 200
         assert bc.enable_partial_exits is True
         assert bc.enable_trailing_stops is False
+
+
+class TestRiskManagementConfig:
+    def test_defaults(self):
+        rm = RiskManagementConfig()
+        assert rm.max_holding_hours == 168
+        assert rm.cooldown_candles_after_sl == 3
+        assert rm.consecutive_loss_penalty == 5.0
+        assert rm.max_consecutive_loss_penalty == 20.0
+        assert rm.loss_penalty_decay_candles == 10
+        assert rm.use_maker_fee_for_tp is True
+
+    def test_custom_values(self):
+        rm = RiskManagementConfig(
+            max_holding_hours=48,
+            cooldown_candles_after_sl=5,
+            consecutive_loss_penalty=10.0,
+        )
+        assert rm.max_holding_hours == 48
+        assert rm.cooldown_candles_after_sl == 5
+        assert rm.consecutive_loss_penalty == 10.0
+
+    def test_in_app_config(self):
+        cfg = AppConfig()
+        assert cfg.risk_management.max_holding_hours == 168
+        assert cfg.risk_management.use_maker_fee_for_tp is True

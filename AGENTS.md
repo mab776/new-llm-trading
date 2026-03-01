@@ -40,6 +40,19 @@ Market Data → Scoring Engine → Signal Router
 | **Scheduler** | `llm_trading_bot/scheduler.py` | Cron-like scheduling + position management |
 | **Main** | `llm_trading_bot/main.py` | Entry point (analyze, backtest, live modes) |
 
+### Risk Management (imported from predecessor project)
+
+The `RiskManagementConfig` in `config.py` controls four features ported from the old project:
+
+| Feature | Config Key | Default | Effect |
+|---------|-----------|---------|--------|
+| **Max holding time** | `max_holding_hours` | 168 (7 days) | Force-close after N hours |
+| **Post-SL cooldown** | `cooldown_candles_after_sl` | 3 | Skip N candles after SL hit |
+| **Consecutive loss penalty** | `consecutive_loss_penalty` | 5.0 | Raise entry threshold per loss |
+| **Maker/taker fees** | `use_maker_fee_for_tp` | true | TP→maker fee, SL→taker fee |
+
+These are implemented in both `backtesting.py` (full engine) and `grid_search.py` (fast backtest).
+
 ### Key Design Principle: Single Source of Truth
 
 **`scoring.py` is THE source of truth** for all technical calculations. Every module that needs

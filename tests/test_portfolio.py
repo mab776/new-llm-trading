@@ -167,9 +167,9 @@ class TestPnLMagnitude:
 
           Price goes 50000 → 52000, diff = +2000
           gross_pnl = 2000 * 0.04 = 80  (NO extra leverage — size IS leveraged)
-          entry_fee = 0.04 * 50000 * 0.0006 = 1.2
-          exit_fee  = 0.04 * 52000 * 0.0006 = 1.248
-          net_pnl = 80 - 1.248 = 78.752
+          entry_fee = 0.04 * 50000 * 0.0006 = 1.2  (taker)
+          exit_fee  = 0.04 * 52000 * 0.0002 = 0.416  (maker — TP exit uses limit order)
+          net_pnl = 80 - 0.416 = 79.584
         """
         port = Portfolio(initial_balance=10000, taker_fee=0.0006)
         trade = port.open_trade(
@@ -184,7 +184,8 @@ class TestPnLMagnitude:
 
         # PnL should be ~$80 gross, NOT $800 (double-leverage bug)
         assert trade.gross_pnl == pytest.approx(80.0, rel=1e-4)
-        exit_fee = 0.04 * 52000 * 0.0006
+        # TP exit uses maker fee (0.0002) since use_maker_fee_for_tp defaults to True
+        exit_fee = 0.04 * 52000 * 0.0002
         assert trade.exit_fee == pytest.approx(exit_fee, rel=1e-3)
         assert trade.net_pnl == pytest.approx(80.0 - exit_fee, rel=1e-3)
 
@@ -341,3 +342,63 @@ class TestPortfolioStats:
         expected_pct = (stats.final_balance - 10000) / 10000 * 100
         # Both are rounded to 2 decimals, so abs tolerance is appropriate
         assert stats.total_return_pct == pytest.approx(expected_pct, abs=0.02)
+
+
+class TestMakerTakerDifferentiation:
+    """Test that TP exits use maker fee and SL exits use taker fee."""
+
+    def test_tp_exit_uses_maker_fee(self):
+        port = Portfolio(
+            initial_balance=10000, maker_fee=0.0002, taker_fee=0.0006,
+            use_maker_fee_for_tp=True,
+        )
+        trade = port.open_trade(
+            "LONG", 50000, "t1", 49000, 52000, 54000, leverage=10, risk_pct=0.02,
+        )
+        entry_bal = port.balance
+        port.close_trade(trade, 52000, "t2", "tp2")
+        # Exit fee should use maker rate (0.0002), not taker (0.0006)
+        expected_exit_fee = trade.size * 52000 * 0.0002
+        # Allow small float tolerance
+        assert abs(trade.exit_fee - expected_exit_fee) < 0.01
+
+    def test_sl_exit_uses_taker_fee(self):
+        port = Portfolio(
+            initial_balance=10000, maker_fee=0.0002, taker_fee=0.0006,
+            use_maker_fee_for_tp=True,
+        )
+        trade = port.open_trade(
+            "LONG", 50000, "t1", 49000, 52000, 54000, leverage=10, risk_pct=0.02,
+        )
+        port.close_trade(trade, 49000, "t2", "sl")
+        # Exit fee should use taker rate (0.0006)
+        expected_exit_fee = trade.size * 49000 * 0.0006
+        assert abs(trade.exit_fee - expected_exit_fee) < 0.01
+
+    def test_disabled_uses_default_for_all(self):
+        port = Portfolio(
+            initial_balance=10000, maker_fee=0.0002, taker_fee=0.0006,
+            use_maker_fee_for_tp=False,
+        )
+        trade = port.open_trade(
+            "LONG", 50000, "t1", 49000, 52000, 54000, leverage=10, risk_pct=0.02,
+        )
+        port.close_trade(trade, 52000, "t2", "tp2")
+        # Should use default taker rate for everything
+        expected_exit_fee = trade.size * 52000 * 0.0006
+        assert abs(trade.exit_fee - expected_exit_fee) < 0.01
+
+    def test_tp1_partial_uses_maker_fee(self):
+        port = Portfolio(
+            initial_balance=10000, maker_fee=0.0002, taker_fee=0.0006,
+            use_maker_fee_for_tp=True,
+        )
+        trade = port.open_trade(
+            "LONG", 50000, "t1", 49000, 52000, 54000, leverage=10, risk_pct=0.02,
+            tp1_exit_pct=0.5,
+        )
+        pnl = port.partial_exit(trade, 52000, "t2", 0.5, "tp1")
+        # Partial exit fee should use maker rate
+        exit_size = trade.size * 0.5
+        expected_fee = exit_size * 52000 * 0.0002
+        assert abs(trade.partial_exits[0]["exit_fee"] - expected_fee) < 0.01
