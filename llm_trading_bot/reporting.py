@@ -133,9 +133,9 @@ def generate_backtest_charts(
 def format_stats_report(stats: PortfolioStats, config_summary: dict = None) -> str:
     """Format portfolio stats into a readable text report."""
     lines = [
-        "╔══════════════════════════════════════════════╗",
-        "║          BACKTEST RESULTS REPORT             ║",
-        "╚══════════════════════════════════════════════╝",
+        "+=" * 23 + "+",
+        "|          BACKTEST RESULTS REPORT             |",
+        "+=" * 23 + "+",
     ]
 
     if config_summary:

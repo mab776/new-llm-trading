@@ -1,8 +1,10 @@
 """
-Core scoring engine — single source of truth for all technical calculations.
+Core scoring engine — typed API layer over canonical calculations.
 
-All indicator computations, scoring logic, target calculations, and pre-trade
-filters live here. Every other module imports from this file.
+Indicator computations and scoring logic live in openwebui_filter.py
+(the single source of truth). This module provides the typed dataclass API
+(IndicatorSet, CategoryScore, ScoringResult, etc.) that the rest of the
+package uses.
 """
 
 from __future__ import annotations
@@ -13,6 +15,34 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+
+# ──────────────────────────────────────────────────────────────────────
+# Import canonical implementations from openwebui_filter
+# ──────────────────────────────────────────────────────────────────────
+
+from openwebui_filter import (  # noqa: E402 — project-root module
+    # Indicator computation functions
+    compute_ema,
+    compute_sma,
+    compute_rsi,
+    compute_macd,
+    compute_atr,
+    compute_adx,
+    compute_stochastic,
+    compute_bollinger_bands,
+    compute_obv,
+    compute_vwap,
+    compute_williams_r,
+    compute_cci,
+    compute_roc,
+    compute_pivot_points,
+    # Scoring logic functions
+    calc_trend_score,
+    calc_momentum_score,
+    calc_volume_score,
+    calc_sr_score,
+    calc_risk_score,
+)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -139,144 +169,6 @@ class TradeTargets:
 
 
 # ──────────────────────────────────────────────────────────────────────
-# Indicator Calculations
-# ──────────────────────────────────────────────────────────────────────
-
-def compute_ema(series: pd.Series, period: int) -> pd.Series:
-    return series.ewm(span=period, adjust=False).mean()
-
-
-def compute_sma(series: pd.Series, period: int) -> pd.Series:
-    return series.rolling(window=period).mean()
-
-
-def compute_rsi(series: pd.Series, period: int = 14) -> pd.Series:
-    delta = series.diff()
-    gain = delta.where(delta > 0, 0.0)
-    loss = (-delta).where(delta < 0, 0.0)
-    avg_gain = gain.ewm(alpha=1 / period, min_periods=period).mean()
-    avg_loss = loss.ewm(alpha=1 / period, min_periods=period).mean()
-    rs = avg_gain / avg_loss.replace(0, np.nan)
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
-
-
-def compute_macd(
-    series: pd.Series, fast: int = 12, slow: int = 26, signal: int = 9
-) -> tuple[pd.Series, pd.Series, pd.Series]:
-    ema_fast = compute_ema(series, fast)
-    ema_slow = compute_ema(series, slow)
-    macd_line = ema_fast - ema_slow
-    macd_signal = compute_ema(macd_line, signal)
-    macd_hist = macd_line - macd_signal
-    return macd_line, macd_signal, macd_hist
-
-
-def compute_atr(
-    high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14
-) -> pd.Series:
-    prev_close = close.shift(1)
-    tr1 = high - low
-    tr2 = (high - prev_close).abs()
-    tr3 = (low - prev_close).abs()
-    true_range = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
-    return true_range.ewm(span=period, adjust=False).mean()
-
-
-def compute_adx(
-    high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14
-) -> tuple[pd.Series, pd.Series, pd.Series]:
-    """Returns (ADX, +DI, -DI)."""
-    prev_high = high.shift(1)
-    prev_low = low.shift(1)
-    plus_dm = (high - prev_high).clip(lower=0)
-    minus_dm = (prev_low - low).clip(lower=0)
-    # Zero out when the other is larger
-    plus_dm = plus_dm.where(plus_dm > minus_dm, 0)
-    minus_dm = minus_dm.where(minus_dm > plus_dm, 0)
-
-    atr = compute_atr(high, low, close, period)
-    plus_di = 100 * compute_ema(plus_dm, period) / atr.replace(0, np.nan)
-    minus_di = 100 * compute_ema(minus_dm, period) / atr.replace(0, np.nan)
-    dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di).replace(0, np.nan)
-    adx = compute_ema(dx, period)
-    return adx, plus_di, minus_di
-
-
-def compute_stochastic(
-    high: pd.Series, low: pd.Series, close: pd.Series,
-    k_period: int = 14, d_period: int = 3
-) -> tuple[pd.Series, pd.Series]:
-    lowest_low = low.rolling(window=k_period).min()
-    highest_high = high.rolling(window=k_period).max()
-    denom = (highest_high - lowest_low).replace(0, np.nan)
-    stoch_k = 100 * (close - lowest_low) / denom
-    stoch_d = stoch_k.rolling(window=d_period).mean()
-    return stoch_k, stoch_d
-
-
-def compute_cci(
-    high: pd.Series, low: pd.Series, close: pd.Series, period: int = 20
-) -> pd.Series:
-    tp = (high + low + close) / 3
-    sma = tp.rolling(window=period).mean()
-    mad = tp.rolling(window=period).apply(lambda x: np.abs(x - x.mean()).mean(), raw=True)
-    return (tp - sma) / (0.015 * mad.replace(0, np.nan))
-
-
-def compute_williams_r(
-    high: pd.Series, low: pd.Series, close: pd.Series, period: int = 14
-) -> pd.Series:
-    highest_high = high.rolling(window=period).max()
-    lowest_low = low.rolling(window=period).min()
-    denom = (highest_high - lowest_low).replace(0, np.nan)
-    return -100 * (highest_high - close) / denom
-
-
-def compute_roc(series: pd.Series, period: int = 10) -> pd.Series:
-    prev = series.shift(period)
-    return 100 * (series - prev) / prev.replace(0, np.nan)
-
-
-def compute_obv(close: pd.Series, volume: pd.Series) -> pd.Series:
-    direction = np.sign(close.diff())
-    return (volume * direction).cumsum()
-
-
-def compute_vwap(
-    high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series
-) -> pd.Series:
-    tp = (high + low + close) / 3
-    cum_tp_vol = (tp * volume).cumsum()
-    cum_vol = volume.cumsum().replace(0, np.nan)
-    return cum_tp_vol / cum_vol
-
-
-def compute_bollinger_bands(
-    series: pd.Series, period: int = 20, std_dev: float = 2.0
-) -> tuple[pd.Series, pd.Series, pd.Series]:
-    middle = compute_sma(series, period)
-    std = series.rolling(window=period).std()
-    upper = middle + std_dev * std
-    lower = middle - std_dev * std
-    return upper, middle, lower
-
-
-def compute_pivot_points(
-    high: float, low: float, close: float
-) -> dict[str, float]:
-    """Classic pivot points from prior period."""
-    pivot = (high + low + close) / 3
-    return {
-        "pivot": pivot,
-        "support_1": 2 * pivot - high,
-        "support_2": pivot - (high - low),
-        "resistance_1": 2 * pivot - low,
-        "resistance_2": pivot + (high - low),
-    }
-
-
-# ──────────────────────────────────────────────────────────────────────
 # Full Indicator Computation
 # ──────────────────────────────────────────────────────────────────────
 
@@ -387,342 +279,58 @@ def calculate_indicators(df: pd.DataFrame, timeframe: str) -> IndicatorSet:
 # ──────────────────────────────────────────────────────────────────────
 
 def score_trend(indicators: IndicatorSet) -> CategoryScore:
-    """
-    Score trend from -100 (strong bearish) to +100 (strong bullish).
-    Uses EMA alignment, ADX, MACD, and price vs key MAs.
-    """
-    details: dict = {}
-    score = 0.0
-
-    price = indicators.close
-    if not price:
-        return CategoryScore("trend", 0, 0, 0, details)
-
-    # EMA alignment (9 > 21 > 50 = bullish, reverse = bearish)
-    if indicators.ema_9 and indicators.ema_21 and indicators.ema_50:
-        if indicators.ema_9 > indicators.ema_21 > indicators.ema_50:
-            score += 30
-            details["ema_alignment"] = "bullish_stack"
-        elif indicators.ema_9 < indicators.ema_21 < indicators.ema_50:
-            score -= 30
-            details["ema_alignment"] = "bearish_stack"
-        else:
-            # Partial alignment
-            if indicators.ema_9 > indicators.ema_21:
-                score += 10
-            else:
-                score -= 10
-            details["ema_alignment"] = "mixed"
-
-    # Price vs EMA-200 (long-term trend)
-    if indicators.ema_200:
-        if price > indicators.ema_200:
-            score += 15
-            details["vs_ema200"] = "above"
-        else:
-            score -= 15
-            details["vs_ema200"] = "below"
-
-    # ADX (trend strength)
-    if indicators.adx is not None:
-        if indicators.adx > 40:
-            strength_mult = 1.0
-            details["adx_strength"] = "very_strong"
-        elif indicators.adx > 25:
-            strength_mult = 0.7
-            details["adx_strength"] = "strong"
-        elif indicators.adx > 20:
-            strength_mult = 0.4
-            details["adx_strength"] = "moderate"
-        else:
-            strength_mult = 0.1
-            details["adx_strength"] = "weak/ranging"
-
-        # DI direction
-        if indicators.plus_di and indicators.minus_di:
-            if indicators.plus_di > indicators.minus_di:
-                score += 20 * strength_mult
-                details["di_direction"] = "bullish"
-            else:
-                score -= 20 * strength_mult
-                details["di_direction"] = "bearish"
-
-    # MACD
-    if indicators.macd_histogram is not None:
-        if indicators.macd_histogram > 0:
-            score += 15
-            details["macd"] = "bullish"
-        else:
-            score -= 15
-            details["macd"] = "bearish"
-        # MACD crossover signal
-        if indicators.macd_line is not None and indicators.macd_signal is not None:
-            if indicators.macd_line > indicators.macd_signal:
-                score += 5
-            else:
-                score -= 5
-
-    score = max(-100, min(100, score))
-    details["raw_score"] = score
+    """Score trend from -100 (strong bearish) to +100 (strong bullish)."""
+    score, details = calc_trend_score(
+        price=indicators.close,
+        ema_9=indicators.ema_9, ema_21=indicators.ema_21, ema_50=indicators.ema_50,
+        ema_200=indicators.ema_200,
+        adx=indicators.adx, plus_di=indicators.plus_di, minus_di=indicators.minus_di,
+        macd_hist=indicators.macd_histogram, macd_line=indicators.macd_line,
+        macd_signal=indicators.macd_signal,
+    )
     return CategoryScore("trend", score, 0, 0, details)
 
 
 def score_momentum(indicators: IndicatorSet) -> CategoryScore:
-    """
-    Score momentum from -100 to +100.
-    Uses RSI, Stochastic, CCI, Williams %R, ROC.
-    """
-    details: dict = {}
-    score = 0.0
-
-    # RSI (14)
-    if indicators.rsi_14 is not None:
-        rsi = indicators.rsi_14
-        if rsi > 70:
-            score -= 20  # Overbought — bearish pressure
-            details["rsi"] = f"overbought ({rsi:.1f})"
-        elif rsi > 60:
-            score += 15  # Bullish momentum
-            details["rsi"] = f"bullish ({rsi:.1f})"
-        elif rsi > 40:
-            score += 0  # Neutral
-            details["rsi"] = f"neutral ({rsi:.1f})"
-        elif rsi > 30:
-            score -= 15
-            details["rsi"] = f"bearish ({rsi:.1f})"
-        else:
-            score += 20  # Oversold — bullish reversal area
-            details["rsi"] = f"oversold ({rsi:.1f})"
-
-    # Stochastic
-    if indicators.stoch_k is not None and indicators.stoch_d is not None:
-        if indicators.stoch_k > 80:
-            score -= 10  # Overbought
-            details["stoch"] = "overbought"
-        elif indicators.stoch_k < 20:
-            score += 10  # Oversold
-            details["stoch"] = "oversold"
-        elif indicators.stoch_k > indicators.stoch_d:
-            score += 10
-            details["stoch"] = "bullish_cross"
-        else:
-            score -= 10
-            details["stoch"] = "bearish_cross"
-
-    # CCI
-    if indicators.cci_20 is not None:
-        if indicators.cci_20 > 100:
-            score += 10
-            details["cci"] = "strong_bullish"
-        elif indicators.cci_20 < -100:
-            score -= 10
-            details["cci"] = "strong_bearish"
-
-    # Williams %R
-    if indicators.williams_r is not None:
-        if indicators.williams_r > -20:
-            score -= 10  # Overbought
-            details["williams_r"] = "overbought"
-        elif indicators.williams_r < -80:
-            score += 10  # Oversold
-            details["williams_r"] = "oversold"
-
-    # ROC
-    if indicators.roc_10 is not None:
-        if indicators.roc_10 > 5:
-            score += 15
-            details["roc"] = f"strong_positive ({indicators.roc_10:.1f}%)"
-        elif indicators.roc_10 > 0:
-            score += 5
-            details["roc"] = f"positive ({indicators.roc_10:.1f}%)"
-        elif indicators.roc_10 > -5:
-            score -= 5
-            details["roc"] = f"negative ({indicators.roc_10:.1f}%)"
-        else:
-            score -= 15
-            details["roc"] = f"strong_negative ({indicators.roc_10:.1f}%)"
-
-    score = max(-100, min(100, score))
-    details["raw_score"] = score
+    """Score momentum from -100 to +100."""
+    score, details = calc_momentum_score(
+        rsi_14=indicators.rsi_14,
+        stoch_k=indicators.stoch_k, stoch_d=indicators.stoch_d,
+        cci_20=indicators.cci_20, williams_r=indicators.williams_r,
+        roc_10=indicators.roc_10,
+    )
     return CategoryScore("momentum", score, 0, 0, details)
 
 
 def score_volume(indicators: IndicatorSet) -> CategoryScore:
-    """
-    Score volume confirmation from -100 to +100.
-    High volume in trend direction = confirmation.
-    """
-    details: dict = {}
-    score = 0.0
-
-    # Volume ratio
-    if indicators.volume_ratio is not None:
-        vr = indicators.volume_ratio
-        details["volume_ratio"] = round(vr, 2)
-        if vr > 2.0:
-            score += 30  # Very high volume
-        elif vr > 1.5:
-            score += 20
-        elif vr > 1.0:
-            score += 5
-        elif vr > 0.5:
-            score -= 10  # Below average volume
-        else:
-            score -= 25  # Very low volume — unreliable signal
-
-    # Direction: is price move supported by volume?
-    if indicators.change_pct is not None and indicators.volume_ratio is not None:
-        price_up = indicators.change_pct > 0
-        high_vol = indicators.volume_ratio > 1.0
-        if price_up and high_vol:
-            score += 20
-            details["vol_confirmation"] = "bullish_confirmed"
-        elif not price_up and high_vol:
-            score -= 20
-            details["vol_confirmation"] = "bearish_confirmed"
-        elif price_up and not high_vol:
-            score += 0
-            details["vol_confirmation"] = "bullish_unconfirmed"
-        else:
-            score -= 0
-            details["vol_confirmation"] = "bearish_unconfirmed"
-
-    # OBV trend
-    if indicators.obv is not None and indicators.obv_sma_20 is not None:
-        if indicators.obv > indicators.obv_sma_20:
-            score += 15
-            details["obv_trend"] = "accumulation"
-        else:
-            score -= 15
-            details["obv_trend"] = "distribution"
-
-    # VWAP position
-    if indicators.vwap is not None and indicators.close is not None:
-        if indicators.close > indicators.vwap:
-            score += 10
-            details["vwap_position"] = "above"
-        else:
-            score -= 10
-            details["vwap_position"] = "below"
-
-    score = max(-100, min(100, score))
-    details["raw_score"] = score
+    """Score volume confirmation from -100 to +100."""
+    score, details = calc_volume_score(
+        volume_ratio=indicators.volume_ratio,
+        change_pct=indicators.change_pct,
+        obv=indicators.obv, obv_sma_20=indicators.obv_sma_20,
+        vwap=indicators.vwap, price=indicators.close,
+    )
     return CategoryScore("volume", score, 0, 0, details)
 
 
 def score_support_resistance(indicators: IndicatorSet) -> CategoryScore:
-    """
-    Score S/R proximity from -100 to +100.
-    Near support in uptrend = bullish. Near resistance in uptrend = caution.
-    """
-    details: dict = {}
-    score = 0.0
-    price = indicators.close
-
-    if not price or not indicators.nearest_support or not indicators.nearest_resistance:
-        return CategoryScore("support_resistance", 0, 0, 0, {"status": "insufficient_data"})
-
-    # Distance to S/R as percentage of price
-    dist_support = (price - indicators.nearest_support) / price * 100
-    dist_resistance = (indicators.nearest_resistance - price) / price * 100
-    details["dist_to_support_pct"] = round(dist_support, 2)
-    details["dist_to_resistance_pct"] = round(dist_resistance, 2)
-
-    # Reward/risk ratio from S/R perspective
-    if dist_support > 0:
-        sr_ratio = dist_resistance / dist_support
-        details["sr_ratio"] = round(sr_ratio, 2)
-    else:
-        sr_ratio = 0
-
-    # Near support (potential bounce) — bullish bias if trend is up
-    if dist_support < 1.0:
-        score += 25
-        details["proximity"] = "near_support"
-    elif dist_resistance < 1.0:
-        score -= 25
-        details["proximity"] = "near_resistance"
-
-    # Good R:R from S/R standpoint
-    if sr_ratio > 3:
-        score += 25
-        details["sr_quality"] = "excellent"
-    elif sr_ratio > 2:
-        score += 15
-        details["sr_quality"] = "good"
-    elif sr_ratio > 1:
-        score += 5
-        details["sr_quality"] = "fair"
-    else:
-        score -= 15
-        details["sr_quality"] = "poor"
-
-    # Bollinger Band position
-    if indicators.bb_position is not None:
-        bbp = indicators.bb_position
-        if bbp > 0.95:
-            score -= 15  # At upper band — potential reversal
-            details["bb"] = "upper_extreme"
-        elif bbp < 0.05:
-            score += 15  # At lower band — potential bounce
-            details["bb"] = "lower_extreme"
-        elif 0.4 < bbp < 0.6:
-            details["bb"] = "middle"
-
-    score = max(-100, min(100, score))
-    details["raw_score"] = score
+    """Score S/R proximity from -100 to +100."""
+    score, details = calc_sr_score(
+        price=indicators.close,
+        nearest_support=indicators.nearest_support,
+        nearest_resistance=indicators.nearest_resistance,
+        bb_position=indicators.bb_position,
+    )
     return CategoryScore("support_resistance", score, 0, 0, details)
 
 
 def score_risk(indicators: IndicatorSet) -> CategoryScore:
-    """
-    Risk assessment from -100 (high risk, penalize) to +100 (low risk).
-    Looks at volatility extremes, ranging markets, and divergences.
-    """
-    details: dict = {}
-    score = 0.0  # Start neutral, deduct for risks
-
-    # ATR-based volatility assessment
-    if indicators.atr_pct is not None:
-        atr_pct = indicators.atr_pct
-        if atr_pct > 8:
-            score -= 40  # Extreme volatility
-            details["volatility"] = f"extreme ({atr_pct:.1f}%)"
-        elif atr_pct > 5:
-            score -= 20
-            details["volatility"] = f"high ({atr_pct:.1f}%)"
-        elif atr_pct > 2:
-            score += 10  # Good volatility for trading
-            details["volatility"] = f"healthy ({atr_pct:.1f}%)"
-        elif atr_pct > 0.5:
-            score += 5
-            details["volatility"] = f"moderate ({atr_pct:.1f}%)"
-        else:
-            score -= 30  # Too low — no profit potential
-            details["volatility"] = f"too_low ({atr_pct:.1f}%)"
-
-    # ADX ranging check
-    if indicators.adx is not None:
-        if indicators.adx < 15:
-            score -= 30
-            details["ranging"] = "strongly_ranging"
-        elif indicators.adx < 20:
-            score -= 15
-            details["ranging"] = "possibly_ranging"
-        else:
-            score += 10
-            details["ranging"] = "trending"
-
-    # BB width (squeeze detection)
-    if indicators.bb_width is not None:
-        if indicators.bb_width < 2:
-            score -= 10
-            details["bb_squeeze"] = True
-        else:
-            details["bb_squeeze"] = False
-
-    score = max(-100, min(100, score))
-    details["raw_score"] = score
+    """Risk assessment from -100 (high risk) to +100 (low risk)."""
+    score, details = calc_risk_score(
+        atr_pct=indicators.atr_pct,
+        adx=indicators.adx,
+        bb_width=indicators.bb_width,
+    )
     return CategoryScore("risk", score, 0, 0, details)
 
 

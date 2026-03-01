@@ -28,10 +28,10 @@ Market Data → Scoring Engine → Signal Router
 | Module | File | Purpose |
 |--------|------|---------|
 | **Config** | `llm_trading_bot/config.py` | Pydantic models, config loading |
-| **Scoring** | `llm_trading_bot/scoring.py` | **CORE** — all indicators, scoring, targets, filters |
+| **OpenWebUI Filter** | `openwebui_filter.py` | **SOURCE OF TRUTH** — indicator computations + scoring logic |
+| **Scoring** | `llm_trading_bot/scoring.py` | Typed API layer (IndicatorSet, CategoryScore, etc.) — imports from filter |
 | **Data** | `llm_trading_bot/data.py` | OHLCV fetching, caching, 4H aggregation |
 | **Routing** | `llm_trading_bot/routing.py` | Signal classification and routing decisions |
-| **OpenWebUI Filter** | `openwebui_filter.py` | **STANDALONE** single-file filter for OpenWebUI |
 | **OpenWebUI Client** | `llm_trading_bot/openwebui_client.py` | API client + consensus mechanism |
 | **Exchange** | `llm_trading_bot/exchange.py` | Bitget API with mandatory safety checks |
 | **Portfolio** | `llm_trading_bot/portfolio.py` | Fee-aware portfolio simulation |
@@ -55,10 +55,15 @@ These are implemented in both `backtesting.py` (full engine) and `grid_search.py
 
 ### Key Design Principle: Single Source of Truth
 
-**`scoring.py` is THE source of truth** for all technical calculations. Every module that needs
-indicators, scores, targets, or filters imports from `scoring.py`. Never duplicate calculation
-logic. The OpenWebUI filter (`openwebui_filter.py`) is the ONE exception — it must be
-self-contained because it's copy-pasted into OpenWebUI.
+**`openwebui_filter.py` is THE source of truth** for all indicator computations (`compute_ema`,
+`compute_rsi`, `compute_adx`, etc.) and scoring logic (`calc_trend_score`, `calc_momentum_score`,
+etc.). `scoring.py` imports these functions and provides a typed dataclass API
+(`IndicatorSet`, `CategoryScore`, `ScoringResult`) that the rest of the package uses.
+This ensures backtesting, live trading, and the OpenWebUI filter all exercise the
+**same** calculation code — zero duplication.
+
+When the filter is copy-pasted into OpenWebUI, it works standalone because it contains
+all the canonical functions. When used in the project, `scoring.py` imports from it.
 
 ## Safety Rules (Non-Negotiable)
 
@@ -69,7 +74,7 @@ These rules must NEVER be violated. Any PR that breaks these must be rejected:
 3. **Confidence bounded to [5%, 95%]** — never 0% (false certainty of neutral) or 100% (false certainty of direction)
 4. **Backtesting never peeks at future data** — each bar only sees data up to and including itself
 5. **All PnL accounts for fees on leveraged notional** — `fee = size × price × fee_rate`, not on margin
-6. **Never duplicate core logic** — one source of truth in `scoring.py`
+6. **Never duplicate core logic** — one source of truth in `openwebui_filter.py`, imported by `scoring.py`
 
 ## Configuration
 
@@ -122,17 +127,18 @@ pytest -x                      # Stop on first failure
 
 ### Adding Indicators
 
-1. Add the calculation function in `scoring.py` (e.g., `compute_new_indicator()`)
-2. Add the field to `IndicatorSet` dataclass
-3. Call it in `calculate_indicators()` and store the result
-4. Use it in the appropriate scoring category function
-5. Add it to `format_indicator_report()` for LLM context
-6. Add tests in `tests/test_scoring.py`
-7. If needed in the OpenWebUI filter, also add to `openwebui_filter.py` (keep it self-contained)
+1. Add the calculation function in `openwebui_filter.py` (e.g., `compute_new_indicator()`)
+2. Add the field to `IndicatorSet` dataclass in `scoring.py`
+3. Call it in `calculate_indicators()` in `scoring.py` and store the result
+4. Also call it in `_compute_analysis()` in `openwebui_filter.py` and store in the dict
+5. Use it in the appropriate scoring category function
+6. Add it to `format_indicator_report()` for LLM context
+7. Add tests in `tests/test_scoring.py`
 
 ### Adding Scoring Categories
 
-1. Create `score_new_category()` in `scoring.py`
+1. Create `calc_new_category_score()` in `openwebui_filter.py`
+2. Create `score_new_category()` wrapper in `scoring.py`
 2. Add weight to config schema and `config.json`
 3. Register in `compute_composite_score()` → `cat_funcs` dict
 4. Add tests
@@ -164,7 +170,7 @@ exists for a reason — it's the last line of defense.
 - **Fees compound significantly at high leverage** — a 0.06% fee at 20x = 2.4% per round trip
 - **ATR adapts to volatility** — all targets (SL, TP1, TP2) scale with market conditions
 - **Partial exits** — TP1 closes a fraction (default 50%), TP2 closes the rest
-- **The OpenWebUI filter file is self-contained** — it duplicates indicator code intentionally
+- **The OpenWebUI filter file is self-contained** — it contains the canonical indicator and scoring functions that `scoring.py` imports
 
 ## File Organization
 

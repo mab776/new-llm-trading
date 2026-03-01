@@ -103,7 +103,7 @@ class BitgetConfig(BaseModel):
 
 class RiskManagementConfig(BaseModel):
     """Risk management rules imported from the predecessor project."""
-    max_holding_hours: int = 168        # Force close after this many hours (0 = disabled)
+    max_holding_hours: int = 0        # Force close after this many hours (0 = disabled)
     cooldown_candles_after_sl: int = 3  # Skip N candles after a SL hit
     consecutive_loss_penalty: float = 5.0   # Add this to entry threshold per consecutive loss
     max_consecutive_loss_penalty: float = 20.0  # Cap on total penalty

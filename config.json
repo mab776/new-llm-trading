@@ -30,7 +30,7 @@
                 "tp1_exit_pct": 0.3
             }
         },
-        "active_tier": "conservative",
+        "active_tier": "aggressive",
         "stop_loss_strategy": "hybrid",
         "trailing_stop": {
             "enabled": false,
