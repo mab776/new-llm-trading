@@ -298,10 +298,15 @@ class BacktestEngine:
             bar_low = float(bar["Low"])
             bar_close = float(bar["Close"])
 
-            # 1. Check exits on existing positions FIRST (on this bar's high/low)
+            # 1. Check exits on existing positions FIRST (on this bar's high/low).
+            #    Intrabar path is unknown, so we assume the ADVERSE extreme is hit before the
+            #    favorable one (worst case): exits are checked against the stop as it stands at
+            #    the START of the bar, and the trailing stop is only ratcheted AFTERWARDS (using
+            #    this bar's favorable extreme) so it can only affect SUBSEQUENT bars. Trailing
+            #    first and then checking would optimistically credit an exit near the bar's top.
             for trade in list(self.portfolio.open_trades):
-                self._update_trailing_stop(trade, bar_high, bar_low)
                 self._check_exits(trade, bar_high, bar_low, bar_close, bar_time)
+                self._update_trailing_stop(trade, bar_high, bar_low)
 
             # Tick risk-management counters
             self.candles_since_last_loss += 1
