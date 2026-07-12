@@ -410,7 +410,18 @@ class BacktestEngine:
                     ps_cfg = self.config.position_sizing
                     direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
                     open_now = self.portfolio.open_trades
-                    can_enter = (len(open_now) < ps_cfg.max_positions
+
+                    # DD circuit-breaker: while balance drawdown >= threshold, cap slots
+                    # and cut risk until equity recovers (tail insurance — see config.py).
+                    slots = ps_cfg.max_positions
+                    throttled = False
+                    if self.risk_cfg.dd_throttle_threshold > 0 and self.portfolio.peak_balance > 0:
+                        dd = (self.portfolio.peak_balance - self.portfolio.balance) / self.portfolio.peak_balance
+                        if dd >= self.risk_cfg.dd_throttle_threshold:
+                            slots = min(slots, self.risk_cfg.dd_throttle_slots)
+                            throttled = True
+
+                    can_enter = (len(open_now) < slots
                                  and all(t.direction == direction_str for t in open_now))
 
                     if not filter_failures and can_enter:
@@ -421,6 +432,8 @@ class BacktestEngine:
                         if ps_cfg.conviction_exponent > 0 and effective_strong > 0:
                             m = (abs_score / effective_strong) ** ps_cfg.conviction_exponent
                             risk_eff *= max(0.5, min(1.5, m))
+                        if throttled:
+                            risk_eff *= self.risk_cfg.dd_throttle_risk
                         trade = self.portfolio.open_trade(
                             direction=direction_str,
                             entry_price=bar_close,

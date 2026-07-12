@@ -81,6 +81,22 @@ Walk-forward: train geo +106%/half-year → held-out test +70%. Chronological: t
 2021-23 only, unseen 2024-25 made 4.36× (2bps). Live parity: scheduler implements all
 three features (entry slots, conviction margin, `_maybe_opposite_exit`).
 
+## Round 3 — DD throttle → shipped as a wide circuit-breaker only
+
+Swept a drawdown-aware pyramiding throttle (pause slots / cut risk while balance DD ≥
+threshold). **As a profit lever it fails**: at tight thresholds (8–15%) it cuts exposure
+exactly when this system recovers (trailing stops exit losers fast, so DDs are shallow
+and V-shaped) — return halves, maxDD barely improves, worst-year sometimes flips
+negative. Gentle (3→2 slots) variants were strictly worse at 5 bps.
+
+**Shipped instead as tail insurance** (`risk_management.dd_throttle_threshold: 0.25`,
+`dd_throttle_slots: 1`, `dd_throttle_risk: 0.5`): at 25% it never triggers in the whole
+2021-2025 backtest @2bps (312× unchanged) and costs ~9% @5bps (127→116×), but caps the
+bleeding in the one scenario the backtest cannot show — the edge breaking in live.
+Implemented in engine + scheduler (in-session peak; resets on restart — see scheduler
+note). Tightening the threshold is *expected* to cost return; don't "optimize" it below
+~0.20 based on in-sample data.
+
 ## Repro
 
 ```bash

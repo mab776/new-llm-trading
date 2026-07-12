@@ -193,6 +193,9 @@ DEFAULT_STRAT = {
     "long_threshold_mult": 1.0,
     "max_positions": 1,           # >1 allows pyramiding same-direction entries
     "marginal_size_frac": 1.0,    # size fraction for MARGINAL (vs STRONG) entries
+    "dd_throttle": None,          # e.g. 0.10 -> while balance DD >= 10%, pyramiding pauses
+    "dd_throttle_slots": 1,       # slots allowed while throttled (1 = full pause of pyramiding)
+    "dd_throttle_risk": 1.0,      # risk multiplier applied while throttled (e.g. 0.5)
 }
 
 
@@ -211,6 +214,10 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     st["conviction_sizing"] = conv if conv > 0 else None
     opp = getattr(config.risk_management, "opposite_exit_threshold", 0.0)
     st["opposite_exit"] = opp if opp > 0 else None
+    ddt = getattr(config.risk_management, "dd_throttle_threshold", 0.0)
+    st["dd_throttle"] = ddt if ddt > 0 else None
+    st["dd_throttle_slots"] = getattr(config.risk_management, "dd_throttle_slots", 1)
+    st["dd_throttle_risk"] = getattr(config.risk_management, "dd_throttle_risk", 0.5)
     if strat:
         st.update(strat)
     tr = config.trading
@@ -353,8 +360,17 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     skip_volatile_regime=ft.skip_volatile_regime,
                 )
                 direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                # DD-throttle: while balance drawdown >= threshold, pyramiding pauses
+                # (slots drop to 1) and risk is optionally cut, until equity recovers.
+                slots = st["max_positions"]
+                throttled = False
+                if st["dd_throttle"] is not None and port.peak_balance > 0:
+                    dd = (port.peak_balance - port.balance) / port.peak_balance
+                    if dd >= st["dd_throttle"]:
+                        slots = min(slots, st["dd_throttle_slots"])
+                        throttled = True
                 # Entry slot: default single position; pyramiding allows same-direction adds
-                can_enter = (len(port.open_trades) < st["max_positions"]
+                can_enter = (len(port.open_trades) < slots
                              and all(t.direction == direction_str for t in port.open_trades))
                 if not fails and can_enter:
                     # Vol-targeted leverage: normalize per-trade risk across vol regimes
@@ -368,6 +384,8 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                         risk_eff *= max(0.5, min(1.5, m))
                     if signal == SignalStrength.MARGINAL:
                         risk_eff *= st["marginal_size_frac"]
+                    if throttled:
+                        risk_eff *= st["dd_throttle_risk"]
                     entry_eff = bar_close * (1 + slip) if direction_str == "LONG" else bar_close * (1 - slip)
                     trade = port.open_trade(
                         direction=direction_str, entry_price=entry_eff, entry_time=ts,

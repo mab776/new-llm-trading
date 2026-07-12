@@ -119,6 +119,12 @@ Three strategy features (2026-07, implemented in BOTH `backtesting.py` and `sche
 - **Opposite-signal exit** — `risk_management.opposite_exit_threshold` (20): when the
   composite score flips ≥ threshold against open positions they are closed at market
   (`signal_flip`; does NOT trigger the SL cooldown); 0 disables.
+- **DD circuit-breaker** — `risk_management.dd_throttle_threshold` (0.25): while balance
+  drawdown from its peak ≥ threshold, entry slots cap at `dd_throttle_slots` (1) and risk
+  is multiplied by `dd_throttle_risk` (0.5) until equity recovers. This is **tail
+  insurance against a regime break**, deliberately wide — tight thresholds cost return
+  (they cut exposure right before the V-shaped recovery); don't tune it below ~0.20 from
+  in-sample data. Live: peak is in-session (resets on restart).
 
 ### Backtest intrabar conservatism (do not regress)
 

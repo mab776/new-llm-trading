@@ -205,12 +205,33 @@ class TradingScheduler:
         side = "buy" if targets.direction == Direction.BULLISH else "sell"
         want_side = "long" if targets.direction == Direction.BULLISH else "short"
 
+        balance = self.exchange.get_available_balance()
+
+        # DD circuit-breaker (tail insurance, mirrors backtest engine): while the
+        # balance drawdown from its in-session peak >= threshold, cap entry slots and
+        # cut risk until equity recovers. NOTE: peak resets on restart, and available
+        # balance is a conservative equity proxy (committed margin counts as drawdown).
+        rm = self.config.risk_management
+        slots = ps.max_positions
+        throttle_risk_mult = 1.0
+        if rm.dd_throttle_threshold > 0:
+            self._peak_balance = max(getattr(self, "_peak_balance", 0.0), balance)
+            if self._peak_balance > 0:
+                dd = (self._peak_balance - balance) / self._peak_balance
+                if dd >= rm.dd_throttle_threshold:
+                    slots = min(slots, rm.dd_throttle_slots)
+                    throttle_risk_mult = rm.dd_throttle_risk
+                    self._log(
+                        f"DD THROTTLE active ({dd:.1%} >= {rm.dd_throttle_threshold:.1%}) — "
+                        f"slots capped at {slots}, risk x{throttle_risk_mult}"
+                    )
+
         # Entry slots: up to max_positions concurrent SAME-direction positions
         # (pyramiding); never stack against an opposite-direction position.
         try:
             positions = self.exchange.get_positions(self.config.trading.symbol)
-            if len(positions) >= ps.max_positions:
-                self._log(f"Already have {len(positions)}/{ps.max_positions} position(s) — skipping")
+            if len(positions) >= slots:
+                self._log(f"Already have {len(positions)}/{slots} position slot(s) — skipping")
                 return
             if any(p.side.lower() != want_side for p in positions):
                 self._log("Open position in the opposite direction — not stacking, skipping")
@@ -220,8 +241,7 @@ class TradingScheduler:
 
         # Risk-based position sizing: commit min(balance * risk_pct, max_usd) as margin,
         # leverage it up to the notional, then convert to base-currency size at entry.
-        balance = self.exchange.get_available_balance()
-        risk_pct = ps.risk_pct_per_trade
+        risk_pct = ps.risk_pct_per_trade * throttle_risk_mult
         # Conviction sizing: scale risk with signal strength (mirrors backtest engine)
         if ps.conviction_exponent > 0 and tier.strong_threshold > 0:
             m = (abs(decision.scoring_result.raw_score) / tier.strong_threshold) ** ps.conviction_exponent

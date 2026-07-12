@@ -98,7 +98,10 @@
         "max_consecutive_loss_penalty": 20.0,
         "loss_penalty_decay_candles": 10,
         "use_maker_fee_for_tp": true,
-        "opposite_exit_threshold": 20.0
+        "opposite_exit_threshold": 20.0,
+        "dd_throttle_threshold": 0.25,
+        "dd_throttle_slots": 1,
+        "dd_throttle_risk": 0.5
     },
     "data_source": {
         "source": "bitget",

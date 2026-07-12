@@ -111,6 +111,13 @@ class RiskManagementConfig(BaseModel):
     use_maker_fee_for_tp: bool = True       # TP exits (limit) use maker fee, SL (market) uses taker
     opposite_exit_threshold: float = 0.0    # Close open positions when the composite score flips
     #                                         beyond this against them (0 = disabled)
+    # Drawdown circuit-breaker: while balance drawdown from its peak >= threshold,
+    # pyramiding is capped at dd_throttle_slots and per-trade risk is multiplied by
+    # dd_throttle_risk, until equity recovers. Meant as tail insurance against a regime
+    # break (set wide, e.g. 0.25); tight thresholds cost return — see opt/README.md.
+    dd_throttle_threshold: float = 0.0      # 0 = disabled; fraction, e.g. 0.25 = 25% DD
+    dd_throttle_slots: int = 1              # max concurrent positions while throttled
+    dd_throttle_risk: float = 0.5           # risk multiplier while throttled
 
 
 class PositionSizingConfig(BaseModel):
