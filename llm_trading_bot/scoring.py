@@ -250,7 +250,9 @@ def calculate_indicators(df: pd.DataFrame, timeframe: str) -> IndicatorSet:
     if ind.bb_upper and ind.bb_lower and ind.bb_middle and ind.bb_middle > 0:
         ind.bb_width = (ind.bb_upper - ind.bb_lower) / ind.bb_middle * 100
     if ind.bb_upper and ind.bb_lower and (ind.bb_upper - ind.bb_lower) > 0:
-        ind.bb_position = (ind.close - ind.bb_lower) / (ind.bb_upper - ind.bb_lower)
+        # Clamp to [0, 1]: on a volatility spike close can sit outside the bands.
+        raw_bb_pos = (ind.close - ind.bb_lower) / (ind.bb_upper - ind.bb_lower)
+        ind.bb_position = max(0.0, min(1.0, raw_bb_pos))
 
     # Support / Resistance (from prior candle)
     if len(df) >= 2:

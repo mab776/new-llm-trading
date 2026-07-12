@@ -85,8 +85,10 @@ class BitgetClient:
     Any attempt to bypass this raises SafetyViolation.
     """
 
+    # Bitget demo/paper trading runs on the SAME REST host as production; it is selected
+    # per-request with the `paptrading: 1` header (plus demo API keys), NOT a separate URL.
     MAINNET_URL = "https://api.bitget.com"
-    TESTNET_URL = "https://api.bitget.com"  # Bitget testnet uses same URL with different keys
+    TESTNET_URL = "https://api.bitget.com"
 
     def __init__(self, config: BitgetConfig):
         self.config = config
@@ -110,7 +112,7 @@ class BitgetClient:
     def _headers(self, method: str, path: str, body: str = "") -> dict:
         """Build authenticated headers."""
         timestamp = str(int(time.time() * 1000))
-        return {
+        headers = {
             "ACCESS-KEY": self.config.api_key,
             "ACCESS-SIGN": self._sign(timestamp, method, path, body),
             "ACCESS-TIMESTAMP": timestamp,
@@ -118,6 +120,10 @@ class BitgetClient:
             "Content-Type": "application/json",
             "locale": "en-US",
         }
+        # Route requests to Bitget's demo/paper environment when testnet is enabled.
+        if self.config.testnet:
+            headers["paptrading"] = "1"
+        return headers
 
     def _request(self, method: str, path: str, params: dict = None, body: dict = None) -> dict:
         """Make an authenticated API request."""
@@ -262,6 +268,36 @@ class BitgetClient:
         }
         return self._request("POST", path, body=body)
 
+    def modify_stop_loss(
+        self,
+        symbol: str,
+        hold_side: str,   # "long" or "short"
+        size: float,
+        new_sl: float,
+    ) -> dict:
+        """
+        Move the position's stop loss to ``new_sl`` (a position-level TPSL update).
+
+        Used by live trailing stops. Goes through ``_request`` so it is a no-op in
+        dry-run. The caller is responsible for only ever moving the stop in the trade's
+        favour (see llm_trading_bot.trailing.compute_trailing_stop).
+        """
+        if new_sl is None or new_sl <= 0:
+            raise SafetyViolation("REFUSED: modify_stop_loss called without a valid stop price.")
+
+        path = "/api/v2/mix/order/place-tpsl-order"
+        body = {
+            "symbol": symbol,
+            "productType": self.config.product_type,
+            "marginCoin": "USDT",
+            "planType": "pos_loss",       # position-level stop loss
+            "triggerType": "fill_price",
+            "triggerPrice": str(new_sl),
+            "holdSide": hold_side,
+            "size": str(size),
+        }
+        return self._request("POST", path, body=body)
+
     def get_positions(self, symbol: Optional[str] = None) -> list[Position]:
         """Get current open positions."""
         path = "/api/v2/mix/position/all-position"
@@ -308,3 +344,27 @@ class BitgetClient:
         path = "/api/v2/mix/account/accounts"
         params = {"productType": self.config.product_type}
         return self._request("GET", path, params=params)
+
+    def get_available_balance(self, dry_run_default: float = 100.0) -> float:
+        """
+        Return the available USDT balance for position sizing.
+
+        In dry-run (no credentials) returns ``dry_run_default`` so live-dry-run still
+        produces a realistic, non-hardcoded size. Falls back to 0.0 if the response
+        can't be parsed (callers must guard against a zero/negative size).
+        """
+        if self._dry_run:
+            return dry_run_default
+
+        try:
+            data = self.get_account_info().get("data", [])
+            # Bitget returns a list of margin-coin accounts; find the USDT one.
+            for acct in data:
+                if acct.get("marginCoin") == "USDT":
+                    return float(acct.get("available", acct.get("crossedMaxAvailable", 0)) or 0)
+            if data:  # single-coin account shape
+                acct = data[0]
+                return float(acct.get("available", 0) or 0)
+        except (KeyError, IndexError, TypeError, ValueError) as e:
+            print(f"⚠ Could not parse account balance: {e}")
+        return 0.0

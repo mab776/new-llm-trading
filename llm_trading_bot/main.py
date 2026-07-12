@@ -41,6 +41,7 @@ def run_analyze(config_path: str) -> None:
         symbol=symbol,
         timeframes=config.trading.timeframes,
         source=ds.source,
+        market=ds.market,
     )
 
     indicators_by_tf = {}
@@ -89,6 +90,7 @@ def run_backtest(config_path: str) -> None:
         end_date=config.backtesting.end_date,
         warmup_periods=config.backtesting.warmup_periods,
         source=ds.source,
+        market=ds.market,
     )
 
     for tf, df in data_by_tf.items():

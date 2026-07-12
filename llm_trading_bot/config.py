@@ -111,6 +111,12 @@ class RiskManagementConfig(BaseModel):
     use_maker_fee_for_tp: bool = True       # TP exits (limit) use maker fee, SL (market) uses taker
 
 
+class PositionSizingConfig(BaseModel):
+    """How much capital to put behind each trade (used by live AND backtest)."""
+    risk_pct_per_trade: float = 0.02   # Fraction of account balance risked as margin per trade
+    max_position_usd: float = 100      # Hard cap on the margin committed to a single trade
+
+
 class BacktestingConfig(BaseModel):
     start_date: str = "2024-01-01"
     end_date: str = "2025-12-31"
@@ -133,6 +139,7 @@ class DataSourceConfig(BaseModel):
     """Data source configuration. Controls where OHLCV data comes from."""
     source: str = "yfinance"      # "yfinance", "binance", "bitget", or any ccxt exchange
     exchange_symbol: str = "BTC/USDT"  # Symbol format for ccxt exchanges
+    market: str = "futures"       # "futures" (swap) or "spot" — Bitget market for fetching
 
 
 class AppConfig(BaseModel):
@@ -143,6 +150,7 @@ class AppConfig(BaseModel):
     filters: FiltersConfig = Field(default_factory=FiltersConfig)
     fees: FeesConfig = Field(default_factory=FeesConfig)
     bitget: BitgetConfig = Field(default_factory=BitgetConfig)
+    position_sizing: PositionSizingConfig = Field(default_factory=PositionSizingConfig)
     backtesting: BacktestingConfig = Field(default_factory=BacktestingConfig)
     scheduling: SchedulingConfig = Field(default_factory=SchedulingConfig)
     risk_management: RiskManagementConfig = Field(default_factory=RiskManagementConfig)

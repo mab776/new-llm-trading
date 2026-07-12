@@ -674,9 +674,9 @@ def _compute_analysis(df: pd.DataFrame, timeframe: str) -> dict:
         result["bb_lower"] = round(float(bb_low.iloc[-1]), 2)
         bb_range = float(bb_up.iloc[-1]) - float(bb_low.iloc[-1])
         if bb_range > 0:
-            result["bb_position"] = round(
-                (float(c.iloc[-1]) - float(bb_low.iloc[-1])) / bb_range, 2
-            )
+            # Clamp to [0, 1]: on a volatility spike close can sit outside the bands.
+            raw_bb_pos = (float(c.iloc[-1]) - float(bb_low.iloc[-1])) / bb_range
+            result["bb_position"] = round(max(0.0, min(1.0, raw_bb_pos)), 2)
 
     # BB width
     if not pd.isna(bb_up.iloc[-1]):

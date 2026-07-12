@@ -20,6 +20,7 @@ import pandas as pd
 
 from llm_trading_bot.config import AppConfig
 from llm_trading_bot.portfolio import Portfolio, PortfolioStats, Trade
+from llm_trading_bot.trailing import compute_trailing_stop
 from llm_trading_bot.scoring import (
     Direction,
     IndicatorSet,
@@ -208,27 +209,24 @@ class BacktestEngine:
         return base_penalty
 
     def _update_trailing_stop(self, trade: Trade, bar_high: float, bar_low: float) -> None:
-        """Update trailing stop if enabled and activated."""
+        """Update trailing stop if enabled and activated (shared math with live trading)."""
         if not self.enable_trailing or not self.trailing_config.enabled:
             return
         if not trade.is_open:
             return
 
-        is_long = trade.direction == "LONG"
-        activation_distance = trade.entry_price * self.trailing_config.activation_pct / 100
-        callback_distance = trade.entry_price * self.trailing_config.callback_pct / 100
-
-        if is_long:
-            # Activation check: price moved enough in our favor
-            if bar_high >= trade.entry_price + activation_distance:
-                new_sl = bar_high - callback_distance
-                if new_sl > trade.stop_loss:
-                    trade.stop_loss = new_sl
-        else:
-            if bar_low <= trade.entry_price - activation_distance:
-                new_sl = bar_low + callback_distance
-                if new_sl < trade.stop_loss:
-                    trade.stop_loss = new_sl
+        # LONG trails off the bar high, SHORT off the bar low.
+        favorable = bar_high if trade.direction == "LONG" else bar_low
+        new_sl = compute_trailing_stop(
+            direction=trade.direction,
+            entry_price=trade.entry_price,
+            favorable_extreme=favorable,
+            current_sl=trade.stop_loss,
+            activation_pct=self.trailing_config.activation_pct,
+            callback_pct=self.trailing_config.callback_pct,
+        )
+        if new_sl is not None:
+            trade.stop_loss = new_sl
 
     def run(
         self,
@@ -399,7 +397,7 @@ class BacktestEngine:
                             take_profit_1=targets.take_profit_1,
                             take_profit_2=targets.take_profit_2,
                             leverage=self.tier.leverage,
-                            risk_pct=0.02,
+                            risk_pct=self.config.position_sizing.risk_pct_per_trade,
                             tp1_exit_pct=self.tier.tp1_exit_pct,
                         )
                         trade_action = f"OPEN_{direction_str}"

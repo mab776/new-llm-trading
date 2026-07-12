@@ -46,27 +46,55 @@ class ConsensusResult:
     reasoning_summary: str = ""
 
 
+def _extract_json_object(raw: str) -> Optional[str]:
+    """
+    Extract the last balanced ``{...}`` JSON object from an LLM response.
+
+    Robust to: reasoning-model ``<think>...</think>`` preambles, markdown code fences,
+    surrounding prose, and JSON containing nested objects (which a non-greedy regex
+    like ``\\{.*?\\}`` would truncate at the first inner brace). Scans for balanced
+    brace pairs and returns the LAST one (the final answer, after any reasoning).
+    """
+    # Drop reasoning-model think blocks so their braces don't confuse the scan.
+    cleaned = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL | re.IGNORECASE)
+
+    candidates: list[str] = []
+    depth = 0
+    start = -1
+    for i, ch in enumerate(cleaned):
+        if ch == "{":
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == "}":
+            if depth > 0:
+                depth -= 1
+                if depth == 0 and start != -1:
+                    candidates.append(cleaned[start:i + 1])
+                    start = -1
+
+    # Prefer the last candidate that actually parses as JSON.
+    for cand in reversed(candidates):
+        try:
+            json.loads(cand)
+            return cand
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
 def _parse_llm_response(raw: str, model_id: str) -> LLMResponse:
     """
     Parse the LLM's JSON response. Handles various formatting issues
-    (markdown code blocks, extra text, etc.).
+    (markdown code blocks, reasoning preambles, nested objects, extra prose).
     """
     response = LLMResponse(model_id=model_id, decision="WAIT", confidence=0, reasoning="", raw_response=raw)
 
     try:
-        # Try to extract JSON from the response
-        # Handle markdown code blocks
-        json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw, re.DOTALL)
-        if json_match:
-            json_str = json_match.group(1)
-        else:
-            # Try to find raw JSON object
-            json_match = re.search(r'\{[^{}]*"decision"[^{}]*\}', raw, re.DOTALL)
-            if json_match:
-                json_str = json_match.group(0)
-            else:
-                response.parse_error = "No JSON found in response"
-                return response
+        json_str = _extract_json_object(raw)
+        if json_str is None:
+            response.parse_error = "No JSON found in response"
+            return response
 
         data = json.loads(json_str)
 

@@ -53,3 +53,38 @@ class TestSafetyChecks:
         assert result.stop_loss == 49000
         assert result.take_profit_1 == 52000
         assert result.status == "submitted"
+
+
+class TestAvailableBalance:
+    def test_dry_run_returns_default(self, dry_run_client):
+        assert dry_run_client.get_available_balance(dry_run_default=250.0) == 250.0
+
+    def test_parses_usdt_account(self, monkeypatch):
+        client = BitgetClient(BitgetConfig(api_key="k", api_secret="s", passphrase="p"))
+        monkeypatch.setattr(client, "_dry_run", False)
+        monkeypatch.setattr(
+            client, "get_account_info",
+            lambda: {"data": [{"marginCoin": "USDT", "available": "1234.5"}]},
+        )
+        assert client.get_available_balance() == 1234.5
+
+    def test_unparseable_returns_zero(self, monkeypatch):
+        client = BitgetClient(BitgetConfig(api_key="k", api_secret="s", passphrase="p"))
+        monkeypatch.setattr(client, "_dry_run", False)
+        monkeypatch.setattr(client, "get_account_info", lambda: {"data": []})
+        assert client.get_available_balance() == 0.0
+
+
+class TestModifyStopLoss:
+    def test_rejects_invalid_stop(self, dry_run_client):
+        with pytest.raises(SafetyViolation):
+            dry_run_client.modify_stop_loss("BTC-USDT", "long", 0.01, 0)
+
+    def test_dry_run_is_noop_ok(self, dry_run_client):
+        # Dry-run returns the canned response without raising.
+        res = dry_run_client.modify_stop_loss("BTC-USDT", "long", 0.01, 49500)
+        assert res.get("code") == "00000"
+
+    def test_testnet_adds_paptrading_header(self, dry_run_client):
+        headers = dry_run_client._headers("POST", "/x", "")
+        assert headers.get("paptrading") == "1"

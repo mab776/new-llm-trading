@@ -14,7 +14,7 @@ python -m llm_trading_bot.main --config config.json
 ## Architecture
 
 ```
-Market Data (yfinance)
+Market Data (Bitget futures — windowed history + disk cache; also binance/yfinance)
         ↓
   Scoring Engine (indicators + weighted score)
         ↓
@@ -23,22 +23,36 @@ Market Data (yfinance)
    ├── MARGINAL → LLM consensus via OpenWebUI
    └── WAIT    → Skip trade
         ↓
-  Bitget Execution (futures + mandatory TP/SL)
+  Bitget Execution (futures + mandatory TP/SL + risk-based sizing + trailing stops)
 ```
+
+### Market data
+
+Default source is **Bitget USDT-perpetual futures** (`data_source.source: "bitget"`,
+`exchange_symbol: "BTC/USDT:USDT"`, `market: "futures"`). Bitget's history endpoint is
+**200-cap and END-anchored** (it returns the last N candles before `until`), so a naive
+`since` fetch silently drops everything but the tail of the range. `bitget_csv.py` handles
+this with **explicit windowed pagination** (`until` per ≤200-candle window) and caches
+**complete months** to `history/bitget/…` — repeated deep backtests are then instant.
+(Note: Bitget *spot* lacks 2h/1s candles; futures has full coverage. `binance` CSV archive
+and `yfinance` remain available.)
 
 ## Modules
 
 | Module | Purpose |
 |--------|---------|
 | `scoring` | Core scoring engine, indicators, targets |
-| `data` | OHLCV fetching, caching, 4H aggregation |
+| `data` | OHLCV fetching, caching, 4H aggregation, source routing |
+| `bitget_csv` | Bitget windowed history getter + monthly disk cache |
+| `binance_csv` | Binance public CSV archive downloader |
 | `routing` | Signal classification and routing |
 | `openwebui` | Filter file + automation client |
-| `exchange` | Bitget futures integration |
+| `exchange` | Bitget futures integration (orders, balance, stop updates) |
+| `trailing` | Shared trailing-stop math (backtest + live) |
 | `backtesting` | Historical replay engine |
 | `portfolio` | Fee-aware portfolio simulation |
 | `reporting` | Reports and charts |
-| `scheduler` | Cron-like scheduling |
+| `scheduler` | Cron-like scheduling + risk-based sizing + live trailing |
 
 ## Safety Rules
 

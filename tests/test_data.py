@@ -9,13 +9,57 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from llm_trading_bot import data as data_mod
 from llm_trading_bot.data import (
     DataCache,
     aggregate_to_4h,
+    fetch_ohlcv,
     _yf_interval,
     _period_for_warmup,
     configure_cache,
 )
+
+
+def _tiny_df():
+    idx = pd.date_range("2024-01-01", periods=3, freq="4h", tz="UTC")
+    return pd.DataFrame(
+        {"Open": [1, 2, 3], "High": [1, 2, 3], "Low": [1, 2, 3],
+         "Close": [1, 2, 3], "Volume": [1, 2, 3]},
+        index=idx,
+    )
+
+
+class TestBitgetRouting:
+    def test_bitget_source_uses_csv_getter(self, monkeypatch):
+        configure_cache(0)  # disable cache so the branch runs
+        called = {}
+
+        def fake_csv(symbol, timeframe, start_date, end_date, warmup_periods, market):
+            called["market"] = market
+            return _tiny_df()
+
+        monkeypatch.setattr(data_mod, "_fetch_bitget_csv", fake_csv)
+        df = fetch_ohlcv("BTC/USDT:USDT", "4h", source="bitget", market="futures")
+        assert called["market"] == "futures"
+        assert len(df) == 3
+
+    def test_bitget_falls_back_to_windowed_ccxt_on_cache_error(self, monkeypatch):
+        configure_cache(0)
+
+        def boom(*a, **k):
+            raise RuntimeError("disk cache unavailable")
+
+        fell_back = {}
+
+        def fake_ccxt(symbol, timeframe, exchange_id, start_date, end_date, warmup_periods, market):
+            fell_back["exchange_id"] = exchange_id
+            return _tiny_df()
+
+        monkeypatch.setattr(data_mod, "_fetch_bitget_csv", boom)
+        monkeypatch.setattr(data_mod, "_fetch_ccxt", fake_ccxt)
+        df = fetch_ohlcv("BTC/USDT:USDT", "4h", source="bitget")
+        assert fell_back["exchange_id"] == "bitget"
+        assert len(df) == 3
 
 
 # ──────────────────────────────────────────────────────────────────────

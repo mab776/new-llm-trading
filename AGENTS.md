@@ -30,14 +30,17 @@ Market Data → Scoring Engine → Signal Router
 | **Config** | `llm_trading_bot/config.py` | Pydantic models, config loading |
 | **OpenWebUI Filter** | `openwebui_filter.py` | **SOURCE OF TRUTH** — indicator computations + scoring logic |
 | **Scoring** | `llm_trading_bot/scoring.py` | Typed API layer (IndicatorSet, CategoryScore, etc.) — imports from filter |
-| **Data** | `llm_trading_bot/data.py` | OHLCV fetching, caching, 4H aggregation |
+| **Data** | `llm_trading_bot/data.py` | OHLCV fetching, caching, 4H aggregation, source routing |
+| **Bitget history** | `llm_trading_bot/bitget_csv.py` | Windowed (END-anchored) Bitget fetch + monthly disk cache |
+| **Binance history** | `llm_trading_bot/binance_csv.py` | Binance public CSV archive downloader |
 | **Routing** | `llm_trading_bot/routing.py` | Signal classification and routing decisions |
-| **OpenWebUI Client** | `llm_trading_bot/openwebui_client.py` | API client + consensus mechanism |
-| **Exchange** | `llm_trading_bot/exchange.py` | Bitget API with mandatory safety checks |
+| **OpenWebUI Client** | `llm_trading_bot/openwebui_client.py` | API client + robust JSON parsing + consensus |
+| **Exchange** | `llm_trading_bot/exchange.py` | Bitget API — orders, balance, stop updates, safety checks |
+| **Trailing** | `llm_trading_bot/trailing.py` | Shared trailing-stop math (backtest + live, no drift) |
 | **Portfolio** | `llm_trading_bot/portfolio.py` | Fee-aware portfolio simulation |
 | **Backtesting** | `llm_trading_bot/backtesting.py` | Historical replay engine |
 | **Reporting** | `llm_trading_bot/reporting.py` | Charts, text reports, CSV export |
-| **Scheduler** | `llm_trading_bot/scheduler.py` | Cron-like scheduling + position management |
+| **Scheduler** | `llm_trading_bot/scheduler.py` | Scheduling + risk-based sizing + live trailing stops |
 | **Main** | `llm_trading_bot/main.py` | Entry point (analyze, backtest, live modes) |
 
 ### Risk Management (imported from predecessor project)
@@ -152,7 +155,7 @@ exists for a reason — it's the last line of defense.
 ### Data Flow for Backtesting
 
 ```
-1. Fetch full date range + warmup from yfinance
+1. Fetch full date range + warmup from the configured source (Bitget by default)
 2. For each bar in test period:
    a. Slice data UP TO current bar (no future data)
    b. Calculate indicators on the slice
@@ -163,10 +166,37 @@ exists for a reason — it's the last line of defense.
 4. Compute stats and generate reports
 ```
 
+### Market Data Sources
+
+`data_source.source` in `config.json` selects the OHLCV source (routing lives in
+`data.py::fetch_ohlcv`):
+
+- **`bitget`** (default) → `bitget_csv.py`. USDT-perpetual futures (`BTC/USDT:USDT`,
+  `market: "futures"`). ⚠️ **Bitget's history endpoint is 200-cap and END-anchored** — it
+  returns the last N candles *before* `until`, so a naive `since` request silently returns
+  only the tail. We page in **explicit ≤200-candle windows** passing `params={"until":
+  window_end}` and filter each window to `[since, end)` (`fetch_ohlcv_range`). Complete
+  months are cached to `history/bitget/{SYMBOL}/{tf}/` (the current partial month is always
+  re-fetched). The live ccxt fallback (`_fetch_ccxt`) uses the same windowing for Bitget.
+  Bitget **spot** lacks 2h/1s candles; futures has full coverage.
+- **`binance`** → `binance_csv.py` (public CSV archive), with a plain forward-paginated
+  ccxt fallback.
+- **`yfinance`** → capped at ~730 days hourly; 4H aggregated from 1H in `data.py`.
+
+### Position Sizing & Trailing Stops
+
+- **Sizing** (`position_sizing` config): both live and backtest commit
+  `min(balance × risk_pct_per_trade, max_position_usd)` as margin, leveraged to the notional,
+  converted to base size at entry. Live reads the balance via
+  `BitgetClient.get_available_balance()` (dry-run returns a default so sizing still works).
+- **Trailing stops**: `trailing.py::compute_trailing_stop` is the single source of truth,
+  used by `backtesting.py::_update_trailing_stop` AND `scheduler.py::_maybe_trail_stop`
+  (which calls `exchange.modify_stop_loss`). A stop only ever moves in the trade's favour.
+
 ### Important Technical Notes
 
 - **yfinance doesn't support 4H candles** — we fetch 1H and aggregate in `data.py`
-- **yfinance caps hourly data at ~730 days** — plan date ranges accordingly
+- **yfinance caps hourly data at ~730 days** — prefer `bitget` for deep backtests
 - **Fees compound significantly at high leverage** — a 0.06% fee at 20x = 2.4% per round trip
 - **ATR adapts to volatility** — all targets (SL, TP1, TP2) scale with market conditions
 - **Partial exits** — TP1 closes a fraction (default 50%), TP2 closes the rest
@@ -187,14 +217,17 @@ new-llm-trading/
 │   ├── __init__.py
 │   ├── config.py           # Configuration models
 │   ├── scoring.py          # CORE: indicators + scoring + targets
-│   ├── data.py             # OHLCV fetching + caching
+│   ├── data.py             # OHLCV fetching + caching + source routing
+│   ├── bitget_csv.py       # Bitget windowed history getter + disk cache
+│   ├── binance_csv.py      # Binance CSV archive downloader
 │   ├── routing.py          # Signal routing logic
-│   ├── openwebui_client.py # LLM consensus client
-│   ├── exchange.py         # Bitget API + safety
+│   ├── openwebui_client.py # LLM consensus client (robust JSON parsing)
+│   ├── exchange.py         # Bitget API + safety + balance + stop updates
+│   ├── trailing.py         # Shared trailing-stop math
 │   ├── portfolio.py        # Portfolio simulation
 │   ├── backtesting.py      # Backtest engine
 │   ├── reporting.py        # Charts + reports
-│   ├── scheduler.py        # Scheduled trading
+│   ├── scheduler.py        # Scheduled trading + sizing + trailing
 │   └── main.py             # Entry point
 ├── tests/                  # Pytest test suite
 │   ├── __init__.py

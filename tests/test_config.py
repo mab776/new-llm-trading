@@ -147,7 +147,7 @@ class TestBacktestingConfig:
 class TestRiskManagementConfig:
     def test_defaults(self):
         rm = RiskManagementConfig()
-        assert rm.max_holding_hours == 168
+        assert rm.max_holding_hours == 0  # 0 = forced time-close disabled (default)
         assert rm.cooldown_candles_after_sl == 3
         assert rm.consecutive_loss_penalty == 5.0
         assert rm.max_consecutive_loss_penalty == 20.0
@@ -166,5 +166,5 @@ class TestRiskManagementConfig:
 
     def test_in_app_config(self):
         cfg = AppConfig()
-        assert cfg.risk_management.max_holding_hours == 168
+        assert cfg.risk_management.max_holding_hours == 0
         assert cfg.risk_management.use_maker_fee_for_tp is True

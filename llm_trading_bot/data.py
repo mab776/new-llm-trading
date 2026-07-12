@@ -193,19 +193,23 @@ def _fetch_ccxt(
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     warmup_periods: int = 200,
+    market: str = "futures",
 ) -> pd.DataFrame:
     """
     Fetch OHLCV data from a CCXT-supported exchange (live API).
     Used as fallback when CSV archive is not available.
     No API key needed for public market data.
+
+    Bitget is special: its history endpoint is 200-cap and END-anchored, so we use the
+    windowed `until` pagination from bitget_csv (naive forward pagination silently drops
+    everything but the tail of the range). Other exchanges (Binance, ...) use the plain
+    forward pagination below.
     """
     import ccxt
 
     exchange_class = getattr(ccxt, exchange_id, None)
     if exchange_class is None:
         raise ValueError(f"Unknown exchange: {exchange_id}")
-
-    exchange = exchange_class({"enableRateLimit": True})
 
     ccxt_tf = _ccxt_timeframe(timeframe)
     extra_days, _ = _period_for_warmup(timeframe, warmup_periods)
@@ -223,38 +227,49 @@ def _fetch_ccxt(
     since_ms = int(start_dt.timestamp() * 1000)
     end_ms = int(end_dt.timestamp() * 1000)
 
-    # CCXT returns max 500-1500 candles per request, so paginate
-    all_candles = []
-    limit = 1000
-    current_since = since_ms
+    # Bitget: windowed END-anchored pagination (shared helper — the correct way).
+    if exchange_id == "bitget":
+        from llm_trading_bot.bitget_csv import fetch_ohlcv_range, public_exchange
 
-    print(f"    Fetching {timeframe} from {exchange_id}...", end="", flush=True)
-    while current_since < end_ms:
-        try:
-            candles = exchange.fetch_ohlcv(
-                symbol, ccxt_tf, since=current_since, limit=limit
-            )
-        except Exception as e:
-            raise ValueError(
-                f"Failed to fetch {symbol} {timeframe} from {exchange_id}: {e}"
-            ) from e
+        exchange = public_exchange(market)
+        print(f"    Fetching {timeframe} from bitget (windowed)...", end="", flush=True)
+        all_candles = fetch_ohlcv_range(exchange, symbol, ccxt_tf, since_ms, end_ms)
+        print(f" {len(all_candles)} candles")
+    else:
+        exchange = exchange_class({"enableRateLimit": True})
 
-        if not candles:
-            break
+        # CCXT returns max 500-1500 candles per request, so paginate forward
+        all_candles = []
+        limit = 1000
+        current_since = since_ms
 
-        all_candles.extend(candles)
+        print(f"    Fetching {timeframe} from {exchange_id}...", end="", flush=True)
+        while current_since < end_ms:
+            try:
+                candles = exchange.fetch_ohlcv(
+                    symbol, ccxt_tf, since=current_since, limit=limit
+                )
+            except Exception as e:
+                raise ValueError(
+                    f"Failed to fetch {symbol} {timeframe} from {exchange_id}: {e}"
+                ) from e
 
-        # Move to after the last candle timestamp
-        last_ts = candles[-1][0]
-        if last_ts <= current_since:
-            break  # No progress — avoid infinite loop
-        current_since = last_ts + 1
+            if not candles:
+                break
 
-        # Stop if we got less than limit (no more data)
-        if len(candles) < limit:
-            break
+            all_candles.extend(candles)
 
-    print(f" {len(all_candles)} candles")
+            # Move to after the last candle timestamp
+            last_ts = candles[-1][0]
+            if last_ts <= current_since:
+                break  # No progress — avoid infinite loop
+            current_since = last_ts + 1
+
+            # Stop if we got less than limit (no more data)
+            if len(candles) < limit:
+                break
+
+        print(f" {len(all_candles)} candles")
 
     if not all_candles:
         raise ValueError(f"No data returned for {symbol} ({timeframe}) from {exchange_id}")
@@ -314,6 +329,36 @@ def _fetch_binance_csv(
 
 
 # ---------------------------------------------------------------------------
+# Source: Bitget CSV archive (windowed pagination + monthly disk cache)
+# ---------------------------------------------------------------------------
+
+def _fetch_bitget_csv(
+    symbol: str,
+    timeframe: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    warmup_periods: int = 200,
+    market: str = "futures",
+) -> pd.DataFrame:
+    """
+    Fetch from Bitget with the correct END-anchored windowed pagination, caching
+    complete months to disk. Subsequent runs are instant.
+    """
+    from llm_trading_bot.bitget_csv import download_bitget_csv
+
+    extra_days, _ = _period_for_warmup(timeframe, warmup_periods)
+
+    return download_bitget_csv(
+        symbol=symbol,
+        timeframe=timeframe,
+        start_date=start_date,
+        end_date=end_date,
+        warmup_days=extra_days,
+        market=market,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Unified fetch interface
 # ---------------------------------------------------------------------------
 
@@ -325,6 +370,7 @@ def fetch_ohlcv(
     warmup_periods: int = 200,
     source: str = "yfinance",
     exchange: str = "binance",
+    market: str = "futures",
 ) -> pd.DataFrame:
     """
     Fetch OHLCV data from the configured source.
@@ -357,10 +403,17 @@ def fetch_ohlcv(
         except Exception as e:
             print(f"    CSV archive failed ({e}), falling back to ccxt API...")
             df = _fetch_ccxt(symbol, timeframe, "binance", start_date, end_date, warmup_periods)
+    elif source == "bitget":
+        # Prefer the windowed CSV archive (disk-cached), fall back to the windowed live API
+        try:
+            df = _fetch_bitget_csv(symbol, timeframe, start_date, end_date, warmup_periods, market)
+        except Exception as e:
+            print(f"    Bitget CSV failed ({e}), falling back to windowed ccxt live fetch...")
+            df = _fetch_ccxt(symbol, timeframe, "bitget", start_date, end_date, warmup_periods, market)
     else:
         # Treat source as a ccxt exchange ID
         exchange_id = source if source != "ccxt" else exchange
-        df = _fetch_ccxt(symbol, timeframe, exchange_id, start_date, end_date, warmup_periods)
+        df = _fetch_ccxt(symbol, timeframe, exchange_id, start_date, end_date, warmup_periods, market)
 
     _cache.put(cache_key, df, timeframe)
     return df
@@ -374,6 +427,7 @@ def fetch_multi_timeframe(
     warmup_periods: int = 200,
     source: str = "yfinance",
     exchange: str = "binance",
+    market: str = "futures",
 ) -> dict[str, pd.DataFrame]:
     """Fetch OHLCV data for multiple timeframes."""
     result: dict[str, pd.DataFrame] = {}
@@ -381,7 +435,7 @@ def fetch_multi_timeframe(
         try:
             result[tf] = fetch_ohlcv(
                 symbol, tf, start_date, end_date, warmup_periods,
-                source=source, exchange=exchange,
+                source=source, exchange=exchange, market=market,
             )
         except Exception as e:
             print(f"Warning: Failed to fetch {tf} data for {symbol}: {e}")

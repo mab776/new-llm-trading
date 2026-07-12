@@ -100,7 +100,12 @@
         "use_maker_fee_for_tp": true
     },
     "data_source": {
-        "source": "binance",
-        "exchange_symbol": "BTC/USDT"
+        "source": "bitget",
+        "exchange_symbol": "BTC/USDT:USDT",
+        "market": "futures"
+    },
+    "position_sizing": {
+        "risk_pct_per_trade": 0.02,
+        "max_position_usd": 100
     }
 }

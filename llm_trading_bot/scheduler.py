@@ -24,6 +24,7 @@ from llm_trading_bot.exchange import BitgetClient, SafetyViolation
 from llm_trading_bot.openwebui_client import run_consensus
 from llm_trading_bot.routing import RoutingDecision, route_signal
 from llm_trading_bot.scoring import Direction, SignalStrength, calculate_indicators
+from llm_trading_bot.trailing import compute_trailing_stop
 
 
 class TradingScheduler:
@@ -43,6 +44,10 @@ class TradingScheduler:
         self.decision_log: list[dict] = []
         self._log_dir = Path("logs")
         self._log_dir.mkdir(exist_ok=True)
+
+        # Per-symbol trade context for live trailing stops:
+        # {symbol: {"direction": "LONG"|"SHORT", "entry": float, "current_sl": float}}
+        self._tracked_trades: dict[str, dict] = {}
 
         configure_cache(config.data_cache.ttl_seconds)
 
@@ -73,6 +78,7 @@ class TradingScheduler:
                 timeframes=self.config.trading.timeframes,
                 warmup_periods=self.config.scoring.atr_period * 15,
                 source=ds.source,
+                market=ds.market,
             )
         except Exception as e:
             self._log(f"ERROR fetching data: {e}")
@@ -168,8 +174,21 @@ class TradingScheduler:
         tier = self.config.trading.active_leverage_tier
         side = "buy" if targets.direction == Direction.BULLISH else "sell"
 
+        # Risk-based position sizing: commit min(balance * risk_pct, max_usd) as margin,
+        # leverage it up to the notional, then convert to base-currency size at entry.
+        ps = self.config.position_sizing
+        balance = self.exchange.get_available_balance()
+        margin = min(balance * ps.risk_pct_per_trade, ps.max_position_usd)
+        size = (margin * tier.leverage) / targets.entry if targets.entry > 0 else 0.0
+        if size <= 0:
+            self._log(
+                f"Computed non-positive size (balance=${balance:,.2f}, margin=${margin:,.2f}) — skipping trade"
+            )
+            return
+
         self._log(
             f"Executing {side.upper()} @ ${targets.entry:,.2f} | "
+            f"Size: {size:.6f} (margin ${margin:,.2f} @ {tier.leverage}x) | "
             f"SL: ${targets.stop_loss:,.2f} | "
             f"TP1: ${targets.take_profit_1:,.2f} | "
             f"TP2: ${targets.take_profit_2:,.2f}"
@@ -179,11 +198,19 @@ class TradingScheduler:
             result = self.exchange.place_order(
                 symbol=self.config.trading.symbol,
                 side=side,
-                size=0.001,  # TODO: proper position sizing
+                size=size,
                 targets=targets,
                 leverage=tier.leverage,
             )
             self._log(f"Order placed: {result.order_id}")
+
+            # Track the trade so check_positions can trail its stop.
+            self._tracked_trades[self.config.trading.symbol] = {
+                "direction": "LONG" if targets.direction == Direction.BULLISH else "SHORT",
+                "entry": targets.entry,
+                "current_sl": targets.stop_loss,
+            }
+
             self._log_decision({
                 "action": f"TRADE_{side.upper()}",
                 "order_id": result.order_id,
@@ -213,13 +240,50 @@ class TradingScheduler:
                     f"Position: {pos.side} {pos.size} @ ${pos.entry_price:,.2f} | "
                     f"Unrealized PnL: ${pos.unrealized_pnl:,.2f}"
                 )
-
-                # TODO: Implement trailing stop updates on the exchange
-                # This would require tracking the trade's original targets
-                # and updating the exchange's TP/SL orders
+                self._maybe_trail_stop(pos)
 
         except Exception as e:
             self._log(f"Position check error: {e}")
+
+    def _maybe_trail_stop(self, pos) -> None:
+        """Move the position's stop loss up (long) / down (short) if trailing is enabled."""
+        trailing = self.config.trading.trailing_stop
+        if not trailing.enabled:
+            return
+
+        tracked = self._tracked_trades.get(pos.symbol)
+        if not tracked:
+            return  # We didn't open this position (or lost context after a restart).
+
+        # Derive the current price from the position's unrealized PnL:
+        #   long:  unrealized = (price - entry) * size  ->  price = entry + unrealized/size
+        #   short: unrealized = (entry - price) * size  ->  price = entry - unrealized/size
+        if pos.size <= 0:
+            return
+        if tracked["direction"] == "LONG":
+            current_price = pos.entry_price + pos.unrealized_pnl / pos.size
+        else:
+            current_price = pos.entry_price - pos.unrealized_pnl / pos.size
+
+        new_sl = compute_trailing_stop(
+            direction=tracked["direction"],
+            entry_price=tracked["entry"],
+            favorable_extreme=current_price,
+            current_sl=tracked["current_sl"],
+            activation_pct=trailing.activation_pct,
+            callback_pct=trailing.callback_pct,
+        )
+        if new_sl is None:
+            return
+
+        try:
+            self.exchange.modify_stop_loss(
+                symbol=pos.symbol, hold_side=pos.side, size=pos.size, new_sl=new_sl,
+            )
+            tracked["current_sl"] = new_sl
+            self._log(f"Trailing stop moved to ${new_sl:,.2f} ({tracked['direction']})")
+        except Exception as e:
+            self._log(f"Failed to update trailing stop: {e}")
 
     def run_cycle(self) -> None:
         """Run one full analysis + execution cycle."""

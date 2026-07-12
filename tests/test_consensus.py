@@ -67,6 +67,34 @@ class TestParseResponse:
         resp2 = _parse_llm_response(raw2, "test-model")
         assert resp2.confidence == 0
 
+    def test_nested_object_not_truncated(self):
+        """A non-greedy regex would truncate at the first inner brace; brace-matching won't."""
+        raw = '{"decision": "LONG", "confidence": 70, "meta": {"src": "ta"}, "reasoning": "ok"}'
+        resp = _parse_llm_response(raw, "test-model")
+        assert resp.decision == "LONG"
+        assert resp.confidence == 70
+        assert resp.parse_error is None
+
+    def test_reasoning_model_think_preamble(self):
+        raw = (
+            "<think>The RSI is high and {maybe short?} but trend is up...</think>\n"
+            '{"decision": "LONG", "confidence": 65, "reasoning": "trend up"}'
+        )
+        resp = _parse_llm_response(raw, "test-model")
+        assert resp.decision == "LONG"
+        assert resp.confidence == 65
+        assert resp.parse_error is None
+
+    def test_last_json_object_wins(self):
+        """If the model emits a draft then a final answer, take the final one."""
+        raw = (
+            'First draft: {"decision": "WAIT", "confidence": 10}\n'
+            'Final: {"decision": "SHORT", "confidence": 80, "reasoning": "done"}'
+        )
+        resp = _parse_llm_response(raw, "test-model")
+        assert resp.decision == "SHORT"
+        assert resp.confidence == 80
+
 
 class TestBuildConsensus:
     def test_unanimous_long(self):

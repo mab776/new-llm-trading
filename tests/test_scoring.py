@@ -36,6 +36,24 @@ from llm_trading_bot.scoring import (
 )
 
 
+class TestBollingerClamp:
+    def test_bb_position_clamped_on_spike(self):
+        """A close far above the upper band must not push bb_position past 1.0."""
+        n = 60
+        idx = pd.date_range("2024-01-01", periods=n, freq="4h", tz="UTC")
+        prices = np.full(n, 100.0)
+        prices[-1] = 400.0  # violent spike -> close well outside the bands
+        df = pd.DataFrame({
+            "Open": prices, "High": prices + 1, "Low": prices - 1,
+            "Close": prices, "Volume": np.full(n, 1000.0),
+        }, index=idx)
+
+        ind = calculate_indicators(df, "4h")
+        assert ind.bb_position is not None
+        assert 0.0 <= ind.bb_position <= 1.0
+        assert ind.bb_position == 1.0  # clamped to the ceiling
+
+
 # ──────────────────────────────────────────────────────────────────────
 # Fixtures
 # ──────────────────────────────────────────────────────────────────────
