@@ -1,0 +1,3082 @@
+[
+ {
+  "obj": 170.85,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 14.0,
+   "tier.marginal_threshold_low": 10.1,
+   "tier.tp1_rr": 3.05,
+   "tier.tp2_rr": 7.44,
+   "tier.tp1_exit_pct": 0.28,
+   "scoring.atr_sl_multiplier": 1.36,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.7156241122524658,
+    "momentum": 0.13522868935351712,
+    "volume": 0.6719889038373292,
+    "support_resistance": 0.28023798360475494,
+    "risk": 0.9210193765151189
+   },
+   "filters.min_adx": 15.7,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.28,
+   "trailing.callback_pct": 0.38
+  },
+  "res": {
+   "geo_factor": 2.7085,
+   "geo_pct": 170.85,
+   "compound_x": 145.759,
+   "worst_fold": 30.43,
+   "mean_ret": 203.77,
+   "max_dd": 15.76,
+   "total_trades": 1531,
+   "per": {
+    "2021": {
+     "ret": 465.34,
+     "dd": 15.76,
+     "tr": 443,
+     "wr": 72.7,
+     "pf": 1.54
+    },
+    "2022": {
+     "ret": 242.78,
+     "dd": 9.92,
+     "tr": 328,
+     "wr": 72.0,
+     "pf": 1.79
+    },
+    "2023": {
+     "ret": 142.27,
+     "dd": 7.97,
+     "tr": 291,
+     "wr": 64.6,
+     "pf": 1.75
+    },
+    "2024": {
+     "ret": 138.03,
+     "dd": 8.17,
+     "tr": 340,
+     "wr": 68.8,
+     "pf": 1.64
+    },
+    "2025": {
+     "ret": 30.43,
+     "dd": 9.5,
+     "tr": 129,
+     "wr": 65.9,
+     "pf": 1.56
+    }
+   }
+  }
+ },
+ {
+  "obj": 166.33,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 40.7,
+   "tier.marginal_threshold_low": 20.2,
+   "tier.tp1_rr": 3.9,
+   "tier.tp2_rr": 9.33,
+   "tier.tp1_exit_pct": 0.49,
+   "scoring.atr_sl_multiplier": 1.21,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.7209505386770692,
+    "momentum": 0.26584202595400697,
+    "volume": 0.19051037436603868,
+    "support_resistance": 0.21780569200327676,
+    "risk": 0.6992339279637738
+   },
+   "filters.min_adx": 16.2,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.59,
+   "trailing.callback_pct": 0.42
+  },
+  "res": {
+   "geo_factor": 2.6633,
+   "geo_pct": 166.33,
+   "compound_x": 134.004,
+   "worst_fold": 16.4,
+   "mean_ret": 250.03,
+   "max_dd": 9.16,
+   "total_trades": 1789,
+   "per": {
+    "2021": {
+     "ret": 842.35,
+     "dd": 6.92,
+     "tr": 520,
+     "wr": 86.0,
+     "pf": 2.35
+    },
+    "2022": {
+     "ret": 122.6,
+     "dd": 6.02,
+     "tr": 289,
+     "wr": 81.7,
+     "pf": 2.24
+    },
+    "2023": {
+     "ret": 142.25,
+     "dd": 6.68,
+     "tr": 379,
+     "wr": 76.0,
+     "pf": 2.05
+    },
+    "2024": {
+     "ret": 126.55,
+     "dd": 9.16,
+     "tr": 461,
+     "wr": 80.9,
+     "pf": 1.93
+    },
+    "2025": {
+     "ret": 16.4,
+     "dd": 7.37,
+     "tr": 140,
+     "wr": 78.6,
+     "pf": 1.58
+    }
+   }
+  }
+ },
+ {
+  "obj": 136.73,
+  "ov": {
+   "tier.leverage": 18,
+   "tier.strong_threshold": 31.0,
+   "tier.marginal_threshold_low": 10.1,
+   "tier.tp1_rr": 3.93,
+   "tier.tp2_rr": 4.54,
+   "tier.tp1_exit_pct": 0.31,
+   "scoring.atr_sl_multiplier": 1.74,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.8627959002684464,
+    "momentum": 0.6051576576442375,
+    "volume": 0.7793898966929935,
+    "support_resistance": 0.5557460612421159,
+    "risk": 0.6709320655623955
+   },
+   "filters.min_adx": 12.0,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.95,
+   "trailing.callback_pct": 0.34
+  },
+  "res": {
+   "geo_factor": 2.3673,
+   "geo_pct": 136.73,
+   "compound_x": 74.343,
+   "worst_fold": 15.76,
+   "mean_ret": 181.11,
+   "max_dd": 6.61,
+   "total_trades": 2574,
+   "per": {
+    "2021": {
+     "ret": 540.77,
+     "dd": 6.46,
+     "tr": 762,
+     "wr": 71.1,
+     "pf": 1.91
+    },
+    "2022": {
+     "ret": 102.39,
+     "dd": 6.24,
+     "tr": 519,
+     "wr": 62.4,
+     "pf": 1.76
+    },
+    "2023": {
+     "ret": 104.71,
+     "dd": 5.86,
+     "tr": 491,
+     "wr": 62.1,
+     "pf": 1.9
+    },
+    "2024": {
+     "ret": 141.91,
+     "dd": 4.01,
+     "tr": 590,
+     "wr": 64.9,
+     "pf": 1.93
+    },
+    "2025": {
+     "ret": 15.76,
+     "dd": 6.61,
+     "tr": 212,
+     "wr": 59.9,
+     "pf": 1.45
+    }
+   }
+  }
+ },
+ {
+  "obj": 124.33,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 33.9,
+   "tier.marginal_threshold_low": 14.0,
+   "tier.tp1_rr": 3.22,
+   "tier.tp2_rr": 6.82,
+   "tier.tp1_exit_pct": 0.52,
+   "scoring.atr_sl_multiplier": 2.22,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.9674309388281368,
+    "momentum": 0.4589327666956731,
+    "volume": 0.06002038414535097,
+    "support_resistance": 0.2958014518834727,
+    "risk": 0.5351424284987925
+   },
+   "filters.min_adx": 18.4,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.56,
+   "trailing.callback_pct": 0.48
+  },
+  "res": {
+   "geo_factor": 2.2433,
+   "geo_pct": 124.33,
+   "compound_x": 56.81,
+   "worst_fold": 21.47,
+   "mean_ret": 235.96,
+   "max_dd": 7.29,
+   "total_trades": 1900,
+   "per": {
+    "2021": {
+     "ret": 955.55,
+     "dd": 4.84,
+     "tr": 555,
+     "wr": 82.0,
+     "pf": 2.81
+    },
+    "2022": {
+     "ret": 114.65,
+     "dd": 5.81,
+     "tr": 383,
+     "wr": 74.9,
+     "pf": 2.32
+    },
+    "2023": {
+     "ret": 33.5,
+     "dd": 7.29,
+     "tr": 353,
+     "wr": 69.7,
+     "pf": 1.68
+    },
+    "2024": {
+     "ret": 54.62,
+     "dd": 6.14,
+     "tr": 439,
+     "wr": 72.9,
+     "pf": 1.69
+    },
+    "2025": {
+     "ret": 21.47,
+     "dd": 6.19,
+     "tr": 170,
+     "wr": 74.1,
+     "pf": 1.93
+    }
+   }
+  }
+ },
+ {
+  "obj": 119.98,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 28.9,
+   "tier.marginal_threshold_low": 16.2,
+   "tier.tp1_rr": 1.86,
+   "tier.tp2_rr": 4.83,
+   "tier.tp1_exit_pct": 0.22,
+   "scoring.atr_sl_multiplier": 1.85,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.9784602090587624,
+    "momentum": 0.4416529744809137,
+    "volume": 0.33342661738697227,
+    "support_resistance": 0.4739532115745822,
+    "risk": 0.09552789064800539
+   },
+   "filters.min_adx": 8.6,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.88,
+   "trailing.callback_pct": 0.58
+  },
+  "res": {
+   "geo_factor": 2.1998,
+   "geo_pct": 119.98,
+   "compound_x": 51.511,
+   "worst_fold": 3.57,
+   "mean_ret": 191.53,
+   "max_dd": 17.58,
+   "total_trades": 2310,
+   "per": {
+    "2021": {
+     "ret": 701.44,
+     "dd": 17.58,
+     "tr": 714,
+     "wr": 72.3,
+     "pf": 1.72
+    },
+    "2022": {
+     "ret": 102.39,
+     "dd": 7.95,
+     "tr": 452,
+     "wr": 65.3,
+     "pf": 1.68
+    },
+    "2023": {
+     "ret": 71.98,
+     "dd": 6.08,
+     "tr": 424,
+     "wr": 62.7,
+     "pf": 1.63
+    },
+    "2024": {
+     "ret": 78.29,
+     "dd": 8.27,
+     "tr": 521,
+     "wr": 64.7,
+     "pf": 1.51
+    },
+    "2025": {
+     "ret": 3.57,
+     "dd": 8.93,
+     "tr": 199,
+     "wr": 62.3,
+     "pf": 1.17
+    }
+   }
+  }
+ },
+ {
+  "obj": 114.76,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 20.9,
+   "tier.marginal_threshold_low": 11.8,
+   "tier.tp1_rr": 3.11,
+   "tier.tp2_rr": 6.06,
+   "tier.tp1_exit_pct": 0.37,
+   "scoring.atr_sl_multiplier": 2.12,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.912289845800679,
+    "momentum": 0.6311421045741908,
+    "volume": 0.6340486677527608,
+    "support_resistance": 0.95380990284398,
+    "risk": 0.16200917613141824
+   },
+   "filters.min_adx": 12.9,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.66,
+   "trailing.callback_pct": 0.33
+  },
+  "res": {
+   "geo_factor": 2.1476,
+   "geo_pct": 114.76,
+   "compound_x": 45.686,
+   "worst_fold": 15.86,
+   "mean_ret": 175.45,
+   "max_dd": 8.0,
+   "total_trades": 1454,
+   "per": {
+    "2021": {
+     "ret": 628.76,
+     "dd": 5.39,
+     "tr": 419,
+     "wr": 76.6,
+     "pf": 2.5
+    },
+    "2022": {
+     "ret": 85.16,
+     "dd": 7.72,
+     "tr": 273,
+     "wr": 65.6,
+     "pf": 2.04
+    },
+    "2023": {
+     "ret": 42.68,
+     "dd": 6.76,
+     "tr": 282,
+     "wr": 64.2,
+     "pf": 1.73
+    },
+    "2024": {
+     "ret": 104.81,
+     "dd": 5.76,
+     "tr": 353,
+     "wr": 69.4,
+     "pf": 2.07
+    },
+    "2025": {
+     "ret": 15.86,
+     "dd": 8.0,
+     "tr": 127,
+     "wr": 63.0,
+     "pf": 1.57
+    }
+   }
+  }
+ },
+ {
+  "obj": 100.54,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 30.5,
+   "tier.marginal_threshold_low": 12.9,
+   "tier.tp1_rr": 3.51,
+   "tier.tp2_rr": 4.6,
+   "tier.tp1_exit_pct": 0.26,
+   "scoring.atr_sl_multiplier": 1.72,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.6469246984858432,
+    "momentum": 0.796986692398558,
+    "volume": 0.9758251932337565,
+    "support_resistance": 0.3786539903747869,
+    "risk": 0.06700397336871511
+   },
+   "filters.min_adx": 21.3,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.57,
+   "trailing.callback_pct": 0.34
+  },
+  "res": {
+   "geo_factor": 2.0054,
+   "geo_pct": 100.54,
+   "compound_x": 32.434,
+   "worst_fold": 8.86,
+   "mean_ret": 130.21,
+   "max_dd": 19.44,
+   "total_trades": 1050,
+   "per": {
+    "2021": {
+     "ret": 379.05,
+     "dd": 19.44,
+     "tr": 318,
+     "wr": 75.5,
+     "pf": 1.64
+    },
+    "2022": {
+     "ret": 134.78,
+     "dd": 9.63,
+     "tr": 225,
+     "wr": 70.7,
+     "pf": 1.72
+    },
+    "2023": {
+     "ret": 42.69,
+     "dd": 9.49,
+     "tr": 188,
+     "wr": 63.8,
+     "pf": 1.39
+    },
+    "2024": {
+     "ret": 85.65,
+     "dd": 12.03,
+     "tr": 237,
+     "wr": 69.2,
+     "pf": 1.5
+    },
+    "2025": {
+     "ret": 8.86,
+     "dd": 16.28,
+     "tr": 82,
+     "wr": 64.6,
+     "pf": 1.24
+    }
+   }
+  }
+ },
+ {
+  "obj": 99.83,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 17.9,
+   "tier.marginal_threshold_low": 12.7,
+   "tier.tp1_rr": 3.34,
+   "tier.tp2_rr": 7.78,
+   "tier.tp1_exit_pct": 0.56,
+   "scoring.atr_sl_multiplier": 2.27,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.8757438217790946,
+    "momentum": 0.7722666746636554,
+    "volume": 0.7667209918024536,
+    "support_resistance": 0.515391592330505,
+    "risk": 0.9041573954896411
+   },
+   "filters.min_adx": 14.8,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.36,
+   "trailing.callback_pct": 0.49
+  },
+  "res": {
+   "geo_factor": 1.9983,
+   "geo_pct": 99.83,
+   "compound_x": 31.863,
+   "worst_fold": 30.93,
+   "mean_ret": 108.28,
+   "max_dd": 33.25,
+   "total_trades": 786,
+   "per": {
+    "2021": {
+     "ret": 209.26,
+     "dd": 33.25,
+     "tr": 230,
+     "wr": 73.9,
+     "pf": 1.52
+    },
+    "2022": {
+     "ret": 135.35,
+     "dd": 7.7,
+     "tr": 157,
+     "wr": 73.2,
+     "pf": 1.85
+    },
+    "2023": {
+     "ret": 77.54,
+     "dd": 14.77,
+     "tr": 154,
+     "wr": 63.0,
+     "pf": 1.48
+    },
+    "2024": {
+     "ret": 88.33,
+     "dd": 17.58,
+     "tr": 182,
+     "wr": 69.8,
+     "pf": 1.45
+    },
+    "2025": {
+     "ret": 30.93,
+     "dd": 9.53,
+     "tr": 63,
+     "wr": 69.8,
+     "pf": 1.71
+    }
+   }
+  }
+ },
+ {
+  "obj": 95.39,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 26.3,
+   "tier.marginal_threshold_low": 14.7,
+   "tier.tp1_rr": 3.25,
+   "tier.tp2_rr": 6.24,
+   "tier.tp1_exit_pct": 0.55,
+   "scoring.atr_sl_multiplier": 2.35,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.25687796053662937,
+    "momentum": 0.44033369556611845,
+    "volume": 0.07497460729101639,
+    "support_resistance": 0.0880565629955235,
+    "risk": 0.15752340268493015
+   },
+   "filters.min_adx": 10.1,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.74,
+   "trailing.callback_pct": 0.54
+  },
+  "res": {
+   "geo_factor": 1.9539,
+   "geo_pct": 95.39,
+   "compound_x": 28.482,
+   "worst_fold": 1.99,
+   "mean_ret": 199.75,
+   "max_dd": 12.82,
+   "total_trades": 1457,
+   "per": {
+    "2021": {
+     "ret": 864.62,
+     "dd": 12.33,
+     "tr": 461,
+     "wr": 92.6,
+     "pf": 2.97
+    },
+    "2022": {
+     "ret": 37.77,
+     "dd": 12.82,
+     "tr": 278,
+     "wr": 83.5,
+     "pf": 1.41
+    },
+    "2023": {
+     "ret": 21.69,
+     "dd": 12.04,
+     "tr": 274,
+     "wr": 82.1,
+     "pf": 1.33
+    },
+    "2024": {
+     "ret": 72.68,
+     "dd": 10.6,
+     "tr": 334,
+     "wr": 87.4,
+     "pf": 1.69
+    },
+    "2025": {
+     "ret": 1.99,
+     "dd": 11.53,
+     "tr": 110,
+     "wr": 82.7,
+     "pf": 1.15
+    }
+   }
+  }
+ },
+ {
+  "obj": 92.4,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 14.4,
+   "tier.marginal_threshold_low": 10.8,
+   "tier.tp1_rr": 3.61,
+   "tier.tp2_rr": 9.12,
+   "tier.tp1_exit_pct": 0.52,
+   "scoring.atr_sl_multiplier": 1.89,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.591851565884031,
+    "momentum": 0.5000462265745383,
+    "volume": 0.3845007496972451,
+    "support_resistance": 0.6375549205002782,
+    "risk": 0.5807624463792929
+   },
+   "filters.min_adx": 10.8,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.79,
+   "trailing.callback_pct": 0.47
+  },
+  "res": {
+   "geo_factor": 1.924,
+   "geo_pct": 92.4,
+   "compound_x": 26.365,
+   "worst_fold": 17.52,
+   "mean_ret": 111.66,
+   "max_dd": 20.13,
+   "total_trades": 838,
+   "per": {
+    "2021": {
+     "ret": 297.32,
+     "dd": 20.13,
+     "tr": 256,
+     "wr": 76.6,
+     "pf": 1.66
+    },
+    "2022": {
+     "ret": 109.16,
+     "dd": 10.86,
+     "tr": 169,
+     "wr": 72.8,
+     "pf": 1.84
+    },
+    "2023": {
+     "ret": 36.43,
+     "dd": 11.37,
+     "tr": 152,
+     "wr": 63.2,
+     "pf": 1.37
+    },
+    "2024": {
+     "ret": 97.87,
+     "dd": 12.98,
+     "tr": 192,
+     "wr": 71.9,
+     "pf": 1.62
+    },
+    "2025": {
+     "ret": 17.52,
+     "dd": 9.31,
+     "tr": 69,
+     "wr": 66.7,
+     "pf": 1.51
+    }
+   }
+  }
+ },
+ {
+  "obj": 83.15,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 43.5,
+   "tier.marginal_threshold_low": 26.1,
+   "tier.tp1_rr": 3.71,
+   "tier.tp2_rr": 6.57,
+   "tier.tp1_exit_pct": 0.24,
+   "scoring.atr_sl_multiplier": 2.79,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.6154241935188904,
+    "momentum": 0.19515877347595628,
+    "volume": 0.7403158233829912,
+    "support_resistance": 0.2944271360444108,
+    "risk": 0.49046867296513097
+   },
+   "filters.min_adx": 17.1,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.97,
+   "trailing.callback_pct": 0.32
+  },
+  "res": {
+   "geo_factor": 1.8315,
+   "geo_pct": 83.15,
+   "compound_x": 20.607,
+   "worst_fold": 10.08,
+   "mean_ret": 94.49,
+   "max_dd": 9.26,
+   "total_trades": 1044,
+   "per": {
+    "2021": {
+     "ret": 201.09,
+     "dd": 9.09,
+     "tr": 312,
+     "wr": 72.8,
+     "pf": 1.92
+    },
+    "2022": {
+     "ret": 40.39,
+     "dd": 7.0,
+     "tr": 142,
+     "wr": 69.0,
+     "pf": 1.79
+    },
+    "2023": {
+     "ret": 109.86,
+     "dd": 6.42,
+     "tr": 236,
+     "wr": 65.7,
+     "pf": 2.07
+    },
+    "2024": {
+     "ret": 111.03,
+     "dd": 5.94,
+     "tr": 266,
+     "wr": 71.4,
+     "pf": 2.11
+    },
+    "2025": {
+     "ret": 10.08,
+     "dd": 9.26,
+     "tr": 88,
+     "wr": 67.0,
+     "pf": 1.43
+    }
+   }
+  }
+ },
+ {
+  "obj": 76.2,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 36.5,
+   "tier.marginal_threshold_low": 28.0,
+   "tier.tp1_rr": 2.61,
+   "tier.tp2_rr": 4.11,
+   "tier.tp1_exit_pct": 0.6,
+   "scoring.atr_sl_multiplier": 1.55,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.9548292798344877,
+    "momentum": 0.4519196814021253,
+    "volume": 0.40139958157747174,
+    "support_resistance": 0.13818637779577383,
+    "risk": 0.5427416450101108
+   },
+   "filters.min_adx": 10.6,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.77,
+   "trailing.callback_pct": 0.59
+  },
+  "res": {
+   "geo_factor": 1.762,
+   "geo_pct": 76.2,
+   "compound_x": 16.986,
+   "worst_fold": -1.34,
+   "mean_ret": 109.17,
+   "max_dd": 12.27,
+   "total_trades": 1274,
+   "per": {
+    "2021": {
+     "ret": 378.82,
+     "dd": 8.02,
+     "tr": 399,
+     "wr": 86.0,
+     "pf": 2.08
+    },
+    "2022": {
+     "ret": 21.11,
+     "dd": 7.75,
+     "tr": 187,
+     "wr": 77.0,
+     "pf": 1.35
+    },
+    "2023": {
+     "ret": 95.01,
+     "dd": 7.11,
+     "tr": 270,
+     "wr": 80.0,
+     "pf": 2.03
+    },
+    "2024": {
+     "ret": 52.24,
+     "dd": 12.27,
+     "tr": 323,
+     "wr": 81.4,
+     "pf": 1.55
+    },
+    "2025": {
+     "ret": -1.34,
+     "dd": 10.69,
+     "tr": 95,
+     "wr": 75.8,
+     "pf": 1.06
+    }
+   }
+  }
+ },
+ {
+  "obj": 71.07,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 33.5,
+   "tier.marginal_threshold_low": 11.5,
+   "tier.tp1_rr": 3.54,
+   "tier.tp2_rr": 7.04,
+   "tier.tp1_exit_pct": 0.22,
+   "scoring.atr_sl_multiplier": 1.5,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.62645213537134,
+    "momentum": 0.2308432852492595,
+    "volume": 0.4217831860181311,
+    "support_resistance": 0.39677349207725177,
+    "risk": 0.2854223527987071
+   },
+   "filters.min_adx": 27.6,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.25,
+   "trailing.callback_pct": 0.39
+  },
+  "res": {
+   "geo_factor": 1.7107,
+   "geo_pct": 71.07,
+   "compound_x": 14.653,
+   "worst_fold": 25.29,
+   "mean_ret": 82.65,
+   "max_dd": 22.82,
+   "total_trades": 927,
+   "per": {
+    "2021": {
+     "ret": 225.82,
+     "dd": 22.82,
+     "tr": 276,
+     "wr": 63.8,
+     "pf": 1.41
+    },
+    "2022": {
+     "ret": 30.86,
+     "dd": 15.87,
+     "tr": 198,
+     "wr": 57.1,
+     "pf": 1.21
+    },
+    "2023": {
+     "ret": 68.51,
+     "dd": 12.38,
+     "tr": 175,
+     "wr": 53.1,
+     "pf": 1.52
+    },
+    "2024": {
+     "ret": 62.78,
+     "dd": 15.6,
+     "tr": 204,
+     "wr": 58.3,
+     "pf": 1.38
+    },
+    "2025": {
+     "ret": 25.29,
+     "dd": 7.72,
+     "tr": 74,
+     "wr": 58.1,
+     "pf": 1.53
+    }
+   }
+  }
+ },
+ {
+  "obj": 70.2,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 12.6,
+   "tier.marginal_threshold_low": 11.5,
+   "tier.tp1_rr": 3.74,
+   "tier.tp2_rr": 9.21,
+   "tier.tp1_exit_pct": 0.39,
+   "scoring.atr_sl_multiplier": 2.65,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.7307794052492312,
+    "momentum": 0.7399842558997288,
+    "volume": 0.953067282407962,
+    "support_resistance": 0.41908459452785973,
+    "risk": 0.7557451484590442
+   },
+   "filters.min_adx": 20.9,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.92,
+   "trailing.callback_pct": 0.46
+  },
+  "res": {
+   "geo_factor": 1.702,
+   "geo_pct": 70.2,
+   "compound_x": 14.281,
+   "worst_fold": 10.84,
+   "mean_ret": 84.72,
+   "max_dd": 10.47,
+   "total_trades": 1259,
+   "per": {
+    "2021": {
+     "ret": 245.58,
+     "dd": 10.47,
+     "tr": 355,
+     "wr": 69.6,
+     "pf": 1.87
+    },
+    "2022": {
+     "ret": 68.89,
+     "dd": 6.53,
+     "tr": 245,
+     "wr": 64.1,
+     "pf": 1.83
+    },
+    "2023": {
+     "ret": 36.04,
+     "dd": 5.14,
+     "tr": 264,
+     "wr": 59.5,
+     "pf": 1.53
+    },
+    "2024": {
+     "ret": 62.27,
+     "dd": 6.06,
+     "tr": 295,
+     "wr": 64.1,
+     "pf": 1.71
+    },
+    "2025": {
+     "ret": 10.84,
+     "dd": 5.64,
+     "tr": 100,
+     "wr": 62.0,
+     "pf": 1.46
+    }
+   }
+  }
+ },
+ {
+  "obj": 67.65,
+  "ov": {
+   "tier.leverage": 18,
+   "tier.strong_threshold": 15.6,
+   "tier.marginal_threshold_low": 13.0,
+   "tier.tp1_rr": 1.46,
+   "tier.tp2_rr": 2.02,
+   "tier.tp1_exit_pct": 0.62,
+   "scoring.atr_sl_multiplier": 2.78,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.6941310621542761,
+    "momentum": 0.12466485554561618,
+    "volume": 0.20521367267102908,
+    "support_resistance": 0.4108380716814773,
+    "risk": 0.2579275165708422
+   },
+   "filters.min_adx": 16.4,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.05,
+   "trailing.callback_pct": 0.43
+  },
+  "res": {
+   "geo_factor": 1.6765,
+   "geo_pct": 67.65,
+   "compound_x": 13.243,
+   "worst_fold": 22.74,
+   "mean_ret": 87.39,
+   "max_dd": 8.79,
+   "total_trades": 1185,
+   "per": {
+    "2021": {
+     "ret": 292.2,
+     "dd": 8.03,
+     "tr": 366,
+     "wr": 89.3,
+     "pf": 2.31
+    },
+    "2022": {
+     "ret": 53.75,
+     "dd": 8.79,
+     "tr": 263,
+     "wr": 83.3,
+     "pf": 1.58
+    },
+    "2023": {
+     "ret": 24.35,
+     "dd": 7.77,
+     "tr": 183,
+     "wr": 80.3,
+     "pf": 1.47
+    },
+    "2024": {
+     "ret": 43.89,
+     "dd": 8.0,
+     "tr": 272,
+     "wr": 84.2,
+     "pf": 1.51
+    },
+    "2025": {
+     "ret": 22.74,
+     "dd": 5.24,
+     "tr": 101,
+     "wr": 85.1,
+     "pf": 1.98
+    }
+   }
+  }
+ },
+ {
+  "obj": 64.92,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 14.1,
+   "tier.marginal_threshold_low": 10.4,
+   "tier.tp1_rr": 3.0,
+   "tier.tp2_rr": 8.9,
+   "tier.tp1_exit_pct": 0.3,
+   "scoring.atr_sl_multiplier": 2.15,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.36603173833645763,
+    "momentum": 0.6883913763300964,
+    "volume": 0.9046831589241048,
+    "support_resistance": 0.9028496490705274,
+    "risk": 0.21075287022023276
+   },
+   "filters.min_adx": 27.7,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.4,
+   "trailing.callback_pct": 0.55
+  },
+  "res": {
+   "geo_factor": 1.6492,
+   "geo_pct": 64.92,
+   "compound_x": 12.198,
+   "worst_fold": 23.0,
+   "mean_ret": 70.3,
+   "max_dd": 20.97,
+   "total_trades": 786,
+   "per": {
+    "2021": {
+     "ret": 150.54,
+     "dd": 20.61,
+     "tr": 234,
+     "wr": 74.4,
+     "pf": 1.58
+    },
+    "2022": {
+     "ret": 70.39,
+     "dd": 13.69,
+     "tr": 147,
+     "wr": 72.1,
+     "pf": 1.69
+    },
+    "2023": {
+     "ret": 74.24,
+     "dd": 9.44,
+     "tr": 159,
+     "wr": 64.2,
+     "pf": 1.59
+    },
+    "2024": {
+     "ret": 33.33,
+     "dd": 20.97,
+     "tr": 181,
+     "wr": 64.1,
+     "pf": 1.24
+    },
+    "2025": {
+     "ret": 23.0,
+     "dd": 10.01,
+     "tr": 65,
+     "wr": 67.7,
+     "pf": 1.65
+    }
+   }
+  }
+ },
+ {
+  "obj": 64.04,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 21.4,
+   "tier.marginal_threshold_low": 17.5,
+   "tier.tp1_rr": 3.18,
+   "tier.tp2_rr": 6.73,
+   "tier.tp1_exit_pct": 0.54,
+   "scoring.atr_sl_multiplier": 2.34,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.8535275371309793,
+    "momentum": 0.8873994931842578,
+    "volume": 0.7186980822500432,
+    "support_resistance": 0.6516025681223762,
+    "risk": 0.5921845169713311
+   },
+   "filters.min_adx": 16.1,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.62,
+   "trailing.callback_pct": 0.67
+  },
+  "res": {
+   "geo_factor": 1.6404,
+   "geo_pct": 64.04,
+   "compound_x": 11.88,
+   "worst_fold": -3.36,
+   "mean_ret": 99.4,
+   "max_dd": 15.29,
+   "total_trades": 1663,
+   "per": {
+    "2021": {
+     "ret": 386.35,
+     "dd": 13.07,
+     "tr": 507,
+     "wr": 83.6,
+     "pf": 1.93
+    },
+    "2022": {
+     "ret": 17.24,
+     "dd": 13.93,
+     "tr": 275,
+     "wr": 75.3,
+     "pf": 1.27
+    },
+    "2023": {
+     "ret": 69.82,
+     "dd": 14.88,
+     "tr": 337,
+     "wr": 75.7,
+     "pf": 1.62
+    },
+    "2024": {
+     "ret": 26.95,
+     "dd": 14.96,
+     "tr": 429,
+     "wr": 76.7,
+     "pf": 1.29
+    },
+    "2025": {
+     "ret": -3.36,
+     "dd": 15.29,
+     "tr": 115,
+     "wr": 71.3,
+     "pf": 1.02
+    }
+   }
+  }
+ },
+ {
+  "obj": 62.72,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 26.2,
+   "tier.marginal_threshold_low": 14.1,
+   "tier.tp1_rr": 1.3,
+   "tier.tp2_rr": 2.46,
+   "tier.tp1_exit_pct": 0.2,
+   "scoring.atr_sl_multiplier": 1.24,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.8134707542401529,
+    "momentum": 0.7881545833524117,
+    "volume": 0.6266145567033503,
+    "support_resistance": 0.19875524663519978,
+    "risk": 0.8193727454057589
+   },
+   "filters.min_adx": 26.8,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.66,
+   "trailing.callback_pct": 0.71
+  },
+  "res": {
+   "geo_factor": 1.6272,
+   "geo_pct": 62.72,
+   "compound_x": 11.407,
+   "worst_fold": -6.81,
+   "mean_ret": 93.15,
+   "max_dd": 12.88,
+   "total_trades": 2197,
+   "per": {
+    "2021": {
+     "ret": 355.11,
+     "dd": 9.3,
+     "tr": 617,
+     "wr": 72.4,
+     "pf": 2.0
+    },
+    "2022": {
+     "ret": 39.41,
+     "dd": 9.06,
+     "tr": 403,
+     "wr": 63.8,
+     "pf": 1.53
+    },
+    "2023": {
+     "ret": 45.14,
+     "dd": 9.34,
+     "tr": 464,
+     "wr": 62.1,
+     "pf": 1.52
+    },
+    "2024": {
+     "ret": 32.92,
+     "dd": 11.53,
+     "tr": 540,
+     "wr": 63.5,
+     "pf": 1.43
+    },
+    "2025": {
+     "ret": -6.81,
+     "dd": 12.88,
+     "tr": 173,
+     "wr": 64.7,
+     "pf": 0.95
+    }
+   }
+  }
+ },
+ {
+  "obj": 62.56,
+  "ov": {
+   "tier.leverage": 20,
+   "tier.strong_threshold": 31.0,
+   "tier.marginal_threshold_low": 12.5,
+   "tier.tp1_rr": 3.68,
+   "tier.tp2_rr": 5.37,
+   "tier.tp1_exit_pct": 0.62,
+   "scoring.atr_sl_multiplier": 1.69,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.352587833317485,
+    "momentum": 0.7084625473465302,
+    "volume": 0.17634501878553838,
+    "support_resistance": 0.10391499087463184,
+    "risk": 0.9957391879700724
+   },
+   "filters.min_adx": 20.5,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.56,
+   "trailing.callback_pct": 0.39
+  },
+  "res": {
+   "geo_factor": 1.6256,
+   "geo_pct": 62.56,
+   "compound_x": 11.35,
+   "worst_fold": 8.15,
+   "mean_ret": 89.92,
+   "max_dd": 4.77,
+   "total_trades": 1251,
+   "per": {
+    "2021": {
+     "ret": 340.77,
+     "dd": 4.77,
+     "tr": 396,
+     "wr": 91.4,
+     "pf": 3.34
+    },
+    "2022": {
+     "ret": 37.73,
+     "dd": 3.67,
+     "tr": 201,
+     "wr": 83.6,
+     "pf": 1.97
+    },
+    "2023": {
+     "ret": 31.01,
+     "dd": 4.66,
+     "tr": 266,
+     "wr": 81.6,
+     "pf": 1.77
+    },
+    "2024": {
+     "ret": 31.96,
+     "dd": 3.68,
+     "tr": 290,
+     "wr": 84.8,
+     "pf": 1.72
+    },
+    "2025": {
+     "ret": 8.15,
+     "dd": 4.6,
+     "tr": 98,
+     "wr": 85.7,
+     "pf": 1.79
+    }
+   }
+  }
+ },
+ {
+  "obj": 60.13,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 16.9,
+   "tier.marginal_threshold_low": 10.7,
+   "tier.tp1_rr": 3.71,
+   "tier.tp2_rr": 8.81,
+   "tier.tp1_exit_pct": 0.62,
+   "scoring.atr_sl_multiplier": 2.23,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.4546300510049605,
+    "momentum": 0.1646574137380451,
+    "volume": 0.517228809753638,
+    "support_resistance": 0.4517876651597215,
+    "risk": 0.10434585877110004
+   },
+   "filters.min_adx": 13.9,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.94,
+   "trailing.callback_pct": 0.48
+  },
+  "res": {
+   "geo_factor": 1.6013,
+   "geo_pct": 60.13,
+   "compound_x": 10.53,
+   "worst_fold": 4.57,
+   "mean_ret": 77.4,
+   "max_dd": 8.87,
+   "total_trades": 1373,
+   "per": {
+    "2021": {
+     "ret": 255.33,
+     "dd": 7.83,
+     "tr": 390,
+     "wr": 69.5,
+     "pf": 1.95
+    },
+    "2022": {
+     "ret": 61.08,
+     "dd": 5.85,
+     "tr": 280,
+     "wr": 61.1,
+     "pf": 1.78
+    },
+    "2023": {
+     "ret": 23.18,
+     "dd": 6.81,
+     "tr": 272,
+     "wr": 58.5,
+     "pf": 1.44
+    },
+    "2024": {
+     "ret": 42.82,
+     "dd": 6.51,
+     "tr": 313,
+     "wr": 63.3,
+     "pf": 1.57
+    },
+    "2025": {
+     "ret": 4.57,
+     "dd": 8.87,
+     "tr": 118,
+     "wr": 58.5,
+     "pf": 1.24
+    }
+   }
+  }
+ },
+ {
+  "obj": 59.66,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 34.8,
+   "tier.marginal_threshold_low": 22.8,
+   "tier.tp1_rr": 4.36,
+   "tier.tp2_rr": 8.99,
+   "tier.tp1_exit_pct": 0.61,
+   "scoring.atr_sl_multiplier": 1.25,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.20299875634188985,
+    "momentum": 0.6227705622502302,
+    "volume": 0.6821689903652168,
+    "support_resistance": 0.5211852879313889,
+    "risk": 0.40496383462883745
+   },
+   "filters.min_adx": 10.6,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.53,
+   "trailing.callback_pct": 0.31
+  },
+  "res": {
+   "geo_factor": 1.5966,
+   "geo_pct": 59.66,
+   "compound_x": 10.376,
+   "worst_fold": 12.77,
+   "mean_ret": 72.18,
+   "max_dd": 6.32,
+   "total_trades": 1009,
+   "per": {
+    "2021": {
+     "ret": 212.92,
+     "dd": 2.71,
+     "tr": 300,
+     "wr": 88.3,
+     "pf": 3.29
+    },
+    "2022": {
+     "ret": 18.56,
+     "dd": 3.86,
+     "tr": 99,
+     "wr": 81.8,
+     "pf": 1.98
+    },
+    "2023": {
+     "ret": 41.95,
+     "dd": 3.77,
+     "tr": 216,
+     "wr": 78.7,
+     "pf": 2.01
+    },
+    "2024": {
+     "ret": 74.71,
+     "dd": 3.28,
+     "tr": 299,
+     "wr": 82.9,
+     "pf": 2.33
+    },
+    "2025": {
+     "ret": 12.77,
+     "dd": 6.32,
+     "tr": 95,
+     "wr": 81.1,
+     "pf": 1.94
+    }
+   }
+  }
+ },
+ {
+  "obj": 55.14,
+  "ov": {
+   "tier.leverage": 18,
+   "tier.strong_threshold": 16.4,
+   "tier.marginal_threshold_low": 12.6,
+   "tier.tp1_rr": 3.06,
+   "tier.tp2_rr": 6.63,
+   "tier.tp1_exit_pct": 0.54,
+   "scoring.atr_sl_multiplier": 1.48,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.4261512744555946,
+    "momentum": 0.825630564636474,
+    "volume": 0.7585142586902249,
+    "support_resistance": 0.5993957018060837,
+    "risk": 0.09302531259143734
+   },
+   "filters.min_adx": 14.9,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.95,
+   "trailing.callback_pct": 0.53
+  },
+  "res": {
+   "geo_factor": 1.5514,
+   "geo_pct": 55.14,
+   "compound_x": 8.987,
+   "worst_fold": 2.93,
+   "mean_ret": 64.29,
+   "max_dd": 8.92,
+   "total_trades": 1715,
+   "per": {
+    "2021": {
+     "ret": 179.8,
+     "dd": 8.92,
+     "tr": 507,
+     "wr": 81.7,
+     "pf": 1.8
+    },
+    "2022": {
+     "ret": 40.49,
+     "dd": 6.6,
+     "tr": 311,
+     "wr": 77.2,
+     "pf": 1.56
+    },
+    "2023": {
+     "ret": 44.53,
+     "dd": 7.66,
+     "tr": 347,
+     "wr": 71.8,
+     "pf": 1.57
+    },
+    "2024": {
+     "ret": 53.69,
+     "dd": 7.98,
+     "tr": 403,
+     "wr": 75.4,
+     "pf": 1.55
+    },
+    "2025": {
+     "ret": 2.93,
+     "dd": 5.17,
+     "tr": 147,
+     "wr": 70.1,
+     "pf": 1.18
+    }
+   }
+  }
+ },
+ {
+  "obj": 54.7,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 29.1,
+   "tier.marginal_threshold_low": 17.6,
+   "tier.tp1_rr": 2.92,
+   "tier.tp2_rr": 5.76,
+   "tier.tp1_exit_pct": 0.69,
+   "scoring.atr_sl_multiplier": 2.96,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.5488962969674671,
+    "momentum": 0.18879550931493372,
+    "volume": 0.0698313855940682,
+    "support_resistance": 0.22792035188498133,
+    "risk": 0.41600277604426145
+   },
+   "filters.min_adx": 24.2,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.18,
+   "trailing.callback_pct": 0.59
+  },
+  "res": {
+   "geo_factor": 1.547,
+   "geo_pct": 54.7,
+   "compound_x": 8.862,
+   "worst_fold": 1.7,
+   "mean_ret": 65.19,
+   "max_dd": 13.61,
+   "total_trades": 1534,
+   "per": {
+    "2021": {
+     "ret": 192.05,
+     "dd": 13.61,
+     "tr": 473,
+     "wr": 64.9,
+     "pf": 1.59
+    },
+    "2022": {
+     "ret": 36.58,
+     "dd": 7.78,
+     "tr": 271,
+     "wr": 57.6,
+     "pf": 1.46
+    },
+    "2023": {
+     "ret": 45.76,
+     "dd": 9.15,
+     "tr": 300,
+     "wr": 53.3,
+     "pf": 1.48
+    },
+    "2024": {
+     "ret": 49.87,
+     "dd": 8.09,
+     "tr": 360,
+     "wr": 59.2,
+     "pf": 1.47
+    },
+    "2025": {
+     "ret": 1.7,
+     "dd": 10.24,
+     "tr": 130,
+     "wr": 56.9,
+     "pf": 1.12
+    }
+   }
+  }
+ },
+ {
+  "obj": 51.93,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 16.3,
+   "tier.marginal_threshold_low": 10.6,
+   "tier.tp1_rr": 2.31,
+   "tier.tp2_rr": 3.07,
+   "tier.tp1_exit_pct": 0.33,
+   "scoring.atr_sl_multiplier": 1.23,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.9851431260528754,
+    "momentum": 0.10456906912634238,
+    "volume": 0.7294849578544113,
+    "support_resistance": 0.6151272458528627,
+    "risk": 0.9381575900075433
+   },
+   "filters.min_adx": 16.8,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": true,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.68,
+   "trailing.callback_pct": 0.34
+  },
+  "res": {
+   "geo_factor": 1.5193,
+   "geo_pct": 51.93,
+   "compound_x": 8.095,
+   "worst_fold": 16.0,
+   "mean_ret": 54.92,
+   "max_dd": 7.26,
+   "total_trades": 1179,
+   "per": {
+    "2021": {
+     "ret": 106.35,
+     "dd": 6.22,
+     "tr": 251,
+     "wr": 72.1,
+     "pf": 2.04
+    },
+    "2022": {
+     "ret": 35.13,
+     "dd": 7.26,
+     "tr": 231,
+     "wr": 61.5,
+     "pf": 1.55
+    },
+    "2023": {
+     "ret": 47.82,
+     "dd": 4.43,
+     "tr": 274,
+     "wr": 64.6,
+     "pf": 1.83
+    },
+    "2024": {
+     "ret": 69.3,
+     "dd": 5.62,
+     "tr": 305,
+     "wr": 67.2,
+     "pf": 1.91
+    },
+    "2025": {
+     "ret": 16.0,
+     "dd": 5.5,
+     "tr": 118,
+     "wr": 66.1,
+     "pf": 1.75
+    }
+   }
+  }
+ },
+ {
+  "obj": 50.81,
+  "ov": {
+   "tier.leverage": 15,
+   "tier.strong_threshold": 12.4,
+   "tier.marginal_threshold_low": 11.2,
+   "tier.tp1_rr": 2.85,
+   "tier.tp2_rr": 7.79,
+   "tier.tp1_exit_pct": 0.5,
+   "scoring.atr_sl_multiplier": 1.89,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.6094192108250938,
+    "momentum": 0.5019263903129961,
+    "volume": 0.4396437974257885,
+    "support_resistance": 0.12543467149999535,
+    "risk": 0.6200969990808097
+   },
+   "filters.min_adx": 12.9,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.13,
+   "trailing.callback_pct": 0.36
+  },
+  "res": {
+   "geo_factor": 1.5081,
+   "geo_pct": 50.81,
+   "compound_x": 7.802,
+   "worst_fold": 9.08,
+   "mean_ret": 54.27,
+   "max_dd": 15.19,
+   "total_trades": 1064,
+   "per": {
+    "2021": {
+     "ret": 112.11,
+     "dd": 15.19,
+     "tr": 315,
+     "wr": 69.5,
+     "pf": 1.47
+    },
+    "2022": {
+     "ret": 45.44,
+     "dd": 6.9,
+     "tr": 226,
+     "wr": 67.3,
+     "pf": 1.46
+    },
+    "2023": {
+     "ret": 46.66,
+     "dd": 5.67,
+     "tr": 193,
+     "wr": 60.6,
+     "pf": 1.64
+    },
+    "2024": {
+     "ret": 58.08,
+     "dd": 7.28,
+     "tr": 244,
+     "wr": 68.0,
+     "pf": 1.57
+    },
+    "2025": {
+     "ret": 9.08,
+     "dd": 8.42,
+     "tr": 86,
+     "wr": 61.6,
+     "pf": 1.33
+    }
+   }
+  }
+ },
+ {
+  "obj": 50.04,
+  "ov": {
+   "tier.leverage": 18,
+   "tier.strong_threshold": 17.1,
+   "tier.marginal_threshold_low": 15.0,
+   "tier.tp1_rr": 3.69,
+   "tier.tp2_rr": 8.13,
+   "tier.tp1_exit_pct": 0.65,
+   "scoring.atr_sl_multiplier": 2.93,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.5204427692080867,
+    "momentum": 0.9200515111431206,
+    "volume": 0.7101905230626842,
+    "support_resistance": 0.34122813217149434,
+    "risk": 0.7680105420635185
+   },
+   "filters.min_adx": 14.1,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.8,
+   "trailing.callback_pct": 0.62
+  },
+  "res": {
+   "geo_factor": 1.5004,
+   "geo_pct": 50.04,
+   "compound_x": 7.605,
+   "worst_fold": 1.47,
+   "mean_ret": 62.99,
+   "max_dd": 12.66,
+   "total_trades": 1313,
+   "per": {
+    "2021": {
+     "ret": 197.97,
+     "dd": 6.62,
+     "tr": 423,
+     "wr": 92.0,
+     "pf": 2.39
+    },
+    "2022": {
+     "ret": 7.81,
+     "dd": 12.66,
+     "tr": 211,
+     "wr": 85.3,
+     "pf": 1.2
+    },
+    "2023": {
+     "ret": 72.34,
+     "dd": 5.76,
+     "tr": 271,
+     "wr": 88.6,
+     "pf": 2.31
+    },
+    "2024": {
+     "ret": 35.37,
+     "dd": 9.6,
+     "tr": 327,
+     "wr": 89.0,
+     "pf": 1.54
+    },
+    "2025": {
+     "ret": 1.47,
+     "dd": 8.76,
+     "tr": 81,
+     "wr": 86.4,
+     "pf": 1.18
+    }
+   }
+  }
+ },
+ {
+  "obj": 48.97,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 17.2,
+   "tier.marginal_threshold_low": 12.7,
+   "tier.tp1_rr": 4.25,
+   "tier.tp2_rr": 7.97,
+   "tier.tp1_exit_pct": 0.59,
+   "scoring.atr_sl_multiplier": 2.0,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.8507567865139943,
+    "momentum": 0.8195113739949573,
+    "volume": 0.8718895054670219,
+    "support_resistance": 0.4245987160348028,
+    "risk": 0.7703121075096736
+   },
+   "filters.min_adx": 14.4,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.55,
+   "trailing.callback_pct": 0.78
+  },
+  "res": {
+   "geo_factor": 1.4897,
+   "geo_pct": 48.97,
+   "compound_x": 7.337,
+   "worst_fold": 10.86,
+   "mean_ret": 51.81,
+   "max_dd": 28.42,
+   "total_trades": 815,
+   "per": {
+    "2021": {
+     "ret": 93.78,
+     "dd": 28.42,
+     "tr": 231,
+     "wr": 67.1,
+     "pf": 1.26
+    },
+    "2022": {
+     "ret": 35.12,
+     "dd": 22.3,
+     "tr": 171,
+     "wr": 65.5,
+     "pf": 1.25
+    },
+    "2023": {
+     "ret": 74.12,
+     "dd": 12.32,
+     "tr": 156,
+     "wr": 57.7,
+     "pf": 1.49
+    },
+    "2024": {
+     "ret": 45.16,
+     "dd": 17.13,
+     "tr": 193,
+     "wr": 64.8,
+     "pf": 1.26
+    },
+    "2025": {
+     "ret": 10.86,
+     "dd": 19.35,
+     "tr": 64,
+     "wr": 60.9,
+     "pf": 1.26
+    }
+   }
+  }
+ },
+ {
+  "obj": 47.15,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 43.6,
+   "tier.marginal_threshold_low": 10.3,
+   "tier.tp1_rr": 4.08,
+   "tier.tp2_rr": 8.77,
+   "tier.tp1_exit_pct": 0.29,
+   "scoring.atr_sl_multiplier": 2.33,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.5909963524689159,
+    "momentum": 0.6271150210569458,
+    "volume": 0.07233876029533468,
+    "support_resistance": 0.3294039424518217,
+    "risk": 0.5361347840753952
+   },
+   "filters.min_adx": 20.6,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.35,
+   "trailing.callback_pct": 0.83
+  },
+  "res": {
+   "geo_factor": 1.4715,
+   "geo_pct": 47.15,
+   "compound_x": 6.899,
+   "worst_fold": 6.02,
+   "mean_ret": 57.3,
+   "max_dd": 17.37,
+   "total_trades": 777,
+   "per": {
+    "2021": {
+     "ret": 184.11,
+     "dd": 17.37,
+     "tr": 246,
+     "wr": 75.6,
+     "pf": 1.48
+    },
+    "2022": {
+     "ret": 44.3,
+     "dd": 7.88,
+     "tr": 148,
+     "wr": 70.9,
+     "pf": 1.43
+    },
+    "2023": {
+     "ret": 29.97,
+     "dd": 9.8,
+     "tr": 148,
+     "wr": 62.2,
+     "pf": 1.31
+    },
+    "2024": {
+     "ret": 22.12,
+     "dd": 16.15,
+     "tr": 176,
+     "wr": 68.8,
+     "pf": 1.21
+    },
+    "2025": {
+     "ret": 6.02,
+     "dd": 12.98,
+     "tr": 59,
+     "wr": 64.4,
+     "pf": 1.2
+    }
+   }
+  }
+ },
+ {
+  "obj": 46.86,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 17.2,
+   "tier.marginal_threshold_low": 14.6,
+   "tier.tp1_rr": 4.07,
+   "tier.tp2_rr": 9.8,
+   "tier.tp1_exit_pct": 0.56,
+   "scoring.atr_sl_multiplier": 1.64,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.10746304391943462,
+    "momentum": 0.3844571926561552,
+    "volume": 0.17632995497509069,
+    "support_resistance": 0.6926163168928682,
+    "risk": 0.4471618751915182
+   },
+   "filters.min_adx": 23.1,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.99,
+   "trailing.callback_pct": 0.53
+  },
+  "res": {
+   "geo_factor": 1.4686,
+   "geo_pct": 46.86,
+   "compound_x": 6.832,
+   "worst_fold": -3.8,
+   "mean_ret": 60.91,
+   "max_dd": 13.41,
+   "total_trades": 2283,
+   "per": {
+    "2021": {
+     "ret": 208.92,
+     "dd": 8.19,
+     "tr": 599,
+     "wr": 62.1,
+     "pf": 1.66
+    },
+    "2022": {
+     "ret": 36.47,
+     "dd": 6.4,
+     "tr": 330,
+     "wr": 53.3,
+     "pf": 1.44
+    },
+    "2023": {
+     "ret": 10.45,
+     "dd": 13.41,
+     "tr": 539,
+     "wr": 47.1,
+     "pf": 1.2
+    },
+    "2024": {
+     "ret": 52.51,
+     "dd": 10.9,
+     "tr": 604,
+     "wr": 50.8,
+     "pf": 1.41
+    },
+    "2025": {
+     "ret": -3.8,
+     "dd": 10.95,
+     "tr": 211,
+     "wr": 45.0,
+     "pf": 1.07
+    }
+   }
+  }
+ },
+ {
+  "obj": 46.43,
+  "ov": {
+   "tier.leverage": 20,
+   "tier.strong_threshold": 31.2,
+   "tier.marginal_threshold_low": 13.0,
+   "tier.tp1_rr": 2.13,
+   "tier.tp2_rr": 4.97,
+   "tier.tp1_exit_pct": 0.36,
+   "scoring.atr_sl_multiplier": 1.73,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.9678798104285844,
+    "momentum": 0.5538270710970952,
+    "volume": 0.7118463519736156,
+    "support_resistance": 0.6223162324341502,
+    "risk": 0.7515551457193783
+   },
+   "filters.min_adx": 9.8,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.14,
+   "trailing.callback_pct": 0.4
+  },
+  "res": {
+   "geo_factor": 1.4643,
+   "geo_pct": 46.43,
+   "compound_x": 6.731,
+   "worst_fold": 11.0,
+   "mean_ret": 51.72,
+   "max_dd": 14.91,
+   "total_trades": 745,
+   "per": {
+    "2021": {
+     "ret": 130.76,
+     "dd": 14.91,
+     "tr": 219,
+     "wr": 71.7,
+     "pf": 1.74
+    },
+    "2022": {
+     "ret": 56.15,
+     "dd": 5.47,
+     "tr": 159,
+     "wr": 66.0,
+     "pf": 1.68
+    },
+    "2023": {
+     "ret": 17.65,
+     "dd": 6.89,
+     "tr": 132,
+     "wr": 57.6,
+     "pf": 1.34
+    },
+    "2024": {
+     "ret": 43.05,
+     "dd": 10.91,
+     "tr": 173,
+     "wr": 65.3,
+     "pf": 1.5
+    },
+    "2025": {
+     "ret": 11.0,
+     "dd": 6.8,
+     "tr": 62,
+     "wr": 64.5,
+     "pf": 1.46
+    }
+   }
+  }
+ },
+ {
+  "obj": 45.29,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 20.0,
+   "tier.marginal_threshold_low": 16.2,
+   "tier.tp1_rr": 4.06,
+   "tier.tp2_rr": 8.18,
+   "tier.tp1_exit_pct": 0.39,
+   "scoring.atr_sl_multiplier": 1.8,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.29773577352039965,
+    "momentum": 0.12432884195060503,
+    "volume": 0.9291190464869956,
+    "support_resistance": 0.27935472175334086,
+    "risk": 0.5976815968060515
+   },
+   "filters.min_adx": 23.8,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.9,
+   "trailing.callback_pct": 0.47
+  },
+  "res": {
+   "geo_factor": 1.4529,
+   "geo_pct": 45.29,
+   "compound_x": 6.475,
+   "worst_fold": 5.75,
+   "mean_ret": 48.07,
+   "max_dd": 16.91,
+   "total_trades": 788,
+   "per": {
+    "2021": {
+     "ret": 73.72,
+     "dd": 15.37,
+     "tr": 226,
+     "wr": 71.2,
+     "pf": 1.39
+    },
+    "2022": {
+     "ret": 27.77,
+     "dd": 11.79,
+     "tr": 144,
+     "wr": 65.3,
+     "pf": 1.34
+    },
+    "2023": {
+     "ret": 78.91,
+     "dd": 7.22,
+     "tr": 174,
+     "wr": 64.9,
+     "pf": 1.73
+    },
+    "2024": {
+     "ret": 54.19,
+     "dd": 11.34,
+     "tr": 188,
+     "wr": 67.0,
+     "pf": 1.48
+    },
+    "2025": {
+     "ret": 5.75,
+     "dd": 16.91,
+     "tr": 56,
+     "wr": 64.3,
+     "pf": 1.23
+    }
+   }
+  }
+ },
+ {
+  "obj": 44.07,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 12.2,
+   "tier.marginal_threshold_low": 10.7,
+   "tier.tp1_rr": 4.41,
+   "tier.tp2_rr": 9.49,
+   "tier.tp1_exit_pct": 0.42,
+   "scoring.atr_sl_multiplier": 1.07,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.325946473868916,
+    "momentum": 0.562253191979315,
+    "volume": 0.5244987416433236,
+    "support_resistance": 0.11371516406797687,
+    "risk": 0.2118229271067767
+   },
+   "filters.min_adx": 18.1,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.02,
+   "trailing.callback_pct": 0.74
+  },
+  "res": {
+   "geo_factor": 1.4407,
+   "geo_pct": 44.07,
+   "compound_x": 6.207,
+   "worst_fold": -7.65,
+   "mean_ret": 54.47,
+   "max_dd": 17.99,
+   "total_trades": 1491,
+   "per": {
+    "2021": {
+     "ret": 168.04,
+     "dd": 13.43,
+     "tr": 427,
+     "wr": 73.3,
+     "pf": 1.47
+    },
+    "2022": {
+     "ret": 62.27,
+     "dd": 13.83,
+     "tr": 295,
+     "wr": 69.2,
+     "pf": 1.49
+    },
+    "2023": {
+     "ret": 36.47,
+     "dd": 12.77,
+     "tr": 318,
+     "wr": 62.6,
+     "pf": 1.38
+    },
+    "2024": {
+     "ret": 13.23,
+     "dd": 17.99,
+     "tr": 335,
+     "wr": 66.3,
+     "pf": 1.19
+    },
+    "2025": {
+     "ret": -7.65,
+     "dd": 12.77,
+     "tr": 116,
+     "wr": 61.2,
+     "pf": 0.92
+    }
+   }
+  }
+ },
+ {
+  "obj": 43.12,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 18.1,
+   "tier.marginal_threshold_low": 17.8,
+   "tier.tp1_rr": 3.1,
+   "tier.tp2_rr": 8.04,
+   "tier.tp1_exit_pct": 0.34,
+   "scoring.atr_sl_multiplier": 2.48,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.23130214570285124,
+    "momentum": 0.910927011997228,
+    "volume": 0.11645114702598355,
+    "support_resistance": 0.14537785156773875,
+    "risk": 0.1368668430678886
+   },
+   "filters.min_adx": 16.3,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.14,
+   "trailing.callback_pct": 0.64
+  },
+  "res": {
+   "geo_factor": 1.4312,
+   "geo_pct": 43.12,
+   "compound_x": 6.005,
+   "worst_fold": 7.13,
+   "mean_ret": 51.29,
+   "max_dd": 34.38,
+   "total_trades": 615,
+   "per": {
+    "2021": {
+     "ret": 159.87,
+     "dd": 34.38,
+     "tr": 202,
+     "wr": 78.7,
+     "pf": 1.6
+    },
+    "2022": {
+     "ret": 13.45,
+     "dd": 17.38,
+     "tr": 99,
+     "wr": 72.7,
+     "pf": 1.21
+    },
+    "2023": {
+     "ret": 43.48,
+     "dd": 10.37,
+     "tr": 113,
+     "wr": 69.0,
+     "pf": 1.48
+    },
+    "2024": {
+     "ret": 32.52,
+     "dd": 12.56,
+     "tr": 158,
+     "wr": 71.5,
+     "pf": 1.27
+    },
+    "2025": {
+     "ret": 7.13,
+     "dd": 14.6,
+     "tr": 43,
+     "wr": 72.1,
+     "pf": 1.31
+    }
+   }
+  }
+ },
+ {
+  "obj": 42.41,
+  "ov": {
+   "tier.leverage": 12,
+   "tier.strong_threshold": 15.5,
+   "tier.marginal_threshold_low": 13.3,
+   "tier.tp1_rr": 1.46,
+   "tier.tp2_rr": 2.83,
+   "tier.tp1_exit_pct": 0.4,
+   "scoring.atr_sl_multiplier": 2.96,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.9735210171147705,
+    "momentum": 0.3636930863120351,
+    "volume": 0.15755138351546671,
+    "support_resistance": 0.18237902608488477,
+    "risk": 0.6805780190619082
+   },
+   "filters.min_adx": 26.7,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": true,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.56,
+   "trailing.callback_pct": 0.36
+  },
+  "res": {
+   "geo_factor": 1.4241,
+   "geo_pct": 42.41,
+   "compound_x": 5.858,
+   "worst_fold": 15.42,
+   "mean_ret": 43.97,
+   "max_dd": 3.63,
+   "total_trades": 1874,
+   "per": {
+    "2021": {
+     "ret": 81.36,
+     "dd": 2.25,
+     "tr": 401,
+     "wr": 80.8,
+     "pf": 2.83
+    },
+    "2022": {
+     "ret": 34.06,
+     "dd": 3.63,
+     "tr": 389,
+     "wr": 73.5,
+     "pf": 1.9
+    },
+    "2023": {
+     "ret": 42.35,
+     "dd": 2.12,
+     "tr": 407,
+     "wr": 69.3,
+     "pf": 2.22
+    },
+    "2024": {
+     "ret": 46.65,
+     "dd": 2.39,
+     "tr": 488,
+     "wr": 74.0,
+     "pf": 2.14
+    },
+    "2025": {
+     "ret": 15.42,
+     "dd": 3.35,
+     "tr": 189,
+     "wr": 78.3,
+     "pf": 2.05
+    }
+   }
+  }
+ },
+ {
+  "obj": 42.33,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 22.9,
+   "tier.marginal_threshold_low": 10.4,
+   "tier.tp1_rr": 2.29,
+   "tier.tp2_rr": 6.39,
+   "tier.tp1_exit_pct": 0.44,
+   "scoring.atr_sl_multiplier": 1.46,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.9481022990661148,
+    "momentum": 0.8386287671225732,
+    "volume": 0.21145857751323366,
+    "support_resistance": 0.053413288347654846,
+    "risk": 0.17311422959664644
+   },
+   "filters.min_adx": 9.9,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.3,
+   "trailing.callback_pct": 0.63
+  },
+  "res": {
+   "geo_factor": 1.4233,
+   "geo_pct": 42.33,
+   "compound_x": 5.841,
+   "worst_fold": 1.75,
+   "mean_ret": 51.5,
+   "max_dd": 13.6,
+   "total_trades": 1113,
+   "per": {
+    "2021": {
+     "ret": 166.12,
+     "dd": 13.6,
+     "tr": 342,
+     "wr": 52.9,
+     "pf": 1.43
+    },
+    "2022": {
+     "ret": 39.0,
+     "dd": 9.7,
+     "tr": 234,
+     "wr": 46.6,
+     "pf": 1.39
+    },
+    "2023": {
+     "ret": 11.77,
+     "dd": 11.47,
+     "tr": 206,
+     "wr": 41.3,
+     "pf": 1.22
+    },
+    "2024": {
+     "ret": 38.84,
+     "dd": 13.03,
+     "tr": 233,
+     "wr": 47.2,
+     "pf": 1.4
+    },
+    "2025": {
+     "ret": 1.75,
+     "dd": 11.99,
+     "tr": 98,
+     "wr": 46.9,
+     "pf": 1.11
+    }
+   }
+  }
+ },
+ {
+  "obj": 41.79,
+  "ov": {
+   "tier.leverage": 20,
+   "tier.strong_threshold": 33.0,
+   "tier.marginal_threshold_low": 20.4,
+   "tier.tp1_rr": 4.22,
+   "tier.tp2_rr": 9.41,
+   "tier.tp1_exit_pct": 0.39,
+   "scoring.atr_sl_multiplier": 1.16,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.38439556078728226,
+    "momentum": 0.7756172705118209,
+    "volume": 0.14888735675932546,
+    "support_resistance": 0.051741190149468236,
+    "risk": 0.346588802715363
+   },
+   "filters.min_adx": 16.5,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.47,
+   "trailing.callback_pct": 0.31
+  },
+  "res": {
+   "geo_factor": 1.4179,
+   "geo_pct": 41.79,
+   "compound_x": 5.731,
+   "worst_fold": -1.33,
+   "mean_ret": 49.39,
+   "max_dd": 9.58,
+   "total_trades": 1031,
+   "per": {
+    "2021": {
+     "ret": 148.86,
+     "dd": 6.24,
+     "tr": 320,
+     "wr": 62.2,
+     "pf": 1.77
+    },
+    "2022": {
+     "ret": 24.04,
+     "dd": 4.7,
+     "tr": 168,
+     "wr": 53.6,
+     "pf": 1.56
+    },
+    "2023": {
+     "ret": 25.7,
+     "dd": 4.91,
+     "tr": 204,
+     "wr": 49.0,
+     "pf": 1.52
+    },
+    "2024": {
+     "ret": 49.7,
+     "dd": 3.3,
+     "tr": 254,
+     "wr": 52.8,
+     "pf": 1.79
+    },
+    "2025": {
+     "ret": -1.33,
+     "dd": 9.58,
+     "tr": 85,
+     "wr": 45.9,
+     "pf": 1.03
+    }
+   }
+  }
+ },
+ {
+  "obj": 40.95,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 23.7,
+   "tier.marginal_threshold_low": 16.4,
+   "tier.tp1_rr": 4.47,
+   "tier.tp2_rr": 7.32,
+   "tier.tp1_exit_pct": 0.35,
+   "scoring.atr_sl_multiplier": 1.51,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.2555466086143984,
+    "momentum": 0.08165473434281184,
+    "volume": 0.7832154539624608,
+    "support_resistance": 0.412259325313696,
+    "risk": 0.445288106404319
+   },
+   "filters.min_adx": 25.8,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.47,
+   "trailing.callback_pct": 0.42
+  },
+  "res": {
+   "geo_factor": 1.4095,
+   "geo_pct": 40.95,
+   "compound_x": 5.564,
+   "worst_fold": 4.55,
+   "mean_ret": 45.89,
+   "max_dd": 21.97,
+   "total_trades": 752,
+   "per": {
+    "2021": {
+     "ret": 109.72,
+     "dd": 11.83,
+     "tr": 211,
+     "wr": 63.0,
+     "pf": 1.51
+    },
+    "2022": {
+     "ret": 4.55,
+     "dd": 21.97,
+     "tr": 135,
+     "wr": 54.1,
+     "pf": 1.09
+    },
+    "2023": {
+     "ret": 62.75,
+     "dd": 6.8,
+     "tr": 161,
+     "wr": 52.8,
+     "pf": 1.58
+    },
+    "2024": {
+     "ret": 44.68,
+     "dd": 17.98,
+     "tr": 184,
+     "wr": 56.5,
+     "pf": 1.37
+    },
+    "2025": {
+     "ret": 7.76,
+     "dd": 17.45,
+     "tr": 61,
+     "wr": 54.1,
+     "pf": 1.27
+    }
+   }
+  }
+ },
+ {
+  "obj": 39.7,
+  "ov": {
+   "tier.leverage": 15,
+   "tier.strong_threshold": 13.2,
+   "tier.marginal_threshold_low": 11.3,
+   "tier.tp1_rr": 2.83,
+   "tier.tp2_rr": 7.71,
+   "tier.tp1_exit_pct": 0.34,
+   "scoring.atr_sl_multiplier": 1.08,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.3764891850349825,
+    "momentum": 0.689948708618768,
+    "volume": 0.6034119989387878,
+    "support_resistance": 0.8583222584348169,
+    "risk": 0.7137257096831099
+   },
+   "filters.min_adx": 19.8,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.58,
+   "trailing.callback_pct": 0.36
+  },
+  "res": {
+   "geo_factor": 1.397,
+   "geo_pct": 39.7,
+   "compound_x": 5.321,
+   "worst_fold": 11.87,
+   "mean_ret": 43.31,
+   "max_dd": 7.17,
+   "total_trades": 1098,
+   "per": {
+    "2021": {
+     "ret": 109.69,
+     "dd": 5.16,
+     "tr": 341,
+     "wr": 67.7,
+     "pf": 1.83
+    },
+    "2022": {
+     "ret": 19.9,
+     "dd": 7.17,
+     "tr": 166,
+     "wr": 59.6,
+     "pf": 1.46
+    },
+    "2023": {
+     "ret": 37.83,
+     "dd": 5.77,
+     "tr": 234,
+     "wr": 56.0,
+     "pf": 1.7
+    },
+    "2024": {
+     "ret": 37.26,
+     "dd": 4.35,
+     "tr": 264,
+     "wr": 59.8,
+     "pf": 1.63
+    },
+    "2025": {
+     "ret": 11.87,
+     "dd": 2.17,
+     "tr": 93,
+     "wr": 59.1,
+     "pf": 1.62
+    }
+   }
+  }
+ },
+ {
+  "obj": 38.86,
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 29.4,
+   "tier.marginal_threshold_low": 22.3,
+   "tier.tp1_rr": 3.95,
+   "tier.tp2_rr": 5.27,
+   "tier.tp1_exit_pct": 0.3,
+   "scoring.atr_sl_multiplier": 2.86,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.408939901037966,
+    "momentum": 0.38403603676164827,
+    "volume": 0.10335894975850533,
+    "support_resistance": 0.15597549614076295,
+    "risk": 0.8501171056028991
+   },
+   "filters.min_adx": 16.6,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.65,
+   "trailing.callback_pct": 0.5
+  },
+  "res": {
+   "geo_factor": 1.3886,
+   "geo_pct": 38.86,
+   "compound_x": 5.163,
+   "worst_fold": -1.94,
+   "mean_ret": 45.82,
+   "max_dd": 7.5,
+   "total_trades": 958,
+   "per": {
+    "2021": {
+     "ret": 141.87,
+     "dd": 5.57,
+     "tr": 287,
+     "wr": 76.7,
+     "pf": 2.32
+    },
+    "2022": {
+     "ret": 27.41,
+     "dd": 3.63,
+     "tr": 132,
+     "wr": 72.0,
+     "pf": 2.25
+    },
+    "2023": {
+     "ret": 24.07,
+     "dd": 4.64,
+     "tr": 215,
+     "wr": 69.3,
+     "pf": 1.73
+    },
+    "2024": {
+     "ret": 37.71,
+     "dd": 2.92,
+     "tr": 242,
+     "wr": 72.7,
+     "pf": 2.13
+    },
+    "2025": {
+     "ret": -1.94,
+     "dd": 7.5,
+     "tr": 82,
+     "wr": 61.0,
+     "pf": 1.03
+    }
+   }
+  }
+ },
+ {
+  "obj": 38.12,
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 12.4,
+   "tier.marginal_threshold_low": 11.7,
+   "tier.tp1_rr": 2.58,
+   "tier.tp2_rr": 4.01,
+   "tier.tp1_exit_pct": 0.55,
+   "scoring.atr_sl_multiplier": 0.89,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.4285768218355952,
+    "momentum": 0.2991623917418177,
+    "volume": 0.839491943994629,
+    "support_resistance": 0.37555658732823766,
+    "risk": 0.8471862897275734
+   },
+   "filters.min_adx": 27.3,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.08,
+   "trailing.callback_pct": 0.43
+  },
+  "res": {
+   "geo_factor": 1.3812,
+   "geo_pct": 38.12,
+   "compound_x": 5.027,
+   "worst_fold": 4.52,
+   "mean_ret": 43.11,
+   "max_dd": 10.23,
+   "total_trades": 956,
+   "per": {
+    "2021": {
+     "ret": 123.87,
+     "dd": 7.66,
+     "tr": 267,
+     "wr": 65.2,
+     "pf": 1.8
+    },
+    "2022": {
+     "ret": 31.9,
+     "dd": 5.55,
+     "tr": 172,
+     "wr": 55.2,
+     "pf": 1.6
+    },
+    "2023": {
+     "ret": 29.61,
+     "dd": 5.13,
+     "tr": 199,
+     "wr": 52.8,
+     "pf": 1.57
+    },
+    "2024": {
+     "ret": 25.66,
+     "dd": 10.23,
+     "tr": 234,
+     "wr": 54.7,
+     "pf": 1.41
+    },
+    "2025": {
+     "ret": 4.52,
+     "dd": 7.44,
+     "tr": 84,
+     "wr": 51.2,
+     "pf": 1.28
+    }
+   }
+  }
+ }
+]

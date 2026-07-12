@@ -74,6 +74,14 @@ pytest tests/ -v
 
 All settings live in `config.json`. See `AGENTS.md` for full documentation.
 
+The current `config.json` is the output of an out-of-sample-validated optimization pass
+(2026-07) — see `opt/README.md` for the methodology, the intrabar trailing-stop bug it
+uncovered (backtests must assume the adverse extreme hits first), and full results.
+Headline (2021-01→2025-06, compounding, 2 bps slippage/side, liquidation modeled):
+**aggressive tier (25×) ≈22.5× return with every year profitable (incl. the 2022 bear)
+and max DD 12.4%**; conservative tier (12×) ≈5× with 7.5% DD. Key structural change:
+**trailing stops are now ON** (activation 0.94%, callback 0.33%).
+
 ## License
 
 Private — All rights reserved.

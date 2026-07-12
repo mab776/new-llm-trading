@@ -94,15 +94,29 @@ All settings in `config.json`. Key sections:
 
 ### Leverage Tiers
 
-Two tiers with different risk profiles:
+Two tiers with different risk profiles (optimized + OOS-validated 2026-07, see
+`opt/README.md`; both share the same signal params — leverage is the risk dial):
 
 | Setting | Conservative | Aggressive |
 |---------|-------------|------------|
-| Leverage | 5x | 15x |
-| Strong threshold | 70 | 80 |
-| Marginal range | 45-70 | 55-80 |
-| TP1 R:R | 2.0 | 1.5 |
-| TP2 R:R | 3.5 | 2.5 |
+| Leverage | 12x | 25x |
+| Strong threshold | 21.3 | 21.3 |
+| Marginal low | 12.6 | 12.6 |
+| TP1 R:R | 2.02 | 2.02 |
+| TP2 R:R | 3.34 | 3.34 |
+| TP1 exit | 70% | 70% |
+
+Trailing stops are **enabled** (activation 0.94%, callback 0.33% of entry) — the single
+biggest contributor to the edge; stop strategy is `atr` with `atr_sl_multiplier: 2.26`.
+
+### Backtest intrabar conservatism (do not regress)
+
+With only OHLC per bar, the intrabar path is unknown, so the engine assumes the
+**adverse extreme is reached first**: SL is checked before TP (a bar spanning both is a
+loss), and the trailing stop is ratcheted only AFTER exit checks, using the bar's
+favorable extreme, taking effect on subsequent bars. Guarded by
+`tests/test_intrabar_conservatism.py` — any change that makes these fail is inflating
+backtest results.
 
 ## Development Guidelines
 

@@ -1,0 +1,4602 @@
+[
+ {
+  "train": {
+   "geo_factor": 1.7238,
+   "geo_pct": 72.38,
+   "compound_x": 15.222,
+   "worst_fold": 10.94,
+   "mean_ret": 88.93,
+   "max_dd": 13.74,
+   "total_trades": 1103,
+   "per": {
+    "21H1": {
+     "ret": 268.51,
+     "dd": 11.0,
+     "tr": 338,
+     "wr": 57.4,
+     "pf": 1.68
+    },
+    "22H1": {
+     "ret": 61.8,
+     "dd": 11.48,
+     "tr": 186,
+     "wr": 51.1,
+     "pf": 1.66
+    },
+    "23H1": {
+     "ret": 52.18,
+     "dd": 11.7,
+     "tr": 209,
+     "wr": 47.4,
+     "pf": 1.52
+    },
+    "24H1": {
+     "ret": 51.22,
+     "dd": 11.48,
+     "tr": 212,
+     "wr": 48.6,
+     "pf": 1.46
+    },
+    "25H1": {
+     "ret": 10.94,
+     "dd": 13.74,
+     "tr": 158,
+     "wr": 45.6,
+     "pf": 1.23
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.4164,
+   "geo_pct": 41.64,
+   "compound_x": 4.025,
+   "worst_fold": 25.76,
+   "mean_ret": 42.57,
+   "max_dd": 14.12,
+   "total_trades": 785,
+   "per": {
+    "21H2": {
+     "ret": 55.9,
+     "dd": 9.4,
+     "tr": 238,
+     "wr": 51.7,
+     "pf": 1.43
+    },
+    "22H2": {
+     "ret": 27.1,
+     "dd": 14.12,
+     "tr": 186,
+     "wr": 46.2,
+     "pf": 1.38
+    },
+    "23H2": {
+     "ret": 25.76,
+     "dd": 11.16,
+     "tr": 157,
+     "wr": 43.3,
+     "pf": 1.42
+    },
+    "24H2": {
+     "ret": 61.53,
+     "dd": 6.42,
+     "tr": 204,
+     "wr": 53.4,
+     "pf": 1.62
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 14.3,
+   "tier.marginal_threshold_low": 11.8,
+   "tier.tp1_rr": 2.56,
+   "tier.tp2_rr": 6.82,
+   "tier.tp1_exit_pct": 0.26,
+   "scoring.atr_sl_multiplier": 0.9,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.6776459555377883,
+    "momentum": 0.4696694374715519,
+    "volume": 0.6986389358618939,
+    "support_resistance": 0.545275857687414,
+    "risk": 0.7037212393277328
+   },
+   "filters.min_adx": 14.5,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.73,
+   "trailing.callback_pct": 0.33
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.5245,
+   "geo_pct": 52.45,
+   "compound_x": 8.236,
+   "worst_fold": 3.73,
+   "mean_ret": 61.69,
+   "max_dd": 10.6,
+   "total_trades": 705,
+   "per": {
+    "21H1": {
+     "ret": 177.83,
+     "dd": 5.86,
+     "tr": 213,
+     "wr": 78.9,
+     "pf": 2.16
+    },
+    "22H1": {
+     "ret": 34.41,
+     "dd": 7.91,
+     "tr": 97,
+     "wr": 73.2,
+     "pf": 1.79
+    },
+    "23H1": {
+     "ret": 57.42,
+     "dd": 7.63,
+     "tr": 147,
+     "wr": 70.1,
+     "pf": 1.88
+    },
+    "24H1": {
+     "ret": 35.06,
+     "dd": 5.96,
+     "tr": 145,
+     "wr": 71.0,
+     "pf": 1.61
+    },
+    "25H1": {
+     "ret": 3.73,
+     "dd": 10.6,
+     "tr": 103,
+     "wr": 64.1,
+     "pf": 1.17
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.3427,
+   "geo_pct": 34.27,
+   "compound_x": 3.25,
+   "worst_fold": 10.22,
+   "mean_ret": 35.13,
+   "max_dd": 11.63,
+   "total_trades": 512,
+   "per": {
+    "21H2": {
+     "ret": 47.37,
+     "dd": 10.67,
+     "tr": 157,
+     "wr": 69.4,
+     "pf": 1.53
+    },
+    "22H2": {
+     "ret": 10.22,
+     "dd": 11.63,
+     "tr": 87,
+     "wr": 64.4,
+     "pf": 1.31
+    },
+    "23H2": {
+     "ret": 39.18,
+     "dd": 7.1,
+     "tr": 126,
+     "wr": 62.7,
+     "pf": 1.78
+    },
+    "24H2": {
+     "ret": 43.77,
+     "dd": 6.17,
+     "tr": 142,
+     "wr": 71.8,
+     "pf": 1.84
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 44.2,
+   "tier.marginal_threshold_low": 17.8,
+   "tier.tp1_rr": 2.16,
+   "tier.tp2_rr": 2.72,
+   "tier.tp1_exit_pct": 0.62,
+   "scoring.atr_sl_multiplier": 1.32,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.11481705104757502,
+    "momentum": 0.30606004328335784,
+    "volume": 0.535125162986559,
+    "support_resistance": 0.06576234832603958,
+    "risk": 0.9255808912838508
+   },
+   "filters.min_adx": 8.0,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.07,
+   "trailing.callback_pct": 0.36
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4209,
+   "geo_pct": 42.09,
+   "compound_x": 5.793,
+   "worst_fold": 5.97,
+   "mean_ret": 49.39,
+   "max_dd": 9.45,
+   "total_trades": 762,
+   "per": {
+    "21H1": {
+     "ret": 153.1,
+     "dd": 7.88,
+     "tr": 222,
+     "wr": 72.1,
+     "pf": 1.98
+    },
+    "22H1": {
+     "ret": 31.64,
+     "dd": 5.47,
+     "tr": 121,
+     "wr": 69.4,
+     "pf": 1.78
+    },
+    "23H1": {
+     "ret": 25.85,
+     "dd": 5.22,
+     "tr": 153,
+     "wr": 60.8,
+     "pf": 1.5
+    },
+    "24H1": {
+     "ret": 30.37,
+     "dd": 9.41,
+     "tr": 153,
+     "wr": 64.1,
+     "pf": 1.6
+    },
+    "25H1": {
+     "ret": 5.97,
+     "dd": 9.45,
+     "tr": 113,
+     "wr": 65.5,
+     "pf": 1.25
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.3073,
+   "geo_pct": 30.73,
+   "compound_x": 2.921,
+   "worst_fold": 16.48,
+   "mean_ret": 31.03,
+   "max_dd": 8.23,
+   "total_trades": 570,
+   "per": {
+    "21H2": {
+     "ret": 34.74,
+     "dd": 8.23,
+     "tr": 161,
+     "wr": 64.6,
+     "pf": 1.54
+    },
+    "22H2": {
+     "ret": 16.48,
+     "dd": 3.84,
+     "tr": 114,
+     "wr": 64.0,
+     "pf": 1.49
+    },
+    "23H2": {
+     "ret": 39.32,
+     "dd": 5.07,
+     "tr": 132,
+     "wr": 62.1,
+     "pf": 1.94
+    },
+    "24H2": {
+     "ret": 33.58,
+     "dd": 6.14,
+     "tr": 163,
+     "wr": 68.7,
+     "pf": 1.71
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 15.2,
+   "tier.marginal_threshold_low": 14.0,
+   "tier.tp1_rr": 2.57,
+   "tier.tp2_rr": 7.41,
+   "tier.tp1_exit_pct": 0.32,
+   "scoring.atr_sl_multiplier": 2.78,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.4591610851589989,
+    "momentum": 0.8542425499953659,
+    "volume": 0.8229789038969765,
+    "support_resistance": 0.15864324955364006,
+    "risk": 0.4563197248252255
+   },
+   "filters.min_adx": 20.1,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.94,
+   "trailing.callback_pct": 0.39
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4104,
+   "geo_pct": 41.04,
+   "compound_x": 5.58,
+   "worst_fold": 2.57,
+   "mean_ret": 46.65,
+   "max_dd": 12.3,
+   "total_trades": 754,
+   "per": {
+    "21H1": {
+     "ret": 125.22,
+     "dd": 7.05,
+     "tr": 250,
+     "wr": 82.8,
+     "pf": 2.05
+    },
+    "22H1": {
+     "ret": 14.92,
+     "dd": 9.3,
+     "tr": 103,
+     "wr": 81.6,
+     "pf": 1.48
+    },
+    "23H1": {
+     "ret": 54.3,
+     "dd": 5.39,
+     "tr": 152,
+     "wr": 83.6,
+     "pf": 2.12
+    },
+    "24H1": {
+     "ret": 36.23,
+     "dd": 8.05,
+     "tr": 154,
+     "wr": 84.4,
+     "pf": 1.75
+    },
+    "25H1": {
+     "ret": 2.57,
+     "dd": 12.3,
+     "tr": 95,
+     "wr": 81.1,
+     "pf": 1.17
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.2681,
+   "geo_pct": 26.81,
+   "compound_x": 2.586,
+   "worst_fold": 6.97,
+   "mean_ret": 27.52,
+   "max_dd": 8.49,
+   "total_trades": 542,
+   "per": {
+    "21H2": {
+     "ret": 41.44,
+     "dd": 7.3,
+     "tr": 173,
+     "wr": 81.5,
+     "pf": 1.65
+    },
+    "22H2": {
+     "ret": 6.97,
+     "dd": 8.49,
+     "tr": 99,
+     "wr": 76.8,
+     "pf": 1.24
+    },
+    "23H2": {
+     "ret": 25.56,
+     "dd": 6.76,
+     "tr": 109,
+     "wr": 78.9,
+     "pf": 1.65
+    },
+    "24H2": {
+     "ret": 36.11,
+     "dd": 4.32,
+     "tr": 161,
+     "wr": 83.9,
+     "pf": 1.78
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 14.1,
+   "tier.marginal_threshold_low": 12.7,
+   "tier.tp1_rr": 2.13,
+   "tier.tp2_rr": 6.07,
+   "tier.tp1_exit_pct": 0.69,
+   "scoring.atr_sl_multiplier": 2.82,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.18499322458606188,
+    "momentum": 0.46029640914825404,
+    "volume": 0.30021293097360363,
+    "support_resistance": 0.17806107531372478,
+    "risk": 0.5774861636893123
+   },
+   "filters.min_adx": 13.0,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.88,
+   "trailing.callback_pct": 0.51
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.5618,
+   "geo_pct": 56.18,
+   "compound_x": 9.293,
+   "worst_fold": 15.27,
+   "mean_ret": 68.21,
+   "max_dd": 7.71,
+   "total_trades": 1279,
+   "per": {
+    "21H1": {
+     "ret": 213.69,
+     "dd": 6.3,
+     "tr": 339,
+     "wr": 68.7,
+     "pf": 2.12
+    },
+    "22H1": {
+     "ret": 26.2,
+     "dd": 5.96,
+     "tr": 230,
+     "wr": 56.5,
+     "pf": 1.45
+    },
+    "23H1": {
+     "ret": 51.23,
+     "dd": 4.27,
+     "tr": 244,
+     "wr": 54.9,
+     "pf": 1.78
+    },
+    "24H1": {
+     "ret": 34.66,
+     "dd": 7.71,
+     "tr": 262,
+     "wr": 58.0,
+     "pf": 1.54
+    },
+    "25H1": {
+     "ret": 15.27,
+     "dd": 4.79,
+     "tr": 204,
+     "wr": 52.0,
+     "pf": 1.38
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.2649,
+   "geo_pct": 26.49,
+   "compound_x": 2.56,
+   "worst_fold": 7.07,
+   "mean_ret": 27.1,
+   "max_dd": 8.69,
+   "total_trades": 987,
+   "per": {
+    "21H2": {
+     "ret": 30.45,
+     "dd": 6.99,
+     "tr": 287,
+     "wr": 55.7,
+     "pf": 1.39
+    },
+    "22H2": {
+     "ret": 7.07,
+     "dd": 8.69,
+     "tr": 198,
+     "wr": 48.5,
+     "pf": 1.22
+    },
+    "23H2": {
+     "ret": 31.89,
+     "dd": 4.97,
+     "tr": 215,
+     "wr": 52.1,
+     "pf": 1.69
+    },
+    "24H2": {
+     "ret": 38.98,
+     "dd": 4.75,
+     "tr": 287,
+     "wr": 55.1,
+     "pf": 1.59
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 16.0,
+   "tier.marginal_threshold_low": 11.3,
+   "tier.tp1_rr": 3.85,
+   "tier.tp2_rr": 7.38,
+   "tier.tp1_exit_pct": 0.3,
+   "scoring.atr_sl_multiplier": 0.86,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.649244203982177,
+    "momentum": 0.48374418677132514,
+    "volume": 0.4332753105158467,
+    "support_resistance": 0.812565216923099,
+    "risk": 0.4255298805689799
+   },
+   "filters.min_adx": 27.7,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.03,
+   "trailing.callback_pct": 0.4
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4896,
+   "geo_pct": 48.96,
+   "compound_x": 7.333,
+   "worst_fold": -3.27,
+   "mean_ret": 59.08,
+   "max_dd": 13.42,
+   "total_trades": 914,
+   "per": {
+    "21H1": {
+     "ret": 172.44,
+     "dd": 12.11,
+     "tr": 295,
+     "wr": 56.9,
+     "pf": 1.67
+    },
+    "22H1": {
+     "ret": 15.02,
+     "dd": 9.9,
+     "tr": 127,
+     "wr": 48.0,
+     "pf": 1.34
+    },
+    "23H1": {
+     "ret": 60.33,
+     "dd": 5.65,
+     "tr": 173,
+     "wr": 57.2,
+     "pf": 1.86
+    },
+    "24H1": {
+     "ret": 50.9,
+     "dd": 7.94,
+     "tr": 198,
+     "wr": 52.5,
+     "pf": 1.62
+    },
+    "25H1": {
+     "ret": -3.27,
+     "dd": 13.42,
+     "tr": 121,
+     "wr": 48.8,
+     "pf": 1.01
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.2292,
+   "geo_pct": 22.92,
+   "compound_x": 2.283,
+   "worst_fold": -0.39,
+   "mean_ret": 23.99,
+   "max_dd": 12.14,
+   "total_trades": 665,
+   "per": {
+    "21H2": {
+     "ret": 39.61,
+     "dd": 10.65,
+     "tr": 198,
+     "wr": 53.0,
+     "pf": 1.45
+    },
+    "22H2": {
+     "ret": -0.39,
+     "dd": 12.14,
+     "tr": 151,
+     "wr": 44.4,
+     "pf": 1.07
+    },
+    "23H2": {
+     "ret": 20.46,
+     "dd": 8.44,
+     "tr": 148,
+     "wr": 49.3,
+     "pf": 1.47
+    },
+    "24H2": {
+     "ret": 36.27,
+     "dd": 6.56,
+     "tr": 168,
+     "wr": 56.0,
+     "pf": 1.63
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 13.0,
+   "tier.marginal_threshold_low": 10.9,
+   "tier.tp1_rr": 1.47,
+   "tier.tp2_rr": 3.89,
+   "tier.tp1_exit_pct": 0.7,
+   "scoring.atr_sl_multiplier": 2.66,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.4489798833652403,
+    "momentum": 0.8924594510353205,
+    "volume": 0.160891060875755,
+    "support_resistance": 0.23093571431269222,
+    "risk": 0.9505279795500059
+   },
+   "filters.min_adx": 12.9,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.82,
+   "trailing.callback_pct": 0.39
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3855,
+   "geo_pct": 38.55,
+   "compound_x": 5.106,
+   "worst_fold": 1.55,
+   "mean_ret": 45.46,
+   "max_dd": 10.01,
+   "total_trades": 1090,
+   "per": {
+    "21H1": {
+     "ret": 142.78,
+     "dd": 10.01,
+     "tr": 320,
+     "wr": 73.8,
+     "pf": 1.93
+    },
+    "22H1": {
+     "ret": 21.11,
+     "dd": 5.47,
+     "tr": 160,
+     "wr": 62.5,
+     "pf": 1.56
+    },
+    "23H1": {
+     "ret": 37.16,
+     "dd": 5.03,
+     "tr": 227,
+     "wr": 62.1,
+     "pf": 1.71
+    },
+    "24H1": {
+     "ret": 24.68,
+     "dd": 5.95,
+     "tr": 221,
+     "wr": 62.0,
+     "pf": 1.49
+    },
+    "25H1": {
+     "ret": 1.55,
+     "dd": 9.18,
+     "tr": 162,
+     "wr": 59.9,
+     "pf": 1.15
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.2175,
+   "geo_pct": 21.75,
+   "compound_x": 2.197,
+   "worst_fold": 2.91,
+   "mean_ret": 22.49,
+   "max_dd": 7.03,
+   "total_trades": 779,
+   "per": {
+    "21H2": {
+     "ret": 39.45,
+     "dd": 5.77,
+     "tr": 238,
+     "wr": 66.0,
+     "pf": 1.58
+    },
+    "22H2": {
+     "ret": 2.91,
+     "dd": 7.03,
+     "tr": 140,
+     "wr": 57.1,
+     "pf": 1.17
+    },
+    "23H2": {
+     "ret": 27.84,
+     "dd": 5.99,
+     "tr": 166,
+     "wr": 62.7,
+     "pf": 1.71
+    },
+    "24H2": {
+     "ret": 19.76,
+     "dd": 6.1,
+     "tr": 235,
+     "wr": 60.9,
+     "pf": 1.43
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 19.3,
+   "tier.marginal_threshold_low": 12.5,
+   "tier.tp1_rr": 1.9,
+   "tier.tp2_rr": 3.53,
+   "tier.tp1_exit_pct": 0.41,
+   "scoring.atr_sl_multiplier": 1.62,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.5789736557128945,
+    "momentum": 0.3680260031519336,
+    "volume": 0.5913887815594331,
+    "support_resistance": 0.6973826700992194,
+    "risk": 0.954251765497116
+   },
+   "filters.min_adx": 21.4,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.93,
+   "trailing.callback_pct": 0.53
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.2792,
+   "geo_pct": 27.92,
+   "compound_x": 3.426,
+   "worst_fold": 13.08,
+   "mean_ret": 28.46,
+   "max_dd": 14.48,
+   "total_trades": 419,
+   "per": {
+    "21H1": {
+     "ret": 45.91,
+     "dd": 10.67,
+     "tr": 126,
+     "wr": 65.1,
+     "pf": 1.47
+    },
+    "22H1": {
+     "ret": 18.45,
+     "dd": 14.48,
+     "tr": 60,
+     "wr": 68.3,
+     "pf": 1.52
+    },
+    "23H1": {
+     "ret": 29.0,
+     "dd": 7.04,
+     "tr": 91,
+     "wr": 68.1,
+     "pf": 1.58
+    },
+    "24H1": {
+     "ret": 35.88,
+     "dd": 7.82,
+     "tr": 88,
+     "wr": 71.6,
+     "pf": 1.74
+    },
+    "25H1": {
+     "ret": 13.08,
+     "dd": 10.47,
+     "tr": 54,
+     "wr": 68.5,
+     "pf": 1.5
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.2064,
+   "geo_pct": 20.64,
+   "compound_x": 2.119,
+   "worst_fold": -6.0,
+   "mean_ret": 21.89,
+   "max_dd": 17.56,
+   "total_trades": 318,
+   "per": {
+    "21H2": {
+     "ret": 31.49,
+     "dd": 7.87,
+     "tr": 100,
+     "wr": 70.0,
+     "pf": 1.56
+    },
+    "22H2": {
+     "ret": -6.0,
+     "dd": 17.56,
+     "tr": 56,
+     "wr": 55.4,
+     "pf": 0.9
+    },
+    "23H2": {
+     "ret": 36.65,
+     "dd": 5.66,
+     "tr": 70,
+     "wr": 67.1,
+     "pf": 1.98
+    },
+    "24H2": {
+     "ret": 25.43,
+     "dd": 8.78,
+     "tr": 92,
+     "wr": 69.6,
+     "pf": 1.55
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 26.0,
+   "tier.marginal_threshold_low": 15.6,
+   "tier.tp1_rr": 1.63,
+   "tier.tp2_rr": 7.59,
+   "tier.tp1_exit_pct": 0.4,
+   "scoring.atr_sl_multiplier": 2.32,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.47930854268165995,
+    "momentum": 0.6781122441369535,
+    "volume": 0.9401451036806424,
+    "support_resistance": 0.5802843901834994,
+    "risk": 0.7216071581030473
+   },
+   "filters.min_adx": 17.4,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.86,
+   "trailing.callback_pct": 0.34
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4323,
+   "geo_pct": 43.23,
+   "compound_x": 6.029,
+   "worst_fold": 15.13,
+   "mean_ret": 46.87,
+   "max_dd": 12.75,
+   "total_trades": 617,
+   "per": {
+    "21H1": {
+     "ret": 115.09,
+     "dd": 7.74,
+     "tr": 185,
+     "wr": 76.2,
+     "pf": 1.91
+    },
+    "22H1": {
+     "ret": 25.47,
+     "dd": 12.75,
+     "tr": 100,
+     "wr": 71.0,
+     "pf": 1.5
+    },
+    "23H1": {
+     "ret": 36.74,
+     "dd": 6.56,
+     "tr": 119,
+     "wr": 75.6,
+     "pf": 1.79
+    },
+    "24H1": {
+     "ret": 41.9,
+     "dd": 5.33,
+     "tr": 123,
+     "wr": 78.0,
+     "pf": 1.91
+    },
+    "25H1": {
+     "ret": 15.13,
+     "dd": 7.39,
+     "tr": 90,
+     "wr": 72.2,
+     "pf": 1.5
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1954,
+   "geo_pct": 19.54,
+   "compound_x": 2.042,
+   "worst_fold": 4.6,
+   "mean_ret": 20.25,
+   "max_dd": 13.5,
+   "total_trades": 486,
+   "per": {
+    "21H2": {
+     "ret": 41.3,
+     "dd": 8.44,
+     "tr": 143,
+     "wr": 75.5,
+     "pf": 1.66
+    },
+    "22H2": {
+     "ret": 18.05,
+     "dd": 13.5,
+     "tr": 108,
+     "wr": 69.4,
+     "pf": 1.37
+    },
+    "23H2": {
+     "ret": 4.6,
+     "dd": 8.05,
+     "tr": 95,
+     "wr": 64.2,
+     "pf": 1.2
+    },
+    "24H2": {
+     "ret": 17.05,
+     "dd": 10.64,
+     "tr": 140,
+     "wr": 70.7,
+     "pf": 1.34
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 41.0,
+   "tier.marginal_threshold_low": 12.0,
+   "tier.tp1_rr": 1.64,
+   "tier.tp2_rr": 3.95,
+   "tier.tp1_exit_pct": 0.61,
+   "scoring.atr_sl_multiplier": 1.67,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.9983158572462348,
+    "momentum": 0.4901932092054137,
+    "volume": 0.6225274701024517,
+    "support_resistance": 0.741828202114154,
+    "risk": 0.9293660457041261
+   },
+   "filters.min_adx": 14.0,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.96,
+   "trailing.callback_pct": 0.35
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4609,
+   "geo_pct": 46.09,
+   "compound_x": 6.654,
+   "worst_fold": 8.04,
+   "mean_ret": 60.38,
+   "max_dd": 11.31,
+   "total_trades": 602,
+   "per": {
+    "21H1": {
+     "ret": 217.02,
+     "dd": 7.47,
+     "tr": 191,
+     "wr": 63.9,
+     "pf": 2.33
+    },
+    "22H1": {
+     "ret": 44.7,
+     "dd": 7.2,
+     "tr": 103,
+     "wr": 55.3,
+     "pf": 1.88
+    },
+    "23H1": {
+     "ret": 8.04,
+     "dd": 11.31,
+     "tr": 106,
+     "wr": 43.4,
+     "pf": 1.25
+    },
+    "24H1": {
+     "ret": 22.86,
+     "dd": 8.36,
+     "tr": 114,
+     "wr": 46.5,
+     "pf": 1.46
+    },
+    "25H1": {
+     "ret": 9.28,
+     "dd": 7.11,
+     "tr": 88,
+     "wr": 48.9,
+     "pf": 1.32
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1929,
+   "geo_pct": 19.29,
+   "compound_x": 2.025,
+   "worst_fold": 3.74,
+   "mean_ret": 19.88,
+   "max_dd": 7.88,
+   "total_trades": 474,
+   "per": {
+    "21H2": {
+     "ret": 13.96,
+     "dd": 7.88,
+     "tr": 124,
+     "wr": 53.2,
+     "pf": 1.26
+    },
+    "22H2": {
+     "ret": 33.69,
+     "dd": 6.4,
+     "tr": 123,
+     "wr": 48.8,
+     "pf": 1.65
+    },
+    "23H2": {
+     "ret": 3.74,
+     "dd": 5.94,
+     "tr": 99,
+     "wr": 42.4,
+     "pf": 1.19
+    },
+    "24H2": {
+     "ret": 28.14,
+     "dd": 6.22,
+     "tr": 128,
+     "wr": 55.5,
+     "pf": 1.57
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 17.9,
+   "tier.marginal_threshold_low": 14.5,
+   "tier.tp1_rr": 3.58,
+   "tier.tp2_rr": 8.36,
+   "tier.tp1_exit_pct": 0.67,
+   "scoring.atr_sl_multiplier": 1.72,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.7224665933899073,
+    "momentum": 0.5699382850730459,
+    "volume": 0.5058750378753698,
+    "support_resistance": 0.2719021486815885,
+    "risk": 0.45241511502890436
+   },
+   "filters.min_adx": 9.4,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.65,
+   "trailing.callback_pct": 0.41
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4037,
+   "geo_pct": 40.37,
+   "compound_x": 5.449,
+   "worst_fold": 11.38,
+   "mean_ret": 49.14,
+   "max_dd": 11.04,
+   "total_trades": 991,
+   "per": {
+    "21H1": {
+     "ret": 166.49,
+     "dd": 11.04,
+     "tr": 270,
+     "wr": 53.0,
+     "pf": 1.69
+    },
+    "22H1": {
+     "ret": 30.79,
+     "dd": 9.74,
+     "tr": 169,
+     "wr": 43.2,
+     "pf": 1.45
+    },
+    "23H1": {
+     "ret": 15.51,
+     "dd": 10.53,
+     "tr": 199,
+     "wr": 37.7,
+     "pf": 1.28
+    },
+    "24H1": {
+     "ret": 21.51,
+     "dd": 8.42,
+     "tr": 198,
+     "wr": 40.4,
+     "pf": 1.34
+    },
+    "25H1": {
+     "ret": 11.38,
+     "dd": 10.73,
+     "tr": 155,
+     "wr": 42.6,
+     "pf": 1.3
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1907,
+   "geo_pct": 19.07,
+   "compound_x": 2.01,
+   "worst_fold": 6.98,
+   "mean_ret": 19.65,
+   "max_dd": 12.06,
+   "total_trades": 778,
+   "per": {
+    "21H2": {
+     "ret": 33.88,
+     "dd": 12.06,
+     "tr": 230,
+     "wr": 45.2,
+     "pf": 1.37
+    },
+    "22H2": {
+     "ret": 9.05,
+     "dd": 8.14,
+     "tr": 156,
+     "wr": 37.8,
+     "pf": 1.23
+    },
+    "23H2": {
+     "ret": 6.98,
+     "dd": 8.69,
+     "tr": 166,
+     "wr": 40.4,
+     "pf": 1.23
+    },
+    "24H2": {
+     "ret": 28.69,
+     "dd": 6.34,
+     "tr": 226,
+     "wr": 41.6,
+     "pf": 1.41
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 13.4,
+   "tier.marginal_threshold_low": 11.9,
+   "tier.tp1_rr": 2.0,
+   "tier.tp2_rr": 4.54,
+   "tier.tp1_exit_pct": 0.69,
+   "scoring.atr_sl_multiplier": 2.24,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.35860355233377,
+    "momentum": 0.5786676077046236,
+    "volume": 0.10470192571587549,
+    "support_resistance": 0.8482573401599482,
+    "risk": 0.562278019030031
+   },
+   "filters.min_adx": 21.5,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.76,
+   "trailing.callback_pct": 0.34
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3255,
+   "geo_pct": 32.55,
+   "compound_x": 4.092,
+   "worst_fold": 10.3,
+   "mean_ret": 34.31,
+   "max_dd": 10.88,
+   "total_trades": 460,
+   "per": {
+    "21H1": {
+     "ret": 78.1,
+     "dd": 8.77,
+     "tr": 148,
+     "wr": 73.0,
+     "pf": 1.79
+    },
+    "22H1": {
+     "ret": 29.23,
+     "dd": 10.88,
+     "tr": 82,
+     "wr": 73.2,
+     "pf": 1.7
+    },
+    "23H1": {
+     "ret": 28.02,
+     "dd": 7.64,
+     "tr": 79,
+     "wr": 75.9,
+     "pf": 1.82
+    },
+    "24H1": {
+     "ret": 25.91,
+     "dd": 4.87,
+     "tr": 83,
+     "wr": 72.3,
+     "pf": 1.64
+    },
+    "25H1": {
+     "ret": 10.3,
+     "dd": 9.73,
+     "tr": 68,
+     "wr": 70.6,
+     "pf": 1.38
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1903,
+   "geo_pct": 19.03,
+   "compound_x": 2.007,
+   "worst_fold": 3.24,
+   "mean_ret": 19.64,
+   "max_dd": 9.7,
+   "total_trades": 367,
+   "per": {
+    "21H2": {
+     "ret": 30.71,
+     "dd": 9.7,
+     "tr": 106,
+     "wr": 71.7,
+     "pf": 1.55
+    },
+    "22H2": {
+     "ret": 31.33,
+     "dd": 8.14,
+     "tr": 92,
+     "wr": 72.8,
+     "pf": 1.69
+    },
+    "23H2": {
+     "ret": 3.24,
+     "dd": 7.63,
+     "tr": 67,
+     "wr": 64.2,
+     "pf": 1.16
+    },
+    "24H2": {
+     "ret": 13.27,
+     "dd": 5.37,
+     "tr": 102,
+     "wr": 68.6,
+     "pf": 1.29
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 15.2,
+   "tier.marginal_threshold_low": 14.0,
+   "tier.tp1_rr": 3.78,
+   "tier.tp2_rr": 7.34,
+   "tier.tp1_exit_pct": 0.69,
+   "scoring.atr_sl_multiplier": 2.37,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.6779251483023875,
+    "momentum": 0.45617469723557286,
+    "volume": 0.8079602272841352,
+    "support_resistance": 0.4828780864071678,
+    "risk": 0.513334064439015
+   },
+   "filters.min_adx": 14.9,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.47,
+   "trailing.callback_pct": 0.34
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4026,
+   "geo_pct": 40.26,
+   "compound_x": 5.429,
+   "worst_fold": 8.15,
+   "mean_ret": 50.07,
+   "max_dd": 6.35,
+   "total_trades": 805,
+   "per": {
+    "21H1": {
+     "ret": 175.59,
+     "dd": 3.0,
+     "tr": 246,
+     "wr": 90.7,
+     "pf": 3.74
+    },
+    "22H1": {
+     "ret": 28.05,
+     "dd": 6.35,
+     "tr": 150,
+     "wr": 82.7,
+     "pf": 1.85
+    },
+    "23H1": {
+     "ret": 17.12,
+     "dd": 3.13,
+     "tr": 148,
+     "wr": 81.1,
+     "pf": 1.76
+    },
+    "24H1": {
+     "ret": 21.45,
+     "dd": 3.94,
+     "tr": 149,
+     "wr": 82.6,
+     "pf": 1.78
+    },
+    "25H1": {
+     "ret": 8.15,
+     "dd": 5.02,
+     "tr": 112,
+     "wr": 80.4,
+     "pf": 1.49
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.183,
+   "geo_pct": 18.3,
+   "compound_x": 1.959,
+   "worst_fold": 6.92,
+   "mean_ret": 19.17,
+   "max_dd": 6.26,
+   "total_trades": 604,
+   "per": {
+    "21H2": {
+     "ret": 44.6,
+     "dd": 5.22,
+     "tr": 178,
+     "wr": 87.1,
+     "pf": 2.4
+    },
+    "22H2": {
+     "ret": 14.74,
+     "dd": 6.26,
+     "tr": 147,
+     "wr": 76.9,
+     "pf": 1.52
+    },
+    "23H2": {
+     "ret": 6.92,
+     "dd": 4.9,
+     "tr": 126,
+     "wr": 76.2,
+     "pf": 1.41
+    },
+    "24H2": {
+     "ret": 10.41,
+     "dd": 4.11,
+     "tr": 153,
+     "wr": 78.4,
+     "pf": 1.38
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 15,
+   "tier.strong_threshold": 27.0,
+   "tier.marginal_threshold_low": 15.0,
+   "tier.tp1_rr": 1.32,
+   "tier.tp2_rr": 3.89,
+   "tier.tp1_exit_pct": 0.64,
+   "scoring.atr_sl_multiplier": 2.0,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.41763276425762147,
+    "momentum": 0.4685928650373267,
+    "volume": 0.8179437798959338,
+    "support_resistance": 0.08977097242598694,
+    "risk": 0.15132846222058305
+   },
+   "filters.min_adx": 9.6,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.84,
+   "trailing.callback_pct": 0.35
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3154,
+   "geo_pct": 31.54,
+   "compound_x": 3.938,
+   "worst_fold": 10.34,
+   "mean_ret": 33.89,
+   "max_dd": 17.93,
+   "total_trades": 642,
+   "per": {
+    "21H1": {
+     "ret": 83.27,
+     "dd": 7.58,
+     "tr": 194,
+     "wr": 68.6,
+     "pf": 1.65
+    },
+    "22H1": {
+     "ret": 22.3,
+     "dd": 9.85,
+     "tr": 95,
+     "wr": 66.3,
+     "pf": 1.52
+    },
+    "23H1": {
+     "ret": 14.55,
+     "dd": 17.93,
+     "tr": 133,
+     "wr": 55.6,
+     "pf": 1.27
+    },
+    "24H1": {
+     "ret": 39.0,
+     "dd": 3.96,
+     "tr": 133,
+     "wr": 63.9,
+     "pf": 1.66
+    },
+    "25H1": {
+     "ret": 10.34,
+     "dd": 8.73,
+     "tr": 87,
+     "wr": 58.6,
+     "pf": 1.34
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1798,
+   "geo_pct": 17.98,
+   "compound_x": 1.938,
+   "worst_fold": 6.86,
+   "mean_ret": 18.37,
+   "max_dd": 14.68,
+   "total_trades": 489,
+   "per": {
+    "21H2": {
+     "ret": 30.8,
+     "dd": 12.0,
+     "tr": 144,
+     "wr": 61.8,
+     "pf": 1.41
+    },
+    "22H2": {
+     "ret": 11.73,
+     "dd": 8.76,
+     "tr": 99,
+     "wr": 61.6,
+     "pf": 1.33
+    },
+    "23H2": {
+     "ret": 24.08,
+     "dd": 8.38,
+     "tr": 110,
+     "wr": 51.8,
+     "pf": 1.51
+    },
+    "24H2": {
+     "ret": 6.86,
+     "dd": 14.68,
+     "tr": 136,
+     "wr": 57.4,
+     "pf": 1.17
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 28.4,
+   "tier.marginal_threshold_low": 14.0,
+   "tier.tp1_rr": 4.19,
+   "tier.tp2_rr": 10.17,
+   "tier.tp1_exit_pct": 0.42,
+   "scoring.atr_sl_multiplier": 1.11,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.2818813512934653,
+    "momentum": 0.21596033740682502,
+    "volume": 0.5780803832153948,
+    "support_resistance": 0.3533233544019628,
+    "risk": 0.39989006813943145
+   },
+   "filters.min_adx": 24.2,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.35,
+   "trailing.callback_pct": 0.41
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3655,
+   "geo_pct": 36.55,
+   "compound_x": 4.748,
+   "worst_fold": 2.87,
+   "mean_ret": 41.24,
+   "max_dd": 8.37,
+   "total_trades": 1126,
+   "per": {
+    "21H1": {
+     "ret": 117.95,
+     "dd": 6.11,
+     "tr": 313,
+     "wr": 69.3,
+     "pf": 1.89
+    },
+    "22H1": {
+     "ret": 32.05,
+     "dd": 5.18,
+     "tr": 180,
+     "wr": 60.6,
+     "pf": 1.83
+    },
+    "23H1": {
+     "ret": 24.18,
+     "dd": 5.62,
+     "tr": 232,
+     "wr": 54.7,
+     "pf": 1.48
+    },
+    "24H1": {
+     "ret": 29.15,
+     "dd": 5.34,
+     "tr": 223,
+     "wr": 59.2,
+     "pf": 1.61
+    },
+    "25H1": {
+     "ret": 2.87,
+     "dd": 8.37,
+     "tr": 178,
+     "wr": 53.4,
+     "pf": 1.17
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1788,
+   "geo_pct": 17.88,
+   "compound_x": 1.931,
+   "worst_fold": 7.81,
+   "mean_ret": 18.08,
+   "max_dd": 6.33,
+   "total_trades": 849,
+   "per": {
+    "21H2": {
+     "ret": 23.41,
+     "dd": 5.63,
+     "tr": 233,
+     "wr": 58.8,
+     "pf": 1.43
+    },
+    "22H2": {
+     "ret": 7.81,
+     "dd": 6.33,
+     "tr": 175,
+     "wr": 52.6,
+     "pf": 1.28
+    },
+    "23H2": {
+     "ret": 16.34,
+     "dd": 6.23,
+     "tr": 187,
+     "wr": 52.9,
+     "pf": 1.49
+    },
+    "24H2": {
+     "ret": 24.76,
+     "dd": 4.98,
+     "tr": 254,
+     "wr": 56.7,
+     "pf": 1.54
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 20,
+   "tier.strong_threshold": 23.6,
+   "tier.marginal_threshold_low": 17.2,
+   "tier.tp1_rr": 1.78,
+   "tier.tp2_rr": 5.8,
+   "tier.tp1_exit_pct": 0.66,
+   "scoring.atr_sl_multiplier": 1.16,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.8720671915976621,
+    "momentum": 0.35905784951612746,
+    "volume": 0.5888429032227106,
+    "support_resistance": 0.5803865684417244,
+    "risk": 0.6498388523174978
+   },
+   "filters.min_adx": 20.1,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.12,
+   "trailing.callback_pct": 0.49
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.5672,
+   "geo_pct": 56.72,
+   "compound_x": 9.454,
+   "worst_fold": 0.21,
+   "mean_ret": 79.73,
+   "max_dd": 10.59,
+   "total_trades": 1025,
+   "per": {
+    "21H1": {
+     "ret": 297.11,
+     "dd": 9.66,
+     "tr": 322,
+     "wr": 75.5,
+     "pf": 2.28
+    },
+    "22H1": {
+     "ret": 32.27,
+     "dd": 6.35,
+     "tr": 151,
+     "wr": 66.9,
+     "pf": 1.69
+    },
+    "23H1": {
+     "ret": 46.28,
+     "dd": 6.73,
+     "tr": 205,
+     "wr": 64.4,
+     "pf": 1.76
+    },
+    "24H1": {
+     "ret": 22.78,
+     "dd": 8.95,
+     "tr": 199,
+     "wr": 64.3,
+     "pf": 1.46
+    },
+    "25H1": {
+     "ret": 0.21,
+     "dd": 10.59,
+     "tr": 148,
+     "wr": 62.2,
+     "pf": 1.12
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1735,
+   "geo_pct": 17.35,
+   "compound_x": 1.896,
+   "worst_fold": 0.9,
+   "mean_ret": 17.8,
+   "max_dd": 12.63,
+   "total_trades": 729,
+   "per": {
+    "21H2": {
+     "ret": 23.37,
+     "dd": 12.63,
+     "tr": 218,
+     "wr": 65.6,
+     "pf": 1.35
+    },
+    "22H2": {
+     "ret": 0.9,
+     "dd": 9.18,
+     "tr": 137,
+     "wr": 61.3,
+     "pf": 1.12
+    },
+    "23H2": {
+     "ret": 19.73,
+     "dd": 9.55,
+     "tr": 161,
+     "wr": 58.4,
+     "pf": 1.48
+    },
+    "24H2": {
+     "ret": 27.22,
+     "dd": 6.48,
+     "tr": 213,
+     "wr": 66.7,
+     "pf": 1.53
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 19.0,
+   "tier.marginal_threshold_low": 15.5,
+   "tier.tp1_rr": 3.0,
+   "tier.tp2_rr": 5.82,
+   "tier.tp1_exit_pct": 0.45,
+   "scoring.atr_sl_multiplier": 1.26,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.6086281602363899,
+    "momentum": 0.23579289216572807,
+    "volume": 0.4180541990010268,
+    "support_resistance": 0.10075283682028864,
+    "risk": 0.9551415331608096
+   },
+   "filters.min_adx": 19.3,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.88,
+   "trailing.callback_pct": 0.6
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.301,
+   "geo_pct": 30.1,
+   "compound_x": 3.727,
+   "worst_fold": 2.19,
+   "mean_ret": 33.08,
+   "max_dd": 10.23,
+   "total_trades": 680,
+   "per": {
+    "21H1": {
+     "ret": 90.08,
+     "dd": 7.78,
+     "tr": 204,
+     "wr": 72.5,
+     "pf": 1.82
+    },
+    "22H1": {
+     "ret": 31.76,
+     "dd": 6.08,
+     "tr": 121,
+     "wr": 65.3,
+     "pf": 1.69
+    },
+    "23H1": {
+     "ret": 22.83,
+     "dd": 6.91,
+     "tr": 131,
+     "wr": 55.7,
+     "pf": 1.49
+    },
+    "24H1": {
+     "ret": 18.56,
+     "dd": 9.09,
+     "tr": 124,
+     "wr": 55.6,
+     "pf": 1.42
+    },
+    "25H1": {
+     "ret": 2.19,
+     "dd": 10.23,
+     "tr": 100,
+     "wr": 52.0,
+     "pf": 1.12
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1661,
+   "geo_pct": 16.61,
+   "compound_x": 1.849,
+   "worst_fold": 10.61,
+   "mean_ret": 16.72,
+   "max_dd": 8.11,
+   "total_trades": 509,
+   "per": {
+    "21H2": {
+     "ret": 17.6,
+     "dd": 7.81,
+     "tr": 155,
+     "wr": 58.7,
+     "pf": 1.29
+    },
+    "22H2": {
+     "ret": 10.61,
+     "dd": 8.11,
+     "tr": 113,
+     "wr": 58.4,
+     "pf": 1.32
+    },
+    "23H2": {
+     "ret": 24.43,
+     "dd": 3.93,
+     "tr": 112,
+     "wr": 54.5,
+     "pf": 1.74
+    },
+    "24H2": {
+     "ret": 14.23,
+     "dd": 6.65,
+     "tr": 129,
+     "wr": 58.1,
+     "pf": 1.36
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 20,
+   "tier.strong_threshold": 34.5,
+   "tier.marginal_threshold_low": 10.1,
+   "tier.tp1_rr": 2.75,
+   "tier.tp2_rr": 5.68,
+   "tier.tp1_exit_pct": 0.61,
+   "scoring.atr_sl_multiplier": 1.2,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.32185074567520294,
+    "momentum": 0.11378957987841996,
+    "volume": 0.9725099373429962,
+    "support_resistance": 0.2970897574880908,
+    "risk": 0.8836388850290947
+   },
+   "filters.min_adx": 12.6,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.64,
+   "trailing.callback_pct": 0.37
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4742,
+   "geo_pct": 47.42,
+   "compound_x": 6.962,
+   "worst_fold": -4.5,
+   "mean_ret": 62.67,
+   "max_dd": 11.18,
+   "total_trades": 1053,
+   "per": {
+    "21H1": {
+     "ret": 214.68,
+     "dd": 8.55,
+     "tr": 329,
+     "wr": 65.3,
+     "pf": 2.06
+    },
+    "22H1": {
+     "ret": 68.19,
+     "dd": 8.02,
+     "tr": 225,
+     "wr": 60.9,
+     "pf": 1.8
+    },
+    "23H1": {
+     "ret": 23.01,
+     "dd": 7.57,
+     "tr": 185,
+     "wr": 51.9,
+     "pf": 1.42
+    },
+    "24H1": {
+     "ret": 11.97,
+     "dd": 11.18,
+     "tr": 183,
+     "wr": 54.1,
+     "pf": 1.24
+    },
+    "25H1": {
+     "ret": -4.5,
+     "dd": 9.88,
+     "tr": 131,
+     "wr": 46.6,
+     "pf": 0.97
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1618,
+   "geo_pct": 16.18,
+   "compound_x": 1.822,
+   "worst_fold": 8.43,
+   "mean_ret": 16.35,
+   "max_dd": 10.95,
+   "total_trades": 712,
+   "per": {
+    "21H2": {
+     "ret": 8.43,
+     "dd": 10.95,
+     "tr": 213,
+     "wr": 53.1,
+     "pf": 1.15
+    },
+    "22H2": {
+     "ret": 26.34,
+     "dd": 6.93,
+     "tr": 177,
+     "wr": 57.6,
+     "pf": 1.47
+    },
+    "23H2": {
+     "ret": 14.22,
+     "dd": 6.15,
+     "tr": 134,
+     "wr": 47.8,
+     "pf": 1.38
+    },
+    "24H2": {
+     "ret": 16.42,
+     "dd": 5.48,
+     "tr": 188,
+     "wr": 53.7,
+     "pf": 1.34
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 20,
+   "tier.strong_threshold": 43.3,
+   "tier.marginal_threshold_low": 10.8,
+   "tier.tp1_rr": 2.5,
+   "tier.tp2_rr": 8.29,
+   "tier.tp1_exit_pct": 0.25,
+   "scoring.atr_sl_multiplier": 1.48,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.49672849728204554,
+    "momentum": 0.25758467626865555,
+    "volume": 0.7698800545541962,
+    "support_resistance": 0.07756680904470929,
+    "risk": 0.18242867073837377
+   },
+   "filters.min_adx": 27.9,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.68,
+   "trailing.callback_pct": 0.56
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.5102,
+   "geo_pct": 51.02,
+   "compound_x": 7.856,
+   "worst_fold": -2.93,
+   "mean_ret": 64.95,
+   "max_dd": 15.83,
+   "total_trades": 864,
+   "per": {
+    "21H1": {
+     "ret": 202.16,
+     "dd": 11.56,
+     "tr": 308,
+     "wr": 61.7,
+     "pf": 1.66
+    },
+    "22H1": {
+     "ret": 79.83,
+     "dd": 11.42,
+     "tr": 173,
+     "wr": 65.9,
+     "pf": 1.7
+    },
+    "23H1": {
+     "ret": 36.9,
+     "dd": 15.83,
+     "tr": 140,
+     "wr": 62.1,
+     "pf": 1.38
+    },
+    "24H1": {
+     "ret": 8.8,
+     "dd": 13.28,
+     "tr": 150,
+     "wr": 60.0,
+     "pf": 1.13
+    },
+    "25H1": {
+     "ret": -2.93,
+     "dd": 14.38,
+     "tr": 93,
+     "wr": 54.8,
+     "pf": 1.0
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.16,
+   "geo_pct": 16.0,
+   "compound_x": 1.81,
+   "worst_fold": -3.72,
+   "mean_ret": 16.79,
+   "max_dd": 18.02,
+   "total_trades": 566,
+   "per": {
+    "21H2": {
+     "ret": 26.11,
+     "dd": 14.07,
+     "tr": 183,
+     "wr": 60.7,
+     "pf": 1.22
+    },
+    "22H2": {
+     "ret": 30.62,
+     "dd": 11.82,
+     "tr": 148,
+     "wr": 62.8,
+     "pf": 1.35
+    },
+    "23H2": {
+     "ret": 14.15,
+     "dd": 11.71,
+     "tr": 102,
+     "wr": 54.9,
+     "pf": 1.26
+    },
+    "24H2": {
+     "ret": -3.72,
+     "dd": 18.02,
+     "tr": 133,
+     "wr": 57.9,
+     "pf": 1.01
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 18.5,
+   "tier.marginal_threshold_low": 14.4,
+   "tier.tp1_rr": 3.95,
+   "tier.tp2_rr": 9.46,
+   "tier.tp1_exit_pct": 0.31,
+   "scoring.atr_sl_multiplier": 1.87,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.5925756424294849,
+    "momentum": 0.22931539969832043,
+    "volume": 0.7204914546436096,
+    "support_resistance": 0.15584740094389848,
+    "risk": 0.17863830399358388
+   },
+   "filters.min_adx": 25.9,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.95,
+   "trailing.callback_pct": 0.74
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4452,
+   "geo_pct": 44.52,
+   "compound_x": 6.304,
+   "worst_fold": 17.04,
+   "mean_ret": 54.22,
+   "max_dd": 7.71,
+   "total_trades": 678,
+   "per": {
+    "21H1": {
+     "ret": 181.63,
+     "dd": 6.22,
+     "tr": 223,
+     "wr": 77.6,
+     "pf": 2.22
+    },
+    "22H1": {
+     "ret": 22.85,
+     "dd": 7.71,
+     "tr": 131,
+     "wr": 71.0,
+     "pf": 1.46
+    },
+    "23H1": {
+     "ret": 23.09,
+     "dd": 5.99,
+     "tr": 104,
+     "wr": 70.2,
+     "pf": 1.75
+    },
+    "24H1": {
+     "ret": 26.47,
+     "dd": 4.77,
+     "tr": 121,
+     "wr": 71.1,
+     "pf": 1.64
+    },
+    "25H1": {
+     "ret": 17.04,
+     "dd": 5.42,
+     "tr": 99,
+     "wr": 69.7,
+     "pf": 1.58
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1534,
+   "geo_pct": 15.34,
+   "compound_x": 1.77,
+   "worst_fold": 6.42,
+   "mean_ret": 15.49,
+   "max_dd": 7.87,
+   "total_trades": 507,
+   "per": {
+    "21H2": {
+     "ret": 14.04,
+     "dd": 7.87,
+     "tr": 134,
+     "wr": 67.2,
+     "pf": 1.28
+    },
+    "22H2": {
+     "ret": 22.06,
+     "dd": 5.65,
+     "tr": 123,
+     "wr": 69.1,
+     "pf": 1.54
+    },
+    "23H2": {
+     "ret": 6.42,
+     "dd": 5.0,
+     "tr": 103,
+     "wr": 59.2,
+     "pf": 1.28
+    },
+    "24H2": {
+     "ret": 19.46,
+     "dd": 5.59,
+     "tr": 147,
+     "wr": 70.1,
+     "pf": 1.45
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 20,
+   "tier.strong_threshold": 28.5,
+   "tier.marginal_threshold_low": 12.1,
+   "tier.tp1_rr": 2.37,
+   "tier.tp2_rr": 5.6,
+   "tier.tp1_exit_pct": 0.66,
+   "scoring.atr_sl_multiplier": 1.57,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.8605179125005423,
+    "momentum": 0.9734657074436303,
+    "volume": 0.2627620521547528,
+    "support_resistance": 0.11876885041091002,
+    "risk": 0.7184035276499292
+   },
+   "filters.min_adx": 8.3,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.31,
+   "trailing.callback_pct": 0.37
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.305,
+   "geo_pct": 30.5,
+   "compound_x": 3.785,
+   "worst_fold": 7.28,
+   "mean_ret": 34.75,
+   "max_dd": 6.04,
+   "total_trades": 840,
+   "per": {
+    "21H1": {
+     "ret": 109.32,
+     "dd": 3.78,
+     "tr": 240,
+     "wr": 81.2,
+     "pf": 2.35
+    },
+    "22H1": {
+     "ret": 22.74,
+     "dd": 4.85,
+     "tr": 126,
+     "wr": 77.8,
+     "pf": 2.07
+    },
+    "23H1": {
+     "ret": 15.16,
+     "dd": 5.0,
+     "tr": 165,
+     "wr": 71.5,
+     "pf": 1.63
+    },
+    "24H1": {
+     "ret": 19.26,
+     "dd": 3.44,
+     "tr": 178,
+     "wr": 76.4,
+     "pf": 1.78
+    },
+    "25H1": {
+     "ret": 7.28,
+     "dd": 6.04,
+     "tr": 131,
+     "wr": 70.2,
+     "pf": 1.47
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1437,
+   "geo_pct": 14.37,
+   "compound_x": 1.711,
+   "worst_fold": 5.69,
+   "mean_ret": 14.54,
+   "max_dd": 7.8,
+   "total_trades": 678,
+   "per": {
+    "21H2": {
+     "ret": 22.94,
+     "dd": 6.0,
+     "tr": 192,
+     "wr": 74.0,
+     "pf": 1.64
+    },
+    "22H2": {
+     "ret": 13.15,
+     "dd": 7.8,
+     "tr": 137,
+     "wr": 69.3,
+     "pf": 1.56
+    },
+    "23H2": {
+     "ret": 5.69,
+     "dd": 4.55,
+     "tr": 151,
+     "wr": 67.5,
+     "pf": 1.38
+    },
+    "24H2": {
+     "ret": 16.39,
+     "dd": 3.73,
+     "tr": 198,
+     "wr": 72.7,
+     "pf": 1.58
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 20,
+   "tier.strong_threshold": 20.4,
+   "tier.marginal_threshold_low": 18.5,
+   "tier.tp1_rr": 3.55,
+   "tier.tp2_rr": 5.52,
+   "tier.tp1_exit_pct": 0.52,
+   "scoring.atr_sl_multiplier": 0.96,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.9866050541583635,
+    "momentum": 0.3768721469873362,
+    "volume": 0.4470468583423066,
+    "support_resistance": 0.5624439774922342,
+    "risk": 0.6231878183911678
+   },
+   "filters.min_adx": 12.1,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.65,
+   "trailing.callback_pct": 0.43
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3354,
+   "geo_pct": 33.54,
+   "compound_x": 4.247,
+   "worst_fold": -8.04,
+   "mean_ret": 45.98,
+   "max_dd": 11.35,
+   "total_trades": 1039,
+   "per": {
+    "21H1": {
+     "ret": 184.98,
+     "dd": 8.83,
+     "tr": 323,
+     "wr": 74.6,
+     "pf": 2.04
+    },
+    "22H1": {
+     "ret": 9.0,
+     "dd": 9.77,
+     "tr": 157,
+     "wr": 61.8,
+     "pf": 1.25
+    },
+    "23H1": {
+     "ret": 18.09,
+     "dd": 9.11,
+     "tr": 198,
+     "wr": 61.6,
+     "pf": 1.38
+    },
+    "24H1": {
+     "ret": 25.89,
+     "dd": 9.36,
+     "tr": 218,
+     "wr": 64.2,
+     "pf": 1.46
+    },
+    "25H1": {
+     "ret": -8.04,
+     "dd": 11.35,
+     "tr": 143,
+     "wr": 55.9,
+     "pf": 0.91
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1407,
+   "geo_pct": 14.07,
+   "compound_x": 1.693,
+   "worst_fold": -2.73,
+   "mean_ret": 14.74,
+   "max_dd": 10.64,
+   "total_trades": 744,
+   "per": {
+    "21H2": {
+     "ret": 9.8,
+     "dd": 10.52,
+     "tr": 212,
+     "wr": 62.7,
+     "pf": 1.19
+    },
+    "22H2": {
+     "ret": -2.73,
+     "dd": 10.64,
+     "tr": 152,
+     "wr": 57.9,
+     "pf": 1.03
+    },
+    "23H2": {
+     "ret": 22.98,
+     "dd": 6.88,
+     "tr": 168,
+     "wr": 63.1,
+     "pf": 1.59
+    },
+    "24H2": {
+     "ret": 28.9,
+     "dd": 4.75,
+     "tr": 212,
+     "wr": 67.0,
+     "pf": 1.58
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 12.4,
+   "tier.marginal_threshold_low": 10.8,
+   "tier.tp1_rr": 1.45,
+   "tier.tp2_rr": 3.61,
+   "tier.tp1_exit_pct": 0.26,
+   "scoring.atr_sl_multiplier": 1.86,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.4273318132765931,
+    "momentum": 0.8895970810724487,
+    "volume": 0.9936706530856615,
+    "support_resistance": 0.40559020198552564,
+    "risk": 0.38253794745013847
+   },
+   "filters.min_adx": 13.3,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 5.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.04,
+   "trailing.callback_pct": 0.67
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.2802,
+   "geo_pct": 28.02,
+   "compound_x": 3.439,
+   "worst_fold": 8.36,
+   "mean_ret": 29.71,
+   "max_dd": 10.5,
+   "total_trades": 639,
+   "per": {
+    "21H1": {
+     "ret": 70.59,
+     "dd": 9.01,
+     "tr": 191,
+     "wr": 67.0,
+     "pf": 1.65
+    },
+    "22H1": {
+     "ret": 14.53,
+     "dd": 10.5,
+     "tr": 98,
+     "wr": 56.1,
+     "pf": 1.4
+    },
+    "23H1": {
+     "ret": 31.76,
+     "dd": 5.73,
+     "tr": 129,
+     "wr": 58.9,
+     "pf": 1.75
+    },
+    "24H1": {
+     "ret": 23.29,
+     "dd": 4.12,
+     "tr": 138,
+     "wr": 58.0,
+     "pf": 1.51
+    },
+    "25H1": {
+     "ret": 8.36,
+     "dd": 7.88,
+     "tr": 83,
+     "wr": 54.2,
+     "pf": 1.35
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1406,
+   "geo_pct": 14.06,
+   "compound_x": 1.693,
+   "worst_fold": 11.37,
+   "mean_ret": 14.08,
+   "max_dd": 7.71,
+   "total_trades": 472,
+   "per": {
+    "21H2": {
+     "ret": 12.78,
+     "dd": 7.71,
+     "tr": 139,
+     "wr": 55.4,
+     "pf": 1.25
+    },
+    "22H2": {
+     "ret": 11.37,
+     "dd": 5.27,
+     "tr": 102,
+     "wr": 54.9,
+     "pf": 1.37
+    },
+    "23H2": {
+     "ret": 17.81,
+     "dd": 6.45,
+     "tr": 94,
+     "wr": 51.1,
+     "pf": 1.64
+    },
+    "24H2": {
+     "ret": 14.38,
+     "dd": 4.75,
+     "tr": 137,
+     "wr": 54.7,
+     "pf": 1.36
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 18,
+   "tier.strong_threshold": 26.2,
+   "tier.marginal_threshold_low": 17.3,
+   "tier.tp1_rr": 2.32,
+   "tier.tp2_rr": 6.42,
+   "tier.tp1_exit_pct": 0.36,
+   "scoring.atr_sl_multiplier": 1.22,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.6736648149836594,
+    "momentum": 0.39544602837831594,
+    "volume": 0.10484201275094907,
+    "support_resistance": 0.4536005986434399,
+    "risk": 0.7972825836690698
+   },
+   "filters.min_adx": 11.9,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 1,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.93,
+   "trailing.callback_pct": 0.37
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.2969,
+   "geo_pct": 29.69,
+   "compound_x": 3.669,
+   "worst_fold": 9.31,
+   "mean_ret": 34.89,
+   "max_dd": 14.51,
+   "total_trades": 563,
+   "per": {
+    "21H1": {
+     "ret": 119.22,
+     "dd": 14.51,
+     "tr": 190,
+     "wr": 47.4,
+     "pf": 1.55
+    },
+    "22H1": {
+     "ret": 18.51,
+     "dd": 11.66,
+     "tr": 87,
+     "wr": 42.5,
+     "pf": 1.4
+    },
+    "23H1": {
+     "ret": 10.54,
+     "dd": 9.3,
+     "tr": 99,
+     "wr": 35.4,
+     "pf": 1.27
+    },
+    "24H1": {
+     "ret": 16.87,
+     "dd": 6.61,
+     "tr": 105,
+     "wr": 40.0,
+     "pf": 1.34
+    },
+    "25H1": {
+     "ret": 9.31,
+     "dd": 8.05,
+     "tr": 82,
+     "wr": 40.2,
+     "pf": 1.29
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1382,
+   "geo_pct": 13.82,
+   "compound_x": 1.678,
+   "worst_fold": 6.86,
+   "mean_ret": 14.06,
+   "max_dd": 14.66,
+   "total_trades": 424,
+   "per": {
+    "21H2": {
+     "ret": 11.01,
+     "dd": 12.79,
+     "tr": 117,
+     "wr": 40.2,
+     "pf": 1.19
+    },
+    "22H2": {
+     "ret": 11.49,
+     "dd": 14.66,
+     "tr": 105,
+     "wr": 38.1,
+     "pf": 1.27
+    },
+    "23H2": {
+     "ret": 6.86,
+     "dd": 6.53,
+     "tr": 89,
+     "wr": 37.1,
+     "pf": 1.25
+    },
+    "24H2": {
+     "ret": 26.9,
+     "dd": 10.08,
+     "tr": 113,
+     "wr": 45.1,
+     "pf": 1.51
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 20.8,
+   "tier.marginal_threshold_low": 15.3,
+   "tier.tp1_rr": 3.56,
+   "tier.tp2_rr": 4.58,
+   "tier.tp1_exit_pct": 0.67,
+   "scoring.atr_sl_multiplier": 1.27,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.9375161916764052,
+    "momentum": 0.5340035510095377,
+    "volume": 0.3874598873339378,
+    "support_resistance": 0.23898542170268494,
+    "risk": 0.9489880415552775
+   },
+   "filters.min_adx": 19.8,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.47,
+   "trailing.callback_pct": 0.36
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4057,
+   "geo_pct": 40.57,
+   "compound_x": 5.488,
+   "worst_fold": 9.28,
+   "mean_ret": 51.76,
+   "max_dd": 11.93,
+   "total_trades": 749,
+   "per": {
+    "21H1": {
+     "ret": 187.85,
+     "dd": 5.82,
+     "tr": 245,
+     "wr": 83.7,
+     "pf": 2.47
+    },
+    "22H1": {
+     "ret": 13.47,
+     "dd": 11.93,
+     "tr": 145,
+     "wr": 77.2,
+     "pf": 1.29
+    },
+    "23H1": {
+     "ret": 19.33,
+     "dd": 8.56,
+     "tr": 116,
+     "wr": 78.4,
+     "pf": 1.65
+    },
+    "24H1": {
+     "ret": 28.85,
+     "dd": 7.06,
+     "tr": 139,
+     "wr": 82.0,
+     "pf": 1.74
+    },
+    "25H1": {
+     "ret": 9.28,
+     "dd": 6.48,
+     "tr": 104,
+     "wr": 76.9,
+     "pf": 1.35
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1285,
+   "geo_pct": 12.85,
+   "compound_x": 1.622,
+   "worst_fold": 5.35,
+   "mean_ret": 13.03,
+   "max_dd": 7.74,
+   "total_trades": 535,
+   "per": {
+    "21H2": {
+     "ret": 14.34,
+     "dd": 7.74,
+     "tr": 165,
+     "wr": 79.4,
+     "pf": 1.3
+    },
+    "22H2": {
+     "ret": 22.78,
+     "dd": 4.28,
+     "tr": 136,
+     "wr": 78.7,
+     "pf": 1.61
+    },
+    "23H2": {
+     "ret": 5.35,
+     "dd": 6.53,
+     "tr": 88,
+     "wr": 73.9,
+     "pf": 1.28
+    },
+    "24H2": {
+     "ret": 9.66,
+     "dd": 5.79,
+     "tr": 146,
+     "wr": 76.7,
+     "pf": 1.26
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 18,
+   "tier.strong_threshold": 39.5,
+   "tier.marginal_threshold_low": 16.8,
+   "tier.tp1_rr": 4.18,
+   "tier.tp2_rr": 9.97,
+   "tier.tp1_exit_pct": 0.64,
+   "scoring.atr_sl_multiplier": 2.35,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.9923767291881103,
+    "momentum": 0.8774623227806455,
+    "volume": 0.5332029525575075,
+    "support_resistance": 0.06525391877074183,
+    "risk": 0.06979701914562143
+   },
+   "filters.min_adx": 14.1,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.09,
+   "trailing.callback_pct": 0.44
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3521,
+   "geo_pct": 35.21,
+   "compound_x": 4.519,
+   "worst_fold": 4.39,
+   "mean_ret": 47.86,
+   "max_dd": 20.3,
+   "total_trades": 637,
+   "per": {
+    "21H1": {
+     "ret": 193.31,
+     "dd": 12.41,
+     "tr": 224,
+     "wr": 46.4,
+     "pf": 1.7
+    },
+    "22H1": {
+     "ret": 16.6,
+     "dd": 20.3,
+     "tr": 111,
+     "wr": 37.8,
+     "pf": 1.26
+    },
+    "23H1": {
+     "ret": 4.39,
+     "dd": 11.07,
+     "tr": 101,
+     "wr": 33.7,
+     "pf": 1.14
+    },
+    "24H1": {
+     "ret": 11.27,
+     "dd": 8.24,
+     "tr": 113,
+     "wr": 35.4,
+     "pf": 1.21
+    },
+    "25H1": {
+     "ret": 13.75,
+     "dd": 9.04,
+     "tr": 88,
+     "wr": 39.8,
+     "pf": 1.34
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1282,
+   "geo_pct": 12.82,
+   "compound_x": 1.62,
+   "worst_fold": -1.93,
+   "mean_ret": 14.07,
+   "max_dd": 15.86,
+   "total_trades": 472,
+   "per": {
+    "21H2": {
+     "ret": -0.47,
+     "dd": 15.86,
+     "tr": 152,
+     "wr": 36.8,
+     "pf": 1.05
+    },
+    "22H2": {
+     "ret": 17.91,
+     "dd": 9.62,
+     "tr": 124,
+     "wr": 37.1,
+     "pf": 1.3
+    },
+    "23H2": {
+     "ret": -1.93,
+     "dd": 7.19,
+     "tr": 80,
+     "wr": 32.5,
+     "pf": 1.02
+    },
+    "24H2": {
+     "ret": 40.76,
+     "dd": 8.76,
+     "tr": 116,
+     "wr": 43.1,
+     "pf": 1.65
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 29.5,
+   "tier.marginal_threshold_low": 13.2,
+   "tier.tp1_rr": 4.05,
+   "tier.tp2_rr": 5.38,
+   "tier.tp1_exit_pct": 0.53,
+   "scoring.atr_sl_multiplier": 1.11,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.7648128311521863,
+    "momentum": 0.24927110015548515,
+    "volume": 0.5579555280887855,
+    "support_resistance": 0.21092585285361942,
+    "risk": 0.2796986082615053
+   },
+   "filters.min_adx": 10.9,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.82,
+   "trailing.callback_pct": 0.33
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.302,
+   "geo_pct": 30.2,
+   "compound_x": 3.741,
+   "worst_fold": 1.29,
+   "mean_ret": 33.24,
+   "max_dd": 17.8,
+   "total_trades": 504,
+   "per": {
+    "21H1": {
+     "ret": 81.41,
+     "dd": 10.59,
+     "tr": 160,
+     "wr": 56.2,
+     "pf": 1.52
+    },
+    "22H1": {
+     "ret": 16.48,
+     "dd": 12.78,
+     "tr": 84,
+     "wr": 52.4,
+     "pf": 1.27
+    },
+    "23H1": {
+     "ret": 14.86,
+     "dd": 13.37,
+     "tr": 89,
+     "wr": 49.4,
+     "pf": 1.23
+    },
+    "24H1": {
+     "ret": 52.17,
+     "dd": 10.73,
+     "tr": 99,
+     "wr": 58.6,
+     "pf": 1.69
+    },
+    "25H1": {
+     "ret": 1.29,
+     "dd": 17.8,
+     "tr": 72,
+     "wr": 48.6,
+     "pf": 1.07
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1247,
+   "geo_pct": 12.47,
+   "compound_x": 1.6,
+   "worst_fold": 6.28,
+   "mean_ret": 12.53,
+   "max_dd": 18.6,
+   "total_trades": 365,
+   "per": {
+    "21H2": {
+     "ret": 6.28,
+     "dd": 18.6,
+     "tr": 110,
+     "wr": 47.3,
+     "pf": 1.1
+    },
+    "22H2": {
+     "ret": 14.97,
+     "dd": 11.65,
+     "tr": 88,
+     "wr": 53.4,
+     "pf": 1.25
+    },
+    "23H2": {
+     "ret": 15.06,
+     "dd": 10.08,
+     "tr": 65,
+     "wr": 46.2,
+     "pf": 1.36
+    },
+    "24H2": {
+     "ret": 13.8,
+     "dd": 12.11,
+     "tr": 102,
+     "wr": 52.9,
+     "pf": 1.23
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 32.3,
+   "tier.marginal_threshold_low": 10.0,
+   "tier.tp1_rr": 2.72,
+   "tier.tp2_rr": 5.28,
+   "tier.tp1_exit_pct": 0.5,
+   "scoring.atr_sl_multiplier": 1.64,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.3275809810406661,
+    "momentum": 0.19606692555497635,
+    "volume": 0.7472210100728273,
+    "support_resistance": 0.691078665136768,
+    "risk": 0.08381318357421197
+   },
+   "filters.min_adx": 19.0,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.65,
+   "trailing.callback_pct": 0.5
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.366,
+   "geo_pct": 36.6,
+   "compound_x": 4.756,
+   "worst_fold": 7.99,
+   "mean_ret": 40.01,
+   "max_dd": 14.91,
+   "total_trades": 590,
+   "per": {
+    "21H1": {
+     "ret": 94.78,
+     "dd": 10.13,
+     "tr": 190,
+     "wr": 71.1,
+     "pf": 1.7
+    },
+    "22H1": {
+     "ret": 14.67,
+     "dd": 14.91,
+     "tr": 92,
+     "wr": 71.7,
+     "pf": 1.34
+    },
+    "23H1": {
+     "ret": 57.09,
+     "dd": 7.69,
+     "tr": 120,
+     "wr": 76.7,
+     "pf": 2.05
+    },
+    "24H1": {
+     "ret": 25.51,
+     "dd": 10.34,
+     "tr": 116,
+     "wr": 73.3,
+     "pf": 1.49
+    },
+    "25H1": {
+     "ret": 7.99,
+     "dd": 10.97,
+     "tr": 72,
+     "wr": 69.4,
+     "pf": 1.31
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1185,
+   "geo_pct": 11.85,
+   "compound_x": 1.565,
+   "worst_fold": 2.02,
+   "mean_ret": 12.02,
+   "max_dd": 10.3,
+   "total_trades": 430,
+   "per": {
+    "21H2": {
+     "ret": 16.89,
+     "dd": 7.61,
+     "tr": 122,
+     "wr": 69.7,
+     "pf": 1.29
+    },
+    "22H2": {
+     "ret": 2.02,
+     "dd": 10.3,
+     "tr": 94,
+     "wr": 66.0,
+     "pf": 1.1
+    },
+    "23H2": {
+     "ret": 13.31,
+     "dd": 7.17,
+     "tr": 88,
+     "wr": 64.8,
+     "pf": 1.36
+    },
+    "24H2": {
+     "ret": 15.84,
+     "dd": 5.94,
+     "tr": 126,
+     "wr": 72.2,
+     "pf": 1.32
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 25.4,
+   "tier.marginal_threshold_low": 15.3,
+   "tier.tp1_rr": 3.62,
+   "tier.tp2_rr": 4.99,
+   "tier.tp1_exit_pct": 0.51,
+   "scoring.atr_sl_multiplier": 2.15,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.5818436569369416,
+    "momentum": 0.9494687554997219,
+    "volume": 0.4343791959618181,
+    "support_resistance": 0.15442316414963528,
+    "risk": 0.5715455594655922
+   },
+   "filters.min_adx": 17.9,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.57,
+   "trailing.callback_pct": 0.61
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3406,
+   "geo_pct": 34.06,
+   "compound_x": 4.329,
+   "worst_fold": 3.11,
+   "mean_ret": 38.94,
+   "max_dd": 10.53,
+   "total_trades": 580,
+   "per": {
+    "21H1": {
+     "ret": 116.74,
+     "dd": 9.72,
+     "tr": 182,
+     "wr": 48.4,
+     "pf": 1.62
+    },
+    "22H1": {
+     "ret": 29.9,
+     "dd": 10.53,
+     "tr": 98,
+     "wr": 49.0,
+     "pf": 1.52
+    },
+    "23H1": {
+     "ret": 3.11,
+     "dd": 9.81,
+     "tr": 105,
+     "wr": 39.0,
+     "pf": 1.13
+    },
+    "24H1": {
+     "ret": 31.84,
+     "dd": 6.8,
+     "tr": 118,
+     "wr": 44.1,
+     "pf": 1.56
+    },
+    "25H1": {
+     "ret": 13.12,
+     "dd": 10.1,
+     "tr": 77,
+     "wr": 50.6,
+     "pf": 1.39
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1103,
+   "geo_pct": 11.03,
+   "compound_x": 1.52,
+   "worst_fold": -0.28,
+   "mean_ret": 11.89,
+   "max_dd": 15.81,
+   "total_trades": 444,
+   "per": {
+    "21H2": {
+     "ret": 3.42,
+     "dd": 15.81,
+     "tr": 126,
+     "wr": 42.1,
+     "pf": 1.09
+    },
+    "22H2": {
+     "ret": 36.32,
+     "dd": 7.45,
+     "tr": 114,
+     "wr": 46.5,
+     "pf": 1.67
+    },
+    "23H2": {
+     "ret": -0.28,
+     "dd": 7.96,
+     "tr": 94,
+     "wr": 36.2,
+     "pf": 1.07
+    },
+    "24H2": {
+     "ret": 8.1,
+     "dd": 15.46,
+     "tr": 110,
+     "wr": 43.6,
+     "pf": 1.2
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 22.2,
+   "tier.marginal_threshold_low": 15.2,
+   "tier.tp1_rr": 2.28,
+   "tier.tp2_rr": 4.93,
+   "tier.tp1_exit_pct": 0.39,
+   "scoring.atr_sl_multiplier": 1.91,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.864794484068744,
+    "momentum": 0.5006312508377361,
+    "volume": 0.8637613507464096,
+    "support_resistance": 0.15124433258028633,
+    "risk": 0.612687099744126
+   },
+   "filters.min_adx": 15.0,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.39,
+   "trailing.callback_pct": 0.4
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.5356,
+   "geo_pct": 53.56,
+   "compound_x": 8.538,
+   "worst_fold": 12.06,
+   "mean_ret": 69.25,
+   "max_dd": 22.97,
+   "total_trades": 1129,
+   "per": {
+    "21H1": {
+     "ret": 237.41,
+     "dd": 20.74,
+     "tr": 373,
+     "wr": 74.5,
+     "pf": 1.68
+    },
+    "22H1": {
+     "ret": 13.66,
+     "dd": 22.97,
+     "tr": 208,
+     "wr": 70.2,
+     "pf": 1.18
+    },
+    "23H1": {
+     "ret": 54.57,
+     "dd": 19.04,
+     "tr": 192,
+     "wr": 75.5,
+     "pf": 1.55
+    },
+    "24H1": {
+     "ret": 28.54,
+     "dd": 13.15,
+     "tr": 209,
+     "wr": 75.1,
+     "pf": 1.37
+    },
+    "25H1": {
+     "ret": 12.06,
+     "dd": 10.48,
+     "tr": 147,
+     "wr": 72.8,
+     "pf": 1.24
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1066,
+   "geo_pct": 10.66,
+   "compound_x": 1.499,
+   "worst_fold": -8.56,
+   "mean_ret": 11.77,
+   "max_dd": 25.89,
+   "total_trades": 816,
+   "per": {
+    "21H2": {
+     "ret": 7.08,
+     "dd": 11.34,
+     "tr": 278,
+     "wr": 71.2,
+     "pf": 1.12
+    },
+    "22H2": {
+     "ret": -8.56,
+     "dd": 25.89,
+     "tr": 168,
+     "wr": 66.7,
+     "pf": 0.98
+    },
+    "23H2": {
+     "ret": 35.75,
+     "dd": 10.08,
+     "tr": 142,
+     "wr": 76.1,
+     "pf": 1.62
+    },
+    "24H2": {
+     "ret": 12.81,
+     "dd": 21.32,
+     "tr": 228,
+     "wr": 71.5,
+     "pf": 1.19
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 13.3,
+   "tier.marginal_threshold_low": 10.4,
+   "tier.tp1_rr": 3.18,
+   "tier.tp2_rr": 7.1,
+   "tier.tp1_exit_pct": 0.65,
+   "scoring.atr_sl_multiplier": 2.96,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.4840490710659955,
+    "momentum": 0.20751766275951672,
+    "volume": 0.1700838315955802,
+    "support_resistance": 0.8966359710164397,
+    "risk": 0.784013897226592
+   },
+   "filters.min_adx": 14.4,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.13,
+   "trailing.callback_pct": 0.6
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3096,
+   "geo_pct": 30.96,
+   "compound_x": 3.852,
+   "worst_fold": 11.9,
+   "mean_ret": 36.8,
+   "max_dd": 8.82,
+   "total_trades": 582,
+   "per": {
+    "21H1": {
+     "ret": 127.87,
+     "dd": 8.82,
+     "tr": 174,
+     "wr": 81.0,
+     "pf": 2.4
+    },
+    "22H1": {
+     "ret": 13.25,
+     "dd": 7.73,
+     "tr": 86,
+     "wr": 75.6,
+     "pf": 1.51
+    },
+    "23H1": {
+     "ret": 11.9,
+     "dd": 3.68,
+     "tr": 109,
+     "wr": 73.4,
+     "pf": 1.43
+    },
+    "24H1": {
+     "ret": 15.58,
+     "dd": 6.51,
+     "tr": 121,
+     "wr": 75.2,
+     "pf": 1.53
+    },
+    "25H1": {
+     "ret": 15.41,
+     "dd": 6.35,
+     "tr": 92,
+     "wr": 76.1,
+     "pf": 1.74
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.1048,
+   "geo_pct": 10.48,
+   "compound_x": 1.49,
+   "worst_fold": 2.8,
+   "mean_ret": 10.68,
+   "max_dd": 15.57,
+   "total_trades": 474,
+   "per": {
+    "21H2": {
+     "ret": 21.37,
+     "dd": 9.79,
+     "tr": 128,
+     "wr": 75.8,
+     "pf": 1.49
+    },
+    "22H2": {
+     "ret": 2.8,
+     "dd": 15.57,
+     "tr": 93,
+     "wr": 67.7,
+     "pf": 1.15
+    },
+    "23H2": {
+     "ret": 8.35,
+     "dd": 7.54,
+     "tr": 113,
+     "wr": 70.8,
+     "pf": 1.37
+    },
+    "24H2": {
+     "ret": 10.2,
+     "dd": 3.89,
+     "tr": 140,
+     "wr": 71.4,
+     "pf": 1.31
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 12.8,
+   "tier.marginal_threshold_low": 12.4,
+   "tier.tp1_rr": 3.9,
+   "tier.tp2_rr": 6.46,
+   "tier.tp1_exit_pct": 0.61,
+   "scoring.atr_sl_multiplier": 1.27,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.4950247205481787,
+    "momentum": 0.44055030675247414,
+    "volume": 0.2367416125762063,
+    "support_resistance": 0.8100681707132688,
+    "risk": 0.7443914922930476
+   },
+   "filters.min_adx": 9.8,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 8.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.77,
+   "trailing.callback_pct": 0.42
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3212,
+   "geo_pct": 32.12,
+   "compound_x": 4.026,
+   "worst_fold": -6.83,
+   "mean_ret": 46.78,
+   "max_dd": 13.12,
+   "total_trades": 912,
+   "per": {
+    "21H1": {
+     "ret": 202.92,
+     "dd": 10.29,
+     "tr": 281,
+     "wr": 61.9,
+     "pf": 2.08
+    },
+    "22H1": {
+     "ret": 8.54,
+     "dd": 5.53,
+     "tr": 144,
+     "wr": 47.9,
+     "pf": 1.25
+    },
+    "23H1": {
+     "ret": 13.91,
+     "dd": 10.03,
+     "tr": 168,
+     "wr": 42.3,
+     "pf": 1.31
+    },
+    "24H1": {
+     "ret": 15.37,
+     "dd": 7.63,
+     "tr": 190,
+     "wr": 48.9,
+     "pf": 1.33
+    },
+    "25H1": {
+     "ret": -6.83,
+     "dd": 13.12,
+     "tr": 129,
+     "wr": 41.1,
+     "pf": 0.93
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.0966,
+   "geo_pct": 9.66,
+   "compound_x": 1.446,
+   "worst_fold": 7.32,
+   "mean_ret": 9.68,
+   "max_dd": 11.2,
+   "total_trades": 696,
+   "per": {
+    "21H2": {
+     "ret": 11.58,
+     "dd": 11.2,
+     "tr": 203,
+     "wr": 47.8,
+     "pf": 1.22
+    },
+    "22H2": {
+     "ret": 8.09,
+     "dd": 6.38,
+     "tr": 144,
+     "wr": 47.2,
+     "pf": 1.28
+    },
+    "23H2": {
+     "ret": 11.72,
+     "dd": 8.17,
+     "tr": 146,
+     "wr": 39.7,
+     "pf": 1.35
+    },
+    "24H2": {
+     "ret": 7.32,
+     "dd": 8.12,
+     "tr": 203,
+     "wr": 46.3,
+     "pf": 1.2
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 13.1,
+   "tier.marginal_threshold_low": 13.0,
+   "tier.tp1_rr": 3.09,
+   "tier.tp2_rr": 6.96,
+   "tier.tp1_exit_pct": 0.44,
+   "scoring.atr_sl_multiplier": 0.88,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.5583630279754398,
+    "momentum": 0.5729460214772065,
+    "volume": 0.1525977275863047,
+    "support_resistance": 0.5384726410893554,
+    "risk": 0.38433791938359685
+   },
+   "filters.min_adx": 19.3,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.53,
+   "trailing.callback_pct": 0.66
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.2903,
+   "geo_pct": 29.03,
+   "compound_x": 3.576,
+   "worst_fold": 4.12,
+   "mean_ret": 32.95,
+   "max_dd": 6.51,
+   "total_trades": 886,
+   "per": {
+    "21H1": {
+     "ret": 101.73,
+     "dd": 5.47,
+     "tr": 262,
+     "wr": 82.4,
+     "pf": 2.02
+    },
+    "22H1": {
+     "ret": 9.49,
+     "dd": 6.51,
+     "tr": 174,
+     "wr": 74.1,
+     "pf": 1.26
+    },
+    "23H1": {
+     "ret": 24.79,
+     "dd": 5.24,
+     "tr": 169,
+     "wr": 75.7,
+     "pf": 1.72
+    },
+    "24H1": {
+     "ret": 24.62,
+     "dd": 3.74,
+     "tr": 163,
+     "wr": 79.8,
+     "pf": 1.85
+    },
+    "25H1": {
+     "ret": 4.12,
+     "dd": 4.04,
+     "tr": 118,
+     "wr": 71.2,
+     "pf": 1.22
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.0935,
+   "geo_pct": 9.35,
+   "compound_x": 1.43,
+   "worst_fold": 5.35,
+   "mean_ret": 9.38,
+   "max_dd": 8.18,
+   "total_trades": 618,
+   "per": {
+    "21H2": {
+     "ret": 10.02,
+     "dd": 6.7,
+     "tr": 174,
+     "wr": 73.6,
+     "pf": 1.26
+    },
+    "22H2": {
+     "ret": 13.34,
+     "dd": 4.09,
+     "tr": 152,
+     "wr": 76.3,
+     "pf": 1.47
+    },
+    "23H2": {
+     "ret": 8.83,
+     "dd": 5.47,
+     "tr": 124,
+     "wr": 66.1,
+     "pf": 1.4
+    },
+    "24H2": {
+     "ret": 5.35,
+     "dd": 8.18,
+     "tr": 168,
+     "wr": 72.0,
+     "pf": 1.2
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 15,
+   "tier.strong_threshold": 25.4,
+   "tier.marginal_threshold_low": 11.0,
+   "tier.tp1_rr": 1.94,
+   "tier.tp2_rr": 6.08,
+   "tier.tp1_exit_pct": 0.27,
+   "scoring.atr_sl_multiplier": 1.67,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.8803087282028154,
+    "momentum": 0.4764082240360076,
+    "volume": 0.49423784246847596,
+    "support_resistance": 0.42296458546255783,
+    "risk": 0.8655874629281238
+   },
+   "filters.min_adx": 25.5,
+   "filters.min_category_agreement": 2,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.08,
+   "trailing.callback_pct": 0.57
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3164,
+   "geo_pct": 31.64,
+   "compound_x": 3.953,
+   "worst_fold": 5.42,
+   "mean_ret": 33.36,
+   "max_dd": 12.79,
+   "total_trades": 616,
+   "per": {
+    "21H1": {
+     "ret": 70.44,
+     "dd": 12.79,
+     "tr": 194,
+     "wr": 64.4,
+     "pf": 1.47
+    },
+    "22H1": {
+     "ret": 24.37,
+     "dd": 9.9,
+     "tr": 111,
+     "wr": 65.8,
+     "pf": 1.4
+    },
+    "23H1": {
+     "ret": 42.13,
+     "dd": 9.45,
+     "tr": 117,
+     "wr": 68.4,
+     "pf": 1.67
+    },
+    "24H1": {
+     "ret": 24.46,
+     "dd": 6.95,
+     "tr": 116,
+     "wr": 68.1,
+     "pf": 1.42
+    },
+    "25H1": {
+     "ret": 5.42,
+     "dd": 11.31,
+     "tr": 78,
+     "wr": 62.8,
+     "pf": 1.18
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.0898,
+   "geo_pct": 8.98,
+   "compound_x": 1.411,
+   "worst_fold": 0.1,
+   "mean_ret": 9.18,
+   "max_dd": 14.0,
+   "total_trades": 439,
+   "per": {
+    "21H2": {
+     "ret": 8.97,
+     "dd": 10.88,
+     "tr": 124,
+     "wr": 63.7,
+     "pf": 1.16
+    },
+    "22H2": {
+     "ret": 0.1,
+     "dd": 14.0,
+     "tr": 104,
+     "wr": 61.5,
+     "pf": 1.06
+    },
+    "23H2": {
+     "ret": 18.99,
+     "dd": 7.07,
+     "tr": 89,
+     "wr": 60.7,
+     "pf": 1.5
+    },
+    "24H2": {
+     "ret": 8.68,
+     "dd": 11.32,
+     "tr": 122,
+     "wr": 63.9,
+     "pf": 1.18
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 19.3,
+   "tier.marginal_threshold_low": 18.3,
+   "tier.tp1_rr": 2.19,
+   "tier.tp2_rr": 3.43,
+   "tier.tp1_exit_pct": 0.56,
+   "scoring.atr_sl_multiplier": 1.81,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.9164678104295781,
+    "momentum": 0.10842655938244052,
+    "volume": 0.2838201990823305,
+    "support_resistance": 0.22611486289144306,
+    "risk": 0.8755076291057513
+   },
+   "filters.min_adx": 16.3,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.86,
+   "trailing.callback_pct": 0.63
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4117,
+   "geo_pct": 41.17,
+   "compound_x": 5.608,
+   "worst_fold": -1.59,
+   "mean_ret": 54.21,
+   "max_dd": 15.95,
+   "total_trades": 800,
+   "per": {
+    "21H1": {
+     "ret": 199.84,
+     "dd": 8.2,
+     "tr": 251,
+     "wr": 63.7,
+     "pf": 1.93
+    },
+    "22H1": {
+     "ret": 38.04,
+     "dd": 11.47,
+     "tr": 137,
+     "wr": 57.7,
+     "pf": 1.59
+    },
+    "23H1": {
+     "ret": 14.08,
+     "dd": 15.95,
+     "tr": 146,
+     "wr": 50.7,
+     "pf": 1.26
+    },
+    "24H1": {
+     "ret": 20.68,
+     "dd": 8.32,
+     "tr": 157,
+     "wr": 52.9,
+     "pf": 1.32
+    },
+    "25H1": {
+     "ret": -1.59,
+     "dd": 9.29,
+     "tr": 109,
+     "wr": 50.5,
+     "pf": 1.05
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.0734,
+   "geo_pct": 7.34,
+   "compound_x": 1.327,
+   "worst_fold": -2.02,
+   "mean_ret": 7.65,
+   "max_dd": 16.72,
+   "total_trades": 555,
+   "per": {
+    "21H2": {
+     "ret": -2.02,
+     "dd": 16.72,
+     "tr": 168,
+     "wr": 53.0,
+     "pf": 1.04
+    },
+    "22H2": {
+     "ret": 12.03,
+     "dd": 10.39,
+     "tr": 130,
+     "wr": 52.3,
+     "pf": 1.28
+    },
+    "23H2": {
+     "ret": 18.73,
+     "dd": 9.79,
+     "tr": 115,
+     "wr": 47.8,
+     "pf": 1.43
+    },
+    "24H2": {
+     "ret": 1.85,
+     "dd": 13.01,
+     "tr": 142,
+     "wr": 56.3,
+     "pf": 1.1
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 28.7,
+   "tier.marginal_threshold_low": 22.5,
+   "tier.tp1_rr": 2.88,
+   "tier.tp2_rr": 6.39,
+   "tier.tp1_exit_pct": 0.35,
+   "scoring.atr_sl_multiplier": 1.22,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.7758165911035798,
+    "momentum": 0.8331006991373681,
+    "volume": 0.5191715764782151,
+    "support_resistance": 0.06427901527635124,
+    "risk": 0.07246915971923197
+   },
+   "filters.min_adx": 19.0,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 3,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.63,
+   "trailing.callback_pct": 0.66
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.2823,
+   "geo_pct": 28.23,
+   "compound_x": 3.467,
+   "worst_fold": 1.45,
+   "mean_ret": 36.86,
+   "max_dd": 9.41,
+   "total_trades": 538,
+   "per": {
+    "21H1": {
+     "ret": 149.47,
+     "dd": 5.17,
+     "tr": 186,
+     "wr": 79.6,
+     "pf": 2.5
+    },
+    "22H1": {
+     "ret": 15.9,
+     "dd": 6.93,
+     "tr": 105,
+     "wr": 70.5,
+     "pf": 1.39
+    },
+    "23H1": {
+     "ret": 10.74,
+     "dd": 6.21,
+     "tr": 79,
+     "wr": 64.6,
+     "pf": 1.42
+    },
+    "24H1": {
+     "ret": 6.74,
+     "dd": 7.03,
+     "tr": 87,
+     "wr": 67.8,
+     "pf": 1.22
+    },
+    "25H1": {
+     "ret": 1.45,
+     "dd": 9.41,
+     "tr": 81,
+     "wr": 64.2,
+     "pf": 1.09
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.0574,
+   "geo_pct": 5.74,
+   "compound_x": 1.25,
+   "worst_fold": -7.72,
+   "mean_ret": 6.06,
+   "max_dd": 8.68,
+   "total_trades": 394,
+   "per": {
+    "21H2": {
+     "ret": 10.8,
+     "dd": 8.57,
+     "tr": 123,
+     "wr": 68.3,
+     "pf": 1.24
+    },
+    "22H2": {
+     "ret": 12.08,
+     "dd": 5.06,
+     "tr": 91,
+     "wr": 65.9,
+     "pf": 1.4
+    },
+    "23H2": {
+     "ret": -7.72,
+     "dd": 8.68,
+     "tr": 70,
+     "wr": 47.1,
+     "pf": 0.77
+    },
+    "24H2": {
+     "ret": 9.08,
+     "dd": 4.47,
+     "tr": 110,
+     "wr": 64.5,
+     "pf": 1.26
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 15,
+   "tier.strong_threshold": 36.5,
+   "tier.marginal_threshold_low": 14.7,
+   "tier.tp1_rr": 3.8,
+   "tier.tp2_rr": 5.94,
+   "tier.tp1_exit_pct": 0.23,
+   "scoring.atr_sl_multiplier": 2.03,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.7596113873570414,
+    "momentum": 0.15730544029615573,
+    "volume": 0.20330221366745194,
+    "support_resistance": 0.42360008424764123,
+    "risk": 0.0841037443432267
+   },
+   "filters.min_adx": 8.8,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 2,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.16,
+   "trailing.callback_pct": 0.58
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.3857,
+   "geo_pct": 38.57,
+   "compound_x": 5.11,
+   "worst_fold": -2.37,
+   "mean_ret": 47.53,
+   "max_dd": 17.62,
+   "total_trades": 713,
+   "per": {
+    "21H1": {
+     "ret": 156.48,
+     "dd": 17.62,
+     "tr": 236,
+     "wr": 71.6,
+     "pf": 1.81
+    },
+    "22H1": {
+     "ret": 18.15,
+     "dd": 15.54,
+     "tr": 131,
+     "wr": 68.7,
+     "pf": 1.29
+    },
+    "23H1": {
+     "ret": 14.4,
+     "dd": 13.89,
+     "tr": 117,
+     "wr": 70.9,
+     "pf": 1.28
+    },
+    "24H1": {
+     "ret": 50.97,
+     "dd": 4.46,
+     "tr": 132,
+     "wr": 78.8,
+     "pf": 1.93
+    },
+    "25H1": {
+     "ret": -2.37,
+     "dd": 11.11,
+     "tr": 97,
+     "wr": 68.0,
+     "pf": 1.02
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.054,
+   "geo_pct": 5.4,
+   "compound_x": 1.234,
+   "worst_fold": -3.19,
+   "mean_ret": 5.66,
+   "max_dd": 19.18,
+   "total_trades": 541,
+   "per": {
+    "21H2": {
+     "ret": 14.63,
+     "dd": 16.29,
+     "tr": 155,
+     "wr": 70.3,
+     "pf": 1.24
+    },
+    "22H2": {
+     "ret": -3.19,
+     "dd": 19.18,
+     "tr": 140,
+     "wr": 67.9,
+     "pf": 1.03
+    },
+    "23H2": {
+     "ret": 0.17,
+     "dd": 10.75,
+     "tr": 98,
+     "wr": 68.4,
+     "pf": 1.08
+    },
+    "24H2": {
+     "ret": 11.01,
+     "dd": 9.06,
+     "tr": 148,
+     "wr": 71.6,
+     "pf": 1.22
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 16.0,
+   "tier.marginal_threshold_low": 10.5,
+   "tier.tp1_rr": 1.48,
+   "tier.tp2_rr": 2.99,
+   "tier.tp1_exit_pct": 0.44,
+   "scoring.atr_sl_multiplier": 2.4,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.28969132588730345,
+    "momentum": 0.18949181873093085,
+    "volume": 0.3280139723206645,
+    "support_resistance": 0.2883759503870242,
+    "risk": 0.1397642330511088
+   },
+   "filters.min_adx": 14.3,
+   "filters.min_category_agreement": 3,
+   "filters.require_trend_momentum_agree": true,
+   "filters.skip_choppy_regime": false,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 1.21,
+   "trailing.callback_pct": 0.63
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.4464,
+   "geo_pct": 44.64,
+   "compound_x": 6.331,
+   "worst_fold": -2.37,
+   "mean_ret": 65.12,
+   "max_dd": 21.24,
+   "total_trades": 1104,
+   "per": {
+    "21H1": {
+     "ret": 257.81,
+     "dd": 12.59,
+     "tr": 355,
+     "wr": 50.4,
+     "pf": 1.57
+    },
+    "22H1": {
+     "ret": 46.89,
+     "dd": 15.74,
+     "tr": 206,
+     "wr": 46.6,
+     "pf": 1.41
+    },
+    "23H1": {
+     "ret": -2.37,
+     "dd": 21.24,
+     "tr": 196,
+     "wr": 33.7,
+     "pf": 1.04
+    },
+    "24H1": {
+     "ret": 22.76,
+     "dd": 11.88,
+     "tr": 201,
+     "wr": 42.3,
+     "pf": 1.24
+    },
+    "25H1": {
+     "ret": 0.51,
+     "dd": 17.85,
+     "tr": 146,
+     "wr": 39.7,
+     "pf": 1.07
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 1.0396,
+   "geo_pct": 3.96,
+   "compound_x": 1.168,
+   "worst_fold": -2.99,
+   "mean_ret": 4.08,
+   "max_dd": 22.24,
+   "total_trades": 763,
+   "per": {
+    "21H2": {
+     "ret": -2.99,
+     "dd": 22.24,
+     "tr": 218,
+     "wr": 42.2,
+     "pf": 1.03
+    },
+    "22H2": {
+     "ret": 7.37,
+     "dd": 19.88,
+     "tr": 188,
+     "wr": 38.3,
+     "pf": 1.14
+    },
+    "23H2": {
+     "ret": 2.09,
+     "dd": 16.57,
+     "tr": 149,
+     "wr": 31.5,
+     "pf": 1.1
+    },
+    "24H2": {
+     "ret": 9.86,
+     "dd": 10.8,
+     "tr": 208,
+     "wr": 40.9,
+     "pf": 1.15
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 14.4,
+   "tier.marginal_threshold_low": 11.3,
+   "tier.tp1_rr": 3.76,
+   "tier.tp2_rr": 8.11,
+   "tier.tp1_exit_pct": 0.57,
+   "scoring.atr_sl_multiplier": 1.13,
+   "trading.stop_loss_strategy": "hybrid",
+   "weights": {
+    "trend": 0.6767901788955517,
+    "momentum": 0.9045229127968513,
+    "volume": 0.7217702049185728,
+    "support_resistance": 0.20097894896459845,
+    "risk": 0.14204028089056425
+   },
+   "filters.min_adx": 9.5,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.43,
+   "trailing.callback_pct": 0.7
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.2853,
+   "geo_pct": 28.53,
+   "compound_x": 3.507,
+   "worst_fold": 3.83,
+   "mean_ret": 31.23,
+   "max_dd": 21.4,
+   "total_trades": 572,
+   "per": {
+    "21H1": {
+     "ret": 78.92,
+     "dd": 9.79,
+     "tr": 212,
+     "wr": 60.8,
+     "pf": 1.38
+    },
+    "22H1": {
+     "ret": 3.83,
+     "dd": 21.4,
+     "tr": 102,
+     "wr": 56.9,
+     "pf": 1.08
+    },
+    "23H1": {
+     "ret": 22.79,
+     "dd": 11.35,
+     "tr": 84,
+     "wr": 60.7,
+     "pf": 1.37
+    },
+    "24H1": {
+     "ret": 43.34,
+     "dd": 5.49,
+     "tr": 99,
+     "wr": 68.7,
+     "pf": 1.65
+    },
+    "25H1": {
+     "ret": 7.26,
+     "dd": 12.92,
+     "tr": 75,
+     "wr": 62.7,
+     "pf": 1.19
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 0.9997,
+   "geo_pct": -0.03,
+   "compound_x": 0.999,
+   "worst_fold": -17.2,
+   "mean_ret": 0.61,
+   "max_dd": 30.96,
+   "total_trades": 374,
+   "per": {
+    "21H2": {
+     "ret": -17.2,
+     "dd": 30.96,
+     "tr": 124,
+     "wr": 50.0,
+     "pf": 0.87
+    },
+    "22H2": {
+     "ret": 10.89,
+     "dd": 9.95,
+     "tr": 77,
+     "wr": 62.3,
+     "pf": 1.25
+    },
+    "23H2": {
+     "ret": 8.01,
+     "dd": 11.61,
+     "tr": 69,
+     "wr": 55.1,
+     "pf": 1.19
+    },
+    "24H2": {
+     "ret": 0.72,
+     "dd": 14.54,
+     "tr": 104,
+     "wr": 59.6,
+     "pf": 1.05
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 25,
+   "tier.strong_threshold": 42.6,
+   "tier.marginal_threshold_low": 11.8,
+   "tier.tp1_rr": 3.4,
+   "tier.tp2_rr": 4.92,
+   "tier.tp1_exit_pct": 0.65,
+   "scoring.atr_sl_multiplier": 2.81,
+   "trading.stop_loss_strategy": "atr",
+   "weights": {
+    "trend": 0.6486416301662503,
+    "momentum": 0.48435293933046714,
+    "volume": 0.41122701413231677,
+    "support_resistance": 0.988091417637572,
+    "risk": 0.9799339412195097
+   },
+   "filters.min_adx": 14.9,
+   "filters.min_category_agreement": 0,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 0,
+   "risk.consecutive_loss_penalty": 0.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 2.5,
+   "trailing.callback_pct": 0.68
+  }
+ },
+ {
+  "train": {
+   "geo_factor": 1.305,
+   "geo_pct": 30.5,
+   "compound_x": 3.785,
+   "worst_fold": -16.38,
+   "mean_ret": 50.11,
+   "max_dd": 17.66,
+   "total_trades": 1139,
+   "per": {
+    "21H1": {
+     "ret": 228.18,
+     "dd": 13.43,
+     "tr": 332,
+     "wr": 67.8,
+     "pf": 2.21
+    },
+    "22H1": {
+     "ret": 37.4,
+     "dd": 8.52,
+     "tr": 240,
+     "wr": 62.1,
+     "pf": 1.61
+    },
+    "23H1": {
+     "ret": 10.48,
+     "dd": 15.12,
+     "tr": 206,
+     "wr": 52.4,
+     "pf": 1.26
+    },
+    "24H1": {
+     "ret": -9.13,
+     "dd": 16.67,
+     "tr": 205,
+     "wr": 54.6,
+     "pf": 0.97
+    },
+    "25H1": {
+     "ret": -16.38,
+     "dd": 17.66,
+     "tr": 156,
+     "wr": 45.5,
+     "pf": 0.78
+    }
+   }
+  },
+  "test": {
+   "geo_factor": 0.9964,
+   "geo_pct": -0.36,
+   "compound_x": 0.986,
+   "worst_fold": -3.7,
+   "mean_ret": -0.28,
+   "max_dd": 15.69,
+   "total_trades": 829,
+   "per": {
+    "21H2": {
+     "ret": 5.82,
+     "dd": 13.69,
+     "tr": 244,
+     "wr": 54.5,
+     "pf": 1.17
+    },
+    "22H2": {
+     "ret": -0.05,
+     "dd": 10.8,
+     "tr": 201,
+     "wr": 55.7,
+     "pf": 1.13
+    },
+    "23H2": {
+     "ret": -3.7,
+     "dd": 15.69,
+     "tr": 162,
+     "wr": 44.4,
+     "pf": 1.04
+    },
+    "24H2": {
+     "ret": -3.21,
+     "dd": 15.07,
+     "tr": 222,
+     "wr": 55.9,
+     "pf": 1.07
+    }
+   }
+  },
+  "ov": {
+   "tier.leverage": 30,
+   "tier.strong_threshold": 18.8,
+   "tier.marginal_threshold_low": 10.7,
+   "tier.tp1_rr": 3.64,
+   "tier.tp2_rr": 8.06,
+   "tier.tp1_exit_pct": 0.69,
+   "scoring.atr_sl_multiplier": 0.91,
+   "trading.stop_loss_strategy": "structure",
+   "weights": {
+    "trend": 0.978462110488448,
+    "momentum": 0.24125084444599482,
+    "volume": 0.23757715094943327,
+    "support_resistance": 0.8538467145032785,
+    "risk": 0.18979369700673138
+   },
+   "filters.min_adx": 17.6,
+   "filters.min_category_agreement": 1,
+   "filters.require_trend_momentum_agree": false,
+   "filters.skip_choppy_regime": true,
+   "filters.skip_volatile_regime": false,
+   "risk.cooldown_candles_after_sl": 5,
+   "risk.consecutive_loss_penalty": 2.0,
+   "bt.enable_trailing_stops": true,
+   "trailing.enabled": true,
+   "trailing.activation_pct": 0.92,
+   "trailing.callback_pct": 0.95
+  }
+ }
+]
