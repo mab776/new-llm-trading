@@ -232,6 +232,7 @@ class BacktestEngine:
         self,
         data_by_tf: dict[str, pd.DataFrame],
         primary_timeframe: str = "4h",
+        funding: Optional[pd.Series] = None,
     ) -> BacktestResult:
         """
         Run the backtest.
@@ -239,6 +240,9 @@ class BacktestEngine:
         Args:
             data_by_tf: Dict of timeframe → full OHLCV DataFrame (including warmup)
             primary_timeframe: The timeframe to iterate on
+            funding: Optional funding-rate series (UTC ts → rate). When provided,
+                each open position pays/receives funding on its notional at every
+                8h settlement inside a bar (longs pay positive rates).
 
         Returns:
             BacktestResult with all trades, stats, and decision log
@@ -266,6 +270,13 @@ class BacktestEngine:
 
         bars: list[BacktestBar] = []
         scoring_cfg = self.config.scoring
+
+        # Pre-bucket funding events into the primary bars (bar-open <= t < next open)
+        funding_by_pos: Optional[list[float]] = None
+        if funding is not None and len(funding) > 0:
+            from llm_trading_bot.funding import aggregate_funding_to_bars
+            tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(primary_timeframe, 4)
+            funding_by_pos = aggregate_funding_to_bars(funding, primary_df.index, tf_hours)
 
         print(f"Backtesting {len(test_indices)} bars from {test_indices[0]} to {test_indices[-1]}")
         print(f"Starting balance: ${self.portfolio.initial_balance:,.2f}")
@@ -307,6 +318,19 @@ class BacktestEngine:
             for trade in list(self.portfolio.open_trades):
                 self._check_exits(trade, bar_high, bar_low, bar_close, bar_time)
                 self._update_trailing_stop(trade, bar_high, bar_low)
+
+            # 1.5 Funding settlement — positions that survived this bar's exits pay or
+            # receive this bar's funding on their remaining notional (approximation:
+            # positions that exited intrabar skip the bar's funding; entries this bar
+            # happen at the close, after settlement).
+            if funding_by_pos is not None and self.portfolio.open_trades:
+                rate_sum = funding_by_pos[bar_idx]
+                if rate_sum != 0.0:
+                    from llm_trading_bot.funding import funding_cost
+                    for trade in self.portfolio.open_trades:
+                        cost = funding_cost(trade.direction, rate_sum,
+                                            trade.remaining_size, bar_close)
+                        self.portfolio.apply_funding(trade, cost)
 
             # Tick risk-management counters
             self.candles_since_last_loss += 1

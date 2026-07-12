@@ -96,8 +96,21 @@ def run_backtest(config_path: str) -> None:
     for tf, df in data_by_tf.items():
         print(f"  {tf}: {len(df)} candles (incl. warmup)")
 
+    funding = None
+    if config.backtesting.include_funding:
+        try:
+            from llm_trading_bot.funding import fetch_funding_history
+            funding = fetch_funding_history(
+                symbol=ds.exchange_symbol,
+                start_date=config.backtesting.start_date,
+                end_date=config.backtesting.end_date,
+            )
+            print(f"  funding: {len(funding)} settlements loaded")
+        except Exception as e:
+            print(f"  Warning: funding history unavailable ({e}) — running without it")
+
     engine = BacktestEngine(config)
-    result = engine.run(data_by_tf, config.trading.primary_timeframe)
+    result = engine.run(data_by_tf, config.trading.primary_timeframe, funding=funding)
 
     if result.stats:
         report = format_stats_report(result.stats, result.config_summary)

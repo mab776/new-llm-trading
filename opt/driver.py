@@ -39,10 +39,11 @@ TEST_FOLDS  = [HALF_FOLDS[i] for i in (1, 3, 5, 7)]        # 21H2,22H2,23H2,24H2
 
 _PRE = None
 _BASE = None
+_FUND = None  # per-bar funding rate sums aligned to _PRE.timestamps
 
 
 def setup():
-    global _PRE, _BASE
+    global _PRE, _BASE, _FUND
     if _PRE is not None:
         return
     cfg = load_config("config.json")
@@ -57,6 +58,19 @@ def setup():
         print(f"  {tf}: {len(df)} rows {df.index[0].date()} -> {df.index[-1].date()}", file=sys.stderr)
     _PRE = fb.precompute(data, cfg.trading.primary_timeframe, 200)
     _BASE = cfg
+
+    # Funding series (Binance proxy — Bitget only serves ~3 months), bucketed per 4h bar
+    try:
+        from llm_trading_bot.funding import fetch_funding_history, aggregate_funding_to_bars
+        import pandas as pd
+        fund = fetch_funding_history(ds.exchange_symbol,
+                                     start_date="2020-08-01", end_date="2025-06-02")
+        tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(cfg.trading.primary_timeframe, 4)
+        _FUND = aggregate_funding_to_bars(fund, pd.DatetimeIndex(_PRE.timestamps), tf_hours)
+        print(f"  funding: {len(fund)} settlements loaded", file=sys.stderr)
+    except Exception as e:
+        print(f"  funding unavailable: {e}", file=sys.stderr)
+        _FUND = None
 
 
 def build_config(overrides: dict) -> AppConfig:
@@ -90,7 +104,8 @@ def build_config(overrides: dict) -> AppConfig:
 
 
 def evaluate(overrides: dict, folds=FOLDS, slip: float = 0.0,
-             model_liquidation: bool = True, strat: dict | None = None) -> dict:
+             model_liquidation: bool = True, strat: dict | None = None,
+             funding: bool = False) -> dict:
     cfg = build_config(overrides)
     per = {}
     rets = []
@@ -98,7 +113,7 @@ def evaluate(overrides: dict, folds=FOLDS, slip: float = 0.0,
     trades = 0
     for name, sd, ed in folds:
         r = fb.simulate(_PRE, cfg, sd, ed, slip=slip, model_liquidation=model_liquidation,
-                        strat=strat)
+                        strat=strat, funding_by_pos=_FUND if funding else None)
         per[name] = {"ret": r.return_pct, "dd": r.max_dd_pct, "tr": r.trades,
                      "wr": round(r.win_rate, 1), "pf": r.profit_factor}
         rets.append(r.return_pct)

@@ -33,6 +33,7 @@ Market Data → Scoring Engine → Signal Router
 | **Data** | `llm_trading_bot/data.py` | OHLCV fetching, caching, 4H aggregation, source routing |
 | **Bitget history** | `llm_trading_bot/bitget_csv.py` | Windowed (END-anchored) Bitget fetch + monthly disk cache |
 | **Binance history** | `llm_trading_bot/binance_csv.py` | Binance public CSV archive downloader |
+| **Funding** | `llm_trading_bot/funding.py` | Perp funding-rate history (Binance proxy) + per-bar settlement math for backtests |
 | **Routing** | `llm_trading_bot/routing.py` | Signal classification and routing decisions |
 | **OpenWebUI Client** | `llm_trading_bot/openwebui_client.py` | API client + robust JSON parsing + consensus |
 | **Exchange** | `llm_trading_bot/exchange.py` | Bitget API — orders, balance, stop updates, safety checks |

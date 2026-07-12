@@ -201,7 +201,8 @@ DEFAULT_STRAT = {
 
 def simulate(pre: Precomputed, config, start_date: str, end_date: str,
              slip: float = 0.0, model_liquidation: bool = True,
-             maintenance_margin: float = 0.005, strat: dict | None = None) -> Result:
+             maintenance_margin: float = 0.005, strat: dict | None = None,
+             funding_by_pos: "list[float] | None" = None) -> Result:
     """slip: per-side price slippage fraction applied to market fills (entry, SL, time/EOB).
     model_liquidation: if True, a stop placed beyond the isolated-margin liquidation
     distance is capped at the liquidation price (position wipes ~full margin first).
@@ -280,6 +281,16 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                          tf_hours, bt.enable_partial_exits, bt.enable_trailing_stops,
                          config.trading.trailing_stop, slip, model_liquidation,
                          maintenance_margin, st)
+
+        # 1.5 funding settlement (mirrors engine: survivors of this bar's exits pay;
+        # entries happen at the close, after settlement)
+        if funding_by_pos is not None and port.open_trades:
+            rate_sum = funding_by_pos[i]
+            if rate_sum != 0.0:
+                from llm_trading_bot.funding import funding_cost
+                for trade in port.open_trades:
+                    cost = funding_cost(trade.direction, rate_sum, trade.remaining_size, bar_close)
+                    port.apply_funding(trade, cost)
 
         # apply risk-management updates (mirrors _on_trade_closed, which the engine
         # runs *inside* the exit step — i.e. BEFORE the per-bar counter tick)

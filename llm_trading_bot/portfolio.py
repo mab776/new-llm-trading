@@ -36,6 +36,7 @@ class Trade:
     entry_fee: float = 0.0
     exit_fee: float = 0.0
     total_fees: float = 0.0
+    funding_paid: float = 0.0  # net perp funding paid (negative = received)
     gross_pnl: float = 0.0
     net_pnl: float = 0.0
     exit_reason: str = ""  # "tp1", "tp2", "sl", "trailing_stop", "manual", "time_expired"
@@ -223,6 +224,14 @@ class Portfolio:
         net_pnl = gross_pnl - exit_fee
 
         return gross_pnl, exit_fee, net_pnl
+
+    def apply_funding(self, trade: Trade, cost: float) -> None:
+        """Settle a perp funding payment against an open trade.
+        cost > 0 = the position pays (balance and trade PnL go down);
+        cost < 0 = the position receives."""
+        trade.funding_paid += cost
+        trade.net_pnl -= cost
+        self.balance -= cost
 
     def partial_exit(
         self, trade: Trade, exit_price: float, exit_time: str, fraction: float, reason: str

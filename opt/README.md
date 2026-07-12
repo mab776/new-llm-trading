@@ -97,6 +97,24 @@ Implemented in engine + scheduler (in-session peak; resets on restart — see sc
 note). Tightening the threshold is *expected* to cost return; don't "optimize" it below
 ~0.20 based on in-sample data.
 
+## Round 4 — funding-rate realism
+
+Perps settle funding every 8h on NOTIONAL (longs pay positive rates). Implemented in
+`llm_trading_bot/funding.py`: fetch + incremental disk cache (`history/funding/`,
+gitignored — refetches in seconds) + pure per-bar aggregation, applied in both the
+engine (`run(..., funding=)`, step 1.5: survivors of the bar's exits settle before new
+entries) and `fastbt` (`funding_by_pos=`). **Source is Binance** (full history since
+2019; Bitget only serves ~3 months) — rates are arbitraged across venues, documented
+approximation. `backtesting.include_funding: true` wires it in `main.py`; live trading
+ignores it (the exchange settles funding itself).
+
+Impact on the final config (2021-01 → 2025-06): **~27% of total compound** —
+312× → 228× @2bps, 116× → 84× @5bps — concentrated in the 2021 bull (longs paying
+peak funding), **every year still green**. Re-tune probes with funding on (easier
+shorts, stricter longs, oppexit/tp2/maxpos tweaks) found nothing that didn't flip a
+year negative → config unchanged. Engine==fastbt digit-equal with funding
+(2024: +368.01%, 608 trades, $19 net funding on $100 start).
+
 ## Repro
 
 ```bash
@@ -106,6 +124,5 @@ PYTHONPATH=. python opt/finalize.py 0        # validation battery on a candidate
 ```
 
 Caveats: single asset (BTC-perp), 4.4y of data, backtest treats MARGINAL signals as
-trades (no LLM in the loop). Funding rates NOT modeled (perp funding averages ~0.01%/8h;
-positions here are held hours-days so impact is small but nonzero). Paper-trade before
-real money.
+trades (no LLM in the loop). Funding IS modeled since Round 4 (Binance series as a
+Bitget proxy). Paper-trade before real money.

@@ -136,6 +136,8 @@ class BacktestingConfig(BaseModel):
     warmup_periods: int = 200
     enable_partial_exits: bool = True
     enable_trailing_stops: bool = False
+    include_funding: bool = True    # Model perp funding payments (every 8h on notional).
+    #                                 Live trading ignores this — the exchange settles it.
 
 
 class SchedulingConfig(BaseModel):
