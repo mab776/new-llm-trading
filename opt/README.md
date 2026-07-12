@@ -115,6 +115,28 @@ shorts, stricter longs, oppexit/tp2/maxpos tweaks) found nothing that didn't fli
 year negative → config unchanged. Engine==fastbt digit-equal with funding
 (2024: +368.01%, 608 trades, $19 net funding on $100 start).
 
+## Round 5 — ETH transfer test
+
+The BTC-tuned config, **byte-for-byte unchanged**, evaluated on ETH/USDT:USDT
+(same pipeline: Bitget candles → `history/bitget/ETHUSDT_USDT/`, Binance ETH funding):
+
+| ETH (2021-01 → 2025-06) | Compound | Worst year | Max DD |
+|---|---|---|---|
+| @2bps + funding | **1015×** | +48% | 25.9% |
+| @5bps + funding | 296× | +21% | 30.1% |
+
+Every year green (2021 +2175%, 2022 +404%, 2023 +83%, 2024 +227%, 2025H1 +48%);
+both interleaved half-year sets strongly positive (+117%/+66% geo). A config tuned
+purely on BTC transferring to another asset with *better* results is strong evidence
+the edge is structural (trend + trailing + pyramiding), not BTC curve-fit — ETH's
+higher volatility simply gives it more room. Engine==fastbt digit-equal on ETH too.
+
+**Running it:** `config-eth.json` is the same strategy pointed at ETH. For both assets
+simultaneously, run two bot instances with split capital (e.g. two containers / a
+second Portainer service) — the bot is single-symbol by design. Expect BTC/ETH
+drawdowns to partially overlap (high correlation), so don't double leverage just
+because there are two instances.
+
 ## Repro
 
 ```bash

@@ -42,13 +42,17 @@ _BASE = None
 _FUND = None  # per-bar funding rate sums aligned to _PRE.timestamps
 
 
-def setup():
+def setup(symbol: str | None = None):
+    """Load data + funding and precompute indicators. symbol overrides the config's
+    exchange_symbol (e.g. "ETH/USDT:USDT" to evaluate the same strategy on ETH)."""
     global _PRE, _BASE, _FUND
     if _PRE is not None:
         return
     cfg = load_config("config.json")
     configure_cache(cfg.data_cache.ttl_seconds)
     ds = cfg.data_source
+    if symbol:
+        ds.exchange_symbol = symbol
     data = fetch_multi_timeframe(
         ds.exchange_symbol, cfg.trading.timeframes,
         start_date="2020-10-01", end_date="2025-06-01",

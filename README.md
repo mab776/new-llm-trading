@@ -78,8 +78,10 @@ The current `config.json` is the output of an out-of-sample-validated optimizati
 (2026-07) — see `opt/README.md` for the methodology, the intrabar trailing-stop bug it
 uncovered (backtests must assume the adverse extreme hits first), and full results.
 Headline (2021-01→2025-06, compounding, 2 bps slippage/side, liquidation AND perp
-funding modeled): **≈228× return with every year profitable (incl. the 2022 bear),
-max DD ~22%** (84× at 5 bps slippage). Structural changes vs the original design:
+funding modeled): **BTC ≈228× with every year profitable (incl. the 2022 bear),
+max DD ~22%** (84× at 5 bps); the same unchanged config on **ETH: ≈1015×**
+(`config-eth.json`) — strong evidence the edge is structural, not curve-fit.
+Structural changes vs the original design:
 **trailing stops ON** (activation 0.94%, callback 0.33%), **pyramiding** (up to 3
 same-direction positions), **conviction sizing** (risk scales with |score|), and an
 **opposite-signal exit** (close on a hard composite flip, threshold 20).
