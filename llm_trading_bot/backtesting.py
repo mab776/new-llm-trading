@@ -366,6 +366,22 @@ class BacktestEngine:
             else:
                 signal = SignalStrength.WAIT
 
+            # 5.5 Opposite-signal exit: the composite flipped hard against open positions
+            opp_threshold = self.risk_cfg.opposite_exit_threshold
+            if (opp_threshold > 0 and self.portfolio.open_trades
+                    and result.direction != Direction.NEUTRAL and abs_score >= opp_threshold):
+                want = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                for trade in list(self.portfolio.open_trades):
+                    if trade.direction != want:
+                        self.portfolio.close_trade(trade, bar_close, bar_time, "signal_flip")
+                        print(f"    << SIGNAL_FLIP {trade.direction} @ ${bar_close:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
+                        self.decision_log.append({
+                            "time": bar_time, "action": "SIGNAL_FLIP",
+                            "price": bar_close, "trade_id": trade.trade_id,
+                            "pnl": trade.net_pnl, "flip_score": result.raw_score,
+                        })
+                        self._on_trade_closed(trade)
+
             # 6. Pre-trade filters (enhanced with category agreement + regime)
             trade_action = None
             if signal in (SignalStrength.STRONG, SignalStrength.MARGINAL) and targets:
@@ -389,11 +405,22 @@ class BacktestEngine:
                         skip_volatile_regime=self.config.filters.skip_volatile_regime,
                     )
 
-                    if not filter_failures and not self.portfolio.open_trades:
-                        # No open positions — open a new trade
+                    # Entry slot: up to max_positions concurrent SAME-direction trades
+                    # (pyramiding); opposite-direction entries are never stacked.
+                    ps_cfg = self.config.position_sizing
+                    direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                    open_now = self.portfolio.open_trades
+                    can_enter = (len(open_now) < ps_cfg.max_positions
+                                 and all(t.direction == direction_str for t in open_now))
+
+                    if not filter_failures and can_enter:
                         # For backtesting, MARGINAL signals are treated as trades too
                         # (we can't call the LLM in a backtest)
-                        direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                        # Conviction sizing: scale risk with signal strength (off when exponent=0)
+                        risk_eff = ps_cfg.risk_pct_per_trade
+                        if ps_cfg.conviction_exponent > 0 and effective_strong > 0:
+                            m = (abs_score / effective_strong) ** ps_cfg.conviction_exponent
+                            risk_eff *= max(0.5, min(1.5, m))
                         trade = self.portfolio.open_trade(
                             direction=direction_str,
                             entry_price=bar_close,
@@ -402,7 +429,7 @@ class BacktestEngine:
                             take_profit_1=targets.take_profit_1,
                             take_profit_2=targets.take_profit_2,
                             leverage=self.tier.leverage,
-                            risk_pct=self.config.position_sizing.risk_pct_per_trade,
+                            risk_pct=risk_eff,
                             tp1_exit_pct=self.tier.tp1_exit_pct,
                         )
                         trade_action = f"OPEN_{direction_str}"

@@ -181,12 +181,38 @@ class Result:
     sharpe: float
 
 
+DEFAULT_STRAT = {
+    # All defaults preserve the current engine behavior exactly.
+    "vol_target_lev": None,       # e.g. 40.0 -> lev_eff = min(lev, vol_target_lev / atr_pct)
+    "trail_mode": "pct",          # "pct" (of entry) | "atr" (multiples of entry ATR)
+    "trail_act_atr": 0.5,          # activation distance in ATRs (trail_mode="atr")
+    "trail_cb_atr": 0.6,           # callback distance in ATRs (trail_mode="atr")
+    "conviction_sizing": None,    # e.g. 1.0 -> risk_pct scaled by (abs_score/strong)^1 capped [0.5, 1.5]
+    "opposite_exit": None,        # e.g. 25.0 -> close when opposite-direction |score| >= this
+    "short_threshold_mult": 1.0,  # >1 = stricter shorts (asymmetry)
+    "long_threshold_mult": 1.0,
+    "max_positions": 1,           # >1 allows pyramiding same-direction entries
+    "marginal_size_frac": 1.0,    # size fraction for MARGINAL (vs STRONG) entries
+}
+
+
 def simulate(pre: Precomputed, config, start_date: str, end_date: str,
              slip: float = 0.0, model_liquidation: bool = True,
-             maintenance_margin: float = 0.005) -> Result:
+             maintenance_margin: float = 0.005, strat: dict | None = None) -> Result:
     """slip: per-side price slippage fraction applied to market fills (entry, SL, time/EOB).
     model_liquidation: if True, a stop placed beyond the isolated-margin liquidation
-    distance is capped at the liquidation price (position wipes ~full margin first)."""
+    distance is capped at the liquidation price (position wipes ~full margin first).
+    strat: strategy-variant flags (see DEFAULT_STRAT); defaults reproduce the engine."""
+    st = dict(DEFAULT_STRAT)
+    # Config-backed strategy features (engine parity): explicit strat overrides win.
+    ps_cfg = config.position_sizing
+    st["max_positions"] = getattr(ps_cfg, "max_positions", 1)
+    conv = getattr(ps_cfg, "conviction_exponent", 0.0)
+    st["conviction_sizing"] = conv if conv > 0 else None
+    opp = getattr(config.risk_management, "opposite_exit_threshold", 0.0)
+    st["opposite_exit"] = opp if opp > 0 else None
+    if strat:
+        st.update(strat)
     tr = config.trading
     tier = tr.active_leverage_tier
     sc = config.scoring
@@ -245,7 +271,8 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         for trade in list(port.open_trades):
             _check_exits(port, trade, bar_high, bar_low, bar_close, ts, risk,
                          tf_hours, bt.enable_partial_exits, bt.enable_trailing_stops,
-                         config.trading.trailing_stop, slip, model_liquidation, maintenance_margin)
+                         config.trading.trailing_stop, slip, model_liquidation,
+                         maintenance_margin, st)
 
         # apply risk-management updates (mirrors _on_trade_closed, which the engine
         # runs *inside* the exit step — i.e. BEFORE the per-bar counter tick)
@@ -283,14 +310,32 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
 
         abs_score = abs(result.raw_score)
         lp = loss_penalty()
-        eff_marg = tier.marginal_threshold_low + lp
-        eff_strong = tier.strong_threshold + lp
+        # Long/short threshold asymmetry (default 1.0 = symmetric)
+        side_mult = 1.0
+        if result.direction == Direction.BULLISH:
+            side_mult = st["long_threshold_mult"]
+        elif result.direction == Direction.BEARISH:
+            side_mult = st["short_threshold_mult"]
+        eff_marg = tier.marginal_threshold_low * side_mult + lp
+        eff_strong = tier.strong_threshold * side_mult + lp
         if abs_score >= eff_strong:
             signal = SignalStrength.STRONG
         elif abs_score >= eff_marg:
             signal = SignalStrength.MARGINAL
         else:
             signal = SignalStrength.WAIT
+
+        # Opposite-signal exit: composite flipped hard against an open position
+        if st["opposite_exit"] is not None and port.open_trades and result.direction != Direction.NEUTRAL:
+            want = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+            if abs_score >= st["opposite_exit"]:
+                for trade in list(port.open_trades):
+                    if trade.direction != want:
+                        fill = bar_close * (1 - slip) if trade.direction == "LONG" else bar_close * (1 + slip)
+                        port.close_trade(trade, fill, ts, "signal_flip")
+                        if not hasattr(port, "_risk_events"):
+                            port._risk_events = []
+                        port._risk_events.append({"loss": trade.net_pnl <= 0, "sl": False})
 
         if signal in (SignalStrength.STRONG, SignalStrength.MARGINAL) and targets:
             if cooldown > 0:
@@ -307,15 +352,30 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     skip_choppy_regime=ft.skip_choppy_regime,
                     skip_volatile_regime=ft.skip_volatile_regime,
                 )
-                if not fails and not port.open_trades:
-                    direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                # Entry slot: default single position; pyramiding allows same-direction adds
+                can_enter = (len(port.open_trades) < st["max_positions"]
+                             and all(t.direction == direction_str for t in port.open_trades))
+                if not fails and can_enter:
+                    # Vol-targeted leverage: normalize per-trade risk across vol regimes
+                    lev_eff = tier.leverage
+                    if st["vol_target_lev"] is not None and prim.atr_pct:
+                        lev_eff = max(1, min(tier.leverage, int(round(st["vol_target_lev"] / prim.atr_pct))))
+                    # Conviction sizing: scale margin with signal strength
+                    risk_eff = ps.risk_pct_per_trade
+                    if st["conviction_sizing"] is not None and eff_strong > 0:
+                        m = (abs_score / eff_strong) ** st["conviction_sizing"]
+                        risk_eff *= max(0.5, min(1.5, m))
+                    if signal == SignalStrength.MARGINAL:
+                        risk_eff *= st["marginal_size_frac"]
                     entry_eff = bar_close * (1 + slip) if direction_str == "LONG" else bar_close * (1 - slip)
-                    port.open_trade(
+                    trade = port.open_trade(
                         direction=direction_str, entry_price=entry_eff, entry_time=ts,
                         stop_loss=targets.stop_loss, take_profit_1=targets.take_profit_1,
-                        take_profit_2=targets.take_profit_2, leverage=tier.leverage,
-                        risk_pct=ps.risk_pct_per_trade, tp1_exit_pct=tier.tp1_exit_pct,
+                        take_profit_2=targets.take_profit_2, leverage=lev_eff,
+                        risk_pct=risk_eff, tp1_exit_pct=tier.tp1_exit_pct,
                     )
+                    trade._atr_entry = prim.atr_14  # for ATR-based trailing
 
         if ti % 10 == 0:
             port.record_snapshot(ts, bar_close)
@@ -336,8 +396,10 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
 
 def _check_exits(port, trade, bar_high, bar_low, bar_close, bar_time, risk, tf_hours,
                  enable_partial, enable_trailing, trailing_config,
-                 slip=0.0, model_liquidation=True, maintenance_margin=0.005):
+                 slip=0.0, model_liquidation=True, maintenance_margin=0.005, st=None):
     from llm_trading_bot.trailing import compute_trailing_stop
+    if st is None:
+        st = DEFAULT_STRAT
     if not trade.is_open:
         return
 
@@ -402,10 +464,26 @@ def _check_exits(port, trade, bar_high, bar_low, bar_close, bar_time, risk, tf_h
     # affects subsequent bars (conservative: never rewards an intrabar top-of-bar exit).
     if enable_trailing and trailing_config.enabled and trade.is_open:
         favorable = bar_high if is_long else bar_low
-        new_sl = compute_trailing_stop(
-            direction=trade.direction, entry_price=trade.entry_price,
-            favorable_extreme=favorable, current_sl=trade.stop_loss,
-            activation_pct=trailing_config.activation_pct, callback_pct=trailing_config.callback_pct,
-        )
+        if st["trail_mode"] == "atr" and getattr(trade, "_atr_entry", None):
+            # Distances as multiples of the ATR at entry (adapts to vol regime).
+            act_d = st["trail_act_atr"] * trade._atr_entry
+            cb_d = st["trail_cb_atr"] * trade._atr_entry
+            new_sl = None
+            if is_long:
+                if favorable >= trade.entry_price + act_d:
+                    cand = favorable - cb_d
+                    if cand > trade.stop_loss:
+                        new_sl = cand
+            else:
+                if favorable <= trade.entry_price - act_d:
+                    cand = favorable + cb_d
+                    if cand < trade.stop_loss:
+                        new_sl = cand
+        else:
+            new_sl = compute_trailing_stop(
+                direction=trade.direction, entry_price=trade.entry_price,
+                favorable_extreme=favorable, current_sl=trade.stop_loss,
+                activation_pct=trailing_config.activation_pct, callback_pct=trailing_config.callback_pct,
+            )
         if new_sl is not None:
             trade.stop_loss = new_sl

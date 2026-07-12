@@ -53,6 +53,34 @@ Chronological OOS: trained on 2021-23 only, 2024-25 still made 2.47× (10% DD).
 4. **Leverage is a clean risk dial** on top: 10→3.3×(DD 7%) … 25→15×(DD 13%) @5bps.
    Sweet spot 25; 30 adds little return for more DD.
 
+## Round 2 — strategy-level changes (same day)
+
+Beyond config knobs, structural variants were implemented behind flags in `fastbt.py`
+(`strat=` dict; defaults reproduce the engine) and ablated (`strat_ablate.py`). Three
+winners were ported into the real engine/config (all engine==fastbt exact-validated):
+
+| Feature | Config key | Effect (alone) |
+|---|---|---|
+| **Pyramiding** — up to N concurrent same-direction positions | `position_sizing.max_positions: 3` | 22.5× → 140× (DD 12→23%) |
+| **Conviction sizing** — risk × clamp((\|score\|/strong)^1, 0.5..1.5) | `position_sizing.conviction_exponent: 1.0` | +~10% |
+| **Opposite-signal exit** — close when composite flips ≥ threshold | `risk_management.opposite_exit_threshold: 20` | better worst-fold/test |
+
+Rejected: ATR-based trailing (worse than pct), long/short threshold asymmetry (worse),
+vol-targeted leverage (cuts DD ~40% but halves return — keep in back pocket as a risk knob),
+marginal-half-sizing (−60% return).
+
+**Combined result (2021-01 → 2025-06, liquidation modeled):**
+
+| slip/side | Compound | Worst year | Max DD | Trades |
+|---|---|---|---|---|
+| 2 bps | **312×** | +23% | 21.4% | 2427 |
+| 5 bps | 127× | +10% | 25.7% | 2386 |
+| 10 bps | 30× | +2% | 28.3% | 2331 |
+
+Walk-forward: train geo +106%/half-year → held-out test +70%. Chronological: trained on
+2021-23 only, unseen 2024-25 made 4.36× (2bps). Live parity: scheduler implements all
+three features (entry slots, conviction margin, `_maybe_opposite_exit`).
+
 ## Repro
 
 ```bash

@@ -78,9 +78,11 @@ The current `config.json` is the output of an out-of-sample-validated optimizati
 (2026-07) — see `opt/README.md` for the methodology, the intrabar trailing-stop bug it
 uncovered (backtests must assume the adverse extreme hits first), and full results.
 Headline (2021-01→2025-06, compounding, 2 bps slippage/side, liquidation modeled):
-**aggressive tier (25×) ≈22.5× return with every year profitable (incl. the 2022 bear)
-and max DD 12.4%**; conservative tier (12×) ≈5× with 7.5% DD. Key structural change:
-**trailing stops are now ON** (activation 0.94%, callback 0.33%).
+**≈312× return with every year profitable (incl. the 2022 bear), max DD ~21%**
+(127× at 5 bps, 30× at a punishing 10 bps). Structural changes vs the original design:
+**trailing stops ON** (activation 0.94%, callback 0.33%), **pyramiding** (up to 3
+same-direction positions), **conviction sizing** (risk scales with |score|), and an
+**opposite-signal exit** (close on a hard composite flip, threshold 20).
 
 ## License
 

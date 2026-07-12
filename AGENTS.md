@@ -109,6 +109,17 @@ Two tiers with different risk profiles (optimized + OOS-validated 2026-07, see
 Trailing stops are **enabled** (activation 0.94%, callback 0.33% of entry) — the single
 biggest contributor to the edge; stop strategy is `atr` with `atr_sl_multiplier: 2.26`.
 
+Three strategy features (2026-07, implemented in BOTH `backtesting.py` and `scheduler.py`
+— keep them in sync):
+
+- **Pyramiding** — `position_sizing.max_positions` (3): concurrent SAME-direction
+  positions; never stacks against an open opposite position.
+- **Conviction sizing** — `position_sizing.conviction_exponent` (1.0): per-trade risk
+  scaled by `clamp((|score|/strong_threshold)^k, 0.5, 1.5)`; 0 disables.
+- **Opposite-signal exit** — `risk_management.opposite_exit_threshold` (20): when the
+  composite score flips ≥ threshold against open positions they are closed at market
+  (`signal_flip`; does NOT trigger the SL cooldown); 0 disables.
+
 ### Backtest intrabar conservatism (do not regress)
 
 With only OHLC per bar, the intrabar path is unknown, so the engine assumes the

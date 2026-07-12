@@ -109,12 +109,17 @@ class RiskManagementConfig(BaseModel):
     max_consecutive_loss_penalty: float = 20.0  # Cap on total penalty
     loss_penalty_decay_candles: int = 10    # Candles after last loss before penalty starts decaying
     use_maker_fee_for_tp: bool = True       # TP exits (limit) use maker fee, SL (market) uses taker
+    opposite_exit_threshold: float = 0.0    # Close open positions when the composite score flips
+    #                                         beyond this against them (0 = disabled)
 
 
 class PositionSizingConfig(BaseModel):
     """How much capital to put behind each trade (used by live AND backtest)."""
     risk_pct_per_trade: float = 0.02   # Fraction of account balance risked as margin per trade
     max_position_usd: float = 100      # Hard cap on the margin committed to a single trade
+    max_positions: int = 1             # Concurrent SAME-direction positions (pyramiding); 1 = classic
+    conviction_exponent: float = 0.0   # 0 = off; scale risk by (|score|/strong_threshold)^k,
+    #                                    clamped to [0.5, 1.5] — bigger signals get bigger size
 
 
 class BacktestingConfig(BaseModel):

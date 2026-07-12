@@ -112,8 +112,46 @@ class TradingScheduler:
 
         return decision
 
+    def _maybe_opposite_exit(self, decision: RoutingDecision) -> None:
+        """Close open positions when the composite score flips hard against them
+        (risk_management.opposite_exit_threshold; 0 = disabled). Mirrors the
+        backtest engine's signal_flip exit."""
+        threshold = self.config.risk_management.opposite_exit_threshold
+        if threshold <= 0:
+            return
+        direction = decision.scoring_result.direction
+        if direction == Direction.NEUTRAL:
+            return
+        if abs(decision.scoring_result.raw_score) < threshold:
+            return
+        want_side = "long" if direction == Direction.BULLISH else "short"
+        try:
+            positions = self.exchange.get_positions(self.config.trading.symbol)
+        except Exception as e:
+            self._log(f"Warning: opposite-exit position check failed: {e}")
+            return
+        for pos in positions:
+            if pos.side.lower() != want_side:
+                self._log(
+                    f"SIGNAL FLIP ({decision.scoring_result.raw_score:+.1f}) against "
+                    f"{pos.side} position — closing {pos.size}"
+                )
+                try:
+                    self.exchange.close_position(self.config.trading.symbol, pos.side, pos.size)
+                    self._tracked_trades.pop(self.config.trading.symbol, None)
+                    self._log_decision({
+                        "action": "SIGNAL_FLIP_CLOSE",
+                        "side": pos.side, "size": pos.size,
+                        "score": decision.scoring_result.raw_score,
+                    })
+                except Exception as e:
+                    self._log(f"ERROR closing position on signal flip: {e}")
+
     def execute_decision(self, decision: RoutingDecision) -> None:
         """Act on a routing decision."""
+        # Opposite-signal exit runs regardless of entry signal strength
+        self._maybe_opposite_exit(decision)
+
         if decision.signal_strength == SignalStrength.WAIT:
             self._log(f"WAIT — {decision.skip_reason or 'Score too low'}")
             self._log_decision({
@@ -161,24 +199,34 @@ class TradingScheduler:
             self._log("No targets calculated — cannot trade")
             return
 
-        # Check for existing positions
+        targets = decision.targets
+        tier = self.config.trading.active_leverage_tier
+        ps = self.config.position_sizing
+        side = "buy" if targets.direction == Direction.BULLISH else "sell"
+        want_side = "long" if targets.direction == Direction.BULLISH else "short"
+
+        # Entry slots: up to max_positions concurrent SAME-direction positions
+        # (pyramiding); never stack against an opposite-direction position.
         try:
             positions = self.exchange.get_positions(self.config.trading.symbol)
-            if positions:
-                self._log(f"Already have {len(positions)} open position(s) — skipping")
+            if len(positions) >= ps.max_positions:
+                self._log(f"Already have {len(positions)}/{ps.max_positions} position(s) — skipping")
+                return
+            if any(p.side.lower() != want_side for p in positions):
+                self._log("Open position in the opposite direction — not stacking, skipping")
                 return
         except Exception as e:
             self._log(f"Warning: Could not check positions: {e}")
 
-        targets = decision.targets
-        tier = self.config.trading.active_leverage_tier
-        side = "buy" if targets.direction == Direction.BULLISH else "sell"
-
         # Risk-based position sizing: commit min(balance * risk_pct, max_usd) as margin,
         # leverage it up to the notional, then convert to base-currency size at entry.
-        ps = self.config.position_sizing
         balance = self.exchange.get_available_balance()
-        margin = min(balance * ps.risk_pct_per_trade, ps.max_position_usd)
+        risk_pct = ps.risk_pct_per_trade
+        # Conviction sizing: scale risk with signal strength (mirrors backtest engine)
+        if ps.conviction_exponent > 0 and tier.strong_threshold > 0:
+            m = (abs(decision.scoring_result.raw_score) / tier.strong_threshold) ** ps.conviction_exponent
+            risk_pct *= max(0.5, min(1.5, m))
+        margin = min(balance * risk_pct, ps.max_position_usd)
         size = (margin * tier.leverage) / targets.entry if targets.entry > 0 else 0.0
         if size <= 0:
             self._log(

@@ -90,14 +90,15 @@ def build_config(overrides: dict) -> AppConfig:
 
 
 def evaluate(overrides: dict, folds=FOLDS, slip: float = 0.0,
-             model_liquidation: bool = True) -> dict:
+             model_liquidation: bool = True, strat: dict | None = None) -> dict:
     cfg = build_config(overrides)
     per = {}
     rets = []
     dds = []
     trades = 0
     for name, sd, ed in folds:
-        r = fb.simulate(_PRE, cfg, sd, ed, slip=slip, model_liquidation=model_liquidation)
+        r = fb.simulate(_PRE, cfg, sd, ed, slip=slip, model_liquidation=model_liquidation,
+                        strat=strat)
         per[name] = {"ret": r.return_pct, "dd": r.max_dd_pct, "tr": r.trades,
                      "wr": round(r.win_rate, 1), "pf": r.profit_factor}
         rets.append(r.return_pct)
