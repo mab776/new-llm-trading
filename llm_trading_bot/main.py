@@ -25,6 +25,14 @@ def run_live(config_path: str) -> None:
     scheduler.start()
 
 
+def run_live_shared(config_paths: list[str]) -> None:
+    """Run multiple symbols through one serialized account orchestrator."""
+    from llm_trading_bot.orchestrator import SharedTradingOrchestrator
+
+    configs = [load_config(path) for path in config_paths]
+    SharedTradingOrchestrator(configs).start()
+
+
 def run_analyze(config_path: str) -> None:
     """Run a single analysis cycle (no trading)."""
     from llm_trading_bot.data import configure_cache, fetch_multi_timeframe
@@ -59,7 +67,10 @@ def run_analyze(config_path: str) -> None:
     elif decision.skip_reason:
         print(f"Skip: {decision.skip_reason}")
     elif decision.needs_llm:
-        print("→ Marginal signal — would send to LLM for consensus")
+        if config.openwebui.marginal_execution == "deterministic":
+            print("→ Marginal signal — deterministic execution configured")
+        else:
+            print("→ Marginal signal — would send to LLM for consensus")
 
 
 def run_backtest(config_path: str) -> None:
@@ -142,19 +153,32 @@ def main() -> None:
         default="analyze",
         help="Run mode: live (scheduled trading), analyze (single analysis), backtest"
     )
+    parser.add_argument(
+        "--shared-configs", nargs="+",
+        help=("Live mode only: configs to run through one shared, serialized "
+              "multi-symbol orchestrator")
+    )
 
     args = parser.parse_args()
 
-    if not Path(args.config).exists():
-        print(f"Error: Config file not found: {args.config}")
+    if args.shared_configs and args.mode != "live":
+        print("Error: --shared-configs is available only in live mode")
+        sys.exit(1)
+    paths = args.shared_configs or [args.config]
+    missing = [path for path in paths if not Path(path).exists()]
+    if missing:
+        print(f"Error: Config file not found: {missing[0]}")
         sys.exit(1)
 
     print(f"LLM Trading Bot — Mode: {args.mode}")
-    print(f"Config: {args.config}")
+    print(f"Config: {', '.join(paths)}")
     print()
 
     if args.mode == "live":
-        run_live(args.config)
+        if args.shared_configs:
+            run_live_shared(args.shared_configs)
+        else:
+            run_live(args.config)
     elif args.mode == "analyze":
         run_analyze(args.config)
     elif args.mode == "backtest":

@@ -42,6 +42,25 @@ def _decision(direction=Direction.BULLISH) -> RoutingDecision:
 
 
 class TestLiveSizing:
+    def test_deterministic_marginal_mode_matches_backtest_without_llm(self, monkeypatch,
+                                                                     tmp_path):
+        monkeypatch.chdir(tmp_path)
+        cfg = _config()
+        cfg.openwebui.marginal_execution = "deterministic"
+        sched = TradingScheduler(cfg)
+        decision = _decision()
+        decision.signal_strength = SignalStrength.MARGINAL
+        decision.scoring_result.signal_strength = SignalStrength.MARGINAL
+        called = []
+        monkeypatch.setattr(sched, "_execute_trade", lambda value: called.append(value))
+        monkeypatch.setattr(
+            "llm_trading_bot.scheduler.run_consensus",
+            lambda **kwargs: pytest.fail("deterministic marginal mode called the LLM"),
+        )
+
+        sched.execute_decision(decision)
+        assert called == [decision]
+
     def test_size_from_risk_not_hardcoded(self, monkeypatch, tmp_path):
         monkeypatch.chdir(tmp_path)  # keep logs/ out of the repo
         sched = TradingScheduler(_config())

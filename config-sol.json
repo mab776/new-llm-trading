@@ -7,7 +7,8 @@
       "deepseek-r1:14b",
       "gemma2:9b"
     ],
-    "timeout_seconds": 120
+    "timeout_seconds": 120,
+    "marginal_execution": "deterministic"
   },
   "trading": {
     "symbol": "SOL-USDT",

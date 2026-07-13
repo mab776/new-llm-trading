@@ -11,6 +11,8 @@ Handles:
 from __future__ import annotations
 
 import json
+import re
+import threading
 import time
 from datetime import datetime
 from pathlib import Path
@@ -25,6 +27,7 @@ from llm_trading_bot.exchange import BitgetClient, SafetyViolation
 from llm_trading_bot.exposure import (
     anti_martingale_multiplier, cap_risk_pct, outcome_streak,
 )
+from llm_trading_bot.live_state import SharedLiveState
 from llm_trading_bot.openwebui_client import run_consensus
 from llm_trading_bot.routing import RoutingDecision, route_signal
 from llm_trading_bot.scoring import Direction, SignalStrength, calculate_indicators
@@ -42,26 +45,40 @@ class TradingScheduler:
     4. Monitor existing positions
     """
 
-    def __init__(self, config: AppConfig):
+    def __init__(self, config: AppConfig, *,
+                 shared_state: SharedLiveState | None = None,
+                 log_dir: str | Path = "logs"):
         self.config = config
         self.exchange = BitgetClient(config.bitget)
         self.decision_log: list[dict] = []
-        self._log_dir = Path("logs")
-        self._log_dir.mkdir(exist_ok=True)
+        self._log_dir = Path(log_dir)
+        self._log_dir.mkdir(parents=True, exist_ok=True)
+
+        safe_symbol = re.sub(r"[^A-Za-z0-9]+", "-", config.trading.symbol).strip("-")
+        standalone_state_path = self._log_dir / f"live_state-{safe_symbol}.json"
+        migrate_legacy = shared_state is None and not standalone_state_path.exists()
+        self._live_state = shared_state or SharedLiveState(standalone_state_path)
+        self._execution_lock = self._live_state.lock if shared_state else threading.RLock()
 
         # Per-symbol trade context for live trailing stops:
         # {symbol: {"direction": "LONG"|"SHORT", "entry": float, "current_sl": float}}
-        self._tracked_trades: dict[str, dict] = {}
-        # Resting maker entries survive scheduler cycles (and process restarts).
-        self._pending_state_file = self._log_dir / "pending_orders.json"
-        self._pending_orders: dict[str, dict] = self._load_pending_orders()
+        self._tracked_trades = self._live_state.tracked_trades
+        self._pending_orders = self._live_state.pending_orders
+        # One-time compatibility migration from the pre-shared-state maker file.
+        legacy = self._log_dir / "pending_orders.json"
+        if migrate_legacy and not self._pending_orders and legacy.exists():
+            migrated = self._load_pending_orders(legacy)
+            self._pending_orders.update(migrated)
+            if migrated:
+                self._live_state.save()
 
         configure_cache(config.data_cache.ttl_seconds)
 
-    def _load_pending_orders(self) -> dict[str, dict]:
+    @staticmethod
+    def _load_pending_orders(path: Path) -> dict[str, dict]:
         try:
-            if self._pending_state_file.exists():
-                data = json.loads(self._pending_state_file.read_text())
+            if path.exists():
+                data = json.loads(path.read_text())
                 return data if isinstance(data, dict) else {}
         except (OSError, ValueError, TypeError):
             pass
@@ -69,15 +86,26 @@ class TradingScheduler:
 
     def _save_pending_orders(self) -> None:
         try:
-            self._pending_state_file.write_text(
-                json.dumps(self._pending_orders, indent=2, sort_keys=True)
-            )
+            self._live_state.save()
         except OSError as e:
             self._log(f"Warning: could not persist pending orders: {e}")
+
+    def _save_live_state(self) -> None:
+        state = getattr(self, "_live_state", None)
+        if state is not None:
+            try:
+                state.save()
+            except OSError as e:
+                self._log(f"Warning: could not persist live state: {e}")
 
     @staticmethod
     def _timeframe_seconds(timeframe: str) -> int:
         return {"1h": 3600, "4h": 4 * 3600, "1d": 24 * 3600}.get(timeframe, 4 * 3600)
+
+    @staticmethod
+    def _same_symbol(left: str, right: str) -> bool:
+        normalize = lambda value: re.sub(r"[^A-Za-z0-9]", "", value).upper()
+        return normalize(left) == normalize(right)
 
     def _activate_filled_pending(self, order_id: str, detail: dict) -> None:
         pending = self._pending_orders.pop(order_id)
@@ -87,7 +115,7 @@ class TradingScheduler:
             "entry": avg,
             "current_sl": pending["stop_loss"],
         }
-        self._save_pending_orders()
+        self._save_live_state()
         self._log(f"Maker order {order_id} filled @ ${avg:,.2f}")
         self._log_decision({
             "action": "MAKER_FILL", "order_id": order_id,
@@ -103,6 +131,9 @@ class TradingScheduler:
         """
         now = time.time()
         for order_id, pending in list(self._pending_orders.items()):
+            if not self._same_symbol(pending.get("symbol", ""),
+                                     self.config.trading.symbol):
+                continue
             try:
                 detail = self.exchange.get_order_detail(pending["symbol"], order_id)
                 state = str(detail.get("state") or detail.get("status") or "").lower()
@@ -215,6 +246,9 @@ class TradingScheduler:
         want_side = "long" if direction == Direction.BULLISH else "short"
         # A resting opposite entry has no position to close yet; cancel it instead.
         for order_id, pending in list(self._pending_orders.items()):
+            if not self._same_symbol(pending.get("symbol", ""),
+                                     self.config.trading.symbol):
+                continue
             pending_side = "long" if pending["direction"] == "LONG" else "short"
             if pending_side != want_side:
                 try:
@@ -238,6 +272,7 @@ class TradingScheduler:
                 try:
                     self.exchange.close_position(self.config.trading.symbol, pos.side, pos.size)
                     self._tracked_trades.pop(self.config.trading.symbol, None)
+                    self._save_live_state()
                     self._log_decision({
                         "action": "SIGNAL_FLIP_CLOSE",
                         "side": pos.side, "size": pos.size,
@@ -267,6 +302,10 @@ class TradingScheduler:
             return
 
         if decision.signal_strength == SignalStrength.MARGINAL:
+            if self.config.openwebui.marginal_execution == "deterministic":
+                self._log("MARGINAL signal — deterministic execution (backtest parity)")
+                self._execute_trade(decision)
+                return
             self._log("MARGINAL signal — querying LLM consensus...")
             consensus = run_consensus(
                 config=self.config.openwebui,
@@ -293,6 +332,11 @@ class TradingScheduler:
                 })
 
     def _execute_trade(self, decision: RoutingDecision) -> None:
+        """Atomically check account exposure, size, and place one new order."""
+        with self._execution_lock:
+            self._execute_trade_locked(decision)
+
+    def _execute_trade_locked(self, decision: RoutingDecision) -> None:
         """Execute a trade via the exchange."""
         if not decision.targets:
             self._log("No targets calculated — cannot trade")
@@ -307,24 +351,9 @@ class TradingScheduler:
         balance = self.exchange.get_available_balance()
         equity = self.exchange.get_account_equity(dry_run_default=balance)
 
-        # DD circuit-breaker (tail insurance, mirrors backtest engine): while the
-        # balance drawdown from its in-session peak >= threshold, cap entry slots and
-        # cut risk until equity recovers. NOTE: peak resets on restart, and available
-        # balance is a conservative equity proxy (committed margin counts as drawdown).
         rm = self.config.risk_management
         slots = ps.max_positions
         throttle_risk_mult = 1.0
-        if rm.dd_throttle_threshold > 0:
-            self._peak_balance = max(getattr(self, "_peak_balance", 0.0), balance)
-            if self._peak_balance > 0:
-                dd = (self._peak_balance - balance) / self._peak_balance
-                if dd >= rm.dd_throttle_threshold:
-                    slots = min(slots, rm.dd_throttle_slots)
-                    throttle_risk_mult = rm.dd_throttle_risk
-                    self._log(
-                        f"DD THROTTLE active ({dd:.1%} >= {rm.dd_throttle_threshold:.1%}) — "
-                        f"slots capped at {slots}, risk x{throttle_risk_mult}"
-                    )
 
         # Entry slots: up to max_positions concurrent SAME-direction positions
         # (pyramiding); never stack against an opposite-direction position.
@@ -337,14 +366,33 @@ class TradingScheduler:
                 p for oid, p in self._pending_orders.items()
                 if oid not in exchange_pending_ids
             ]
-            pending_for_symbol = [p for p in self._pending_orders.values()
-                                  if p["symbol"] == self.config.trading.symbol]
+            pending_for_symbol = [
+                pending for pending in self._pending_orders.values()
+                if self._same_symbol(
+                    pending.get("symbol", ""), self.config.trading.symbol
+                )
+            ]
             pending_for_symbol += [
                 {"direction": "LONG" if p.side in ("long", "buy") else "SHORT"}
                 for p in exchange_pending
-                if p.symbol == self.config.trading.symbol
+                if self._same_symbol(p.symbol, self.config.trading.symbol)
                 and p.order_id not in self._pending_orders
             ]
+            # Persist one account-wide realized-balance peak. Exchange equity minus
+            # unrealized PnL mirrors the backtest's realized Portfolio.balance more
+            # closely than available margin, which falls when orders reserve funds.
+            realized_balance = equity - sum(p.unrealized_pnl for p in global_positions)
+            peak_balance = self._live_state.update_peak(realized_balance)
+            self._peak_balance = peak_balance
+            if rm.dd_throttle_threshold > 0 and peak_balance > 0:
+                dd = (peak_balance - realized_balance) / peak_balance
+                if dd >= rm.dd_throttle_threshold:
+                    slots = min(slots, rm.dd_throttle_slots)
+                    throttle_risk_mult = rm.dd_throttle_risk
+                    self._log(
+                        f"DD THROTTLE active ({dd:.1%} >= {rm.dd_throttle_threshold:.1%}) — "
+                        f"slots capped at {slots}, risk x{throttle_risk_mult}"
+                    )
             committed = len(positions) + len(pending_for_symbol)
             if committed >= slots:
                 self._log(f"Already have {committed}/{slots} committed slot(s) — skipping")
@@ -477,6 +525,7 @@ class TradingScheduler:
                     "entry": targets.entry,
                     "current_sl": targets.stop_loss,
                 }
+                self._save_live_state()
 
             self._log_decision({
                 "action": (f"PLACE_{side.upper()}_MAKER"
@@ -502,6 +551,12 @@ class TradingScheduler:
         self._reconcile_pending_orders()
         try:
             positions = self.exchange.get_positions(self.config.trading.symbol)
+            global_positions = self.exchange.get_positions()
+            equity = self.exchange.get_account_equity()
+            realized_balance = equity - sum(
+                position.unrealized_pnl for position in global_positions
+            )
+            self._peak_balance = self._live_state.update_peak(realized_balance)
             if not positions:
                 return
 
@@ -581,6 +636,7 @@ class TradingScheduler:
                 symbol=pos.symbol, hold_side=pos.side, size=pos.size, new_sl=new_sl,
             )
             tracked["current_sl"] = new_sl
+            self._save_live_state()
             self._log(f"Trailing stop moved to ${new_sl:,.2f} ({tracked['direction']})")
         except Exception as e:
             self._log(f"Failed to update trailing stop: {e}")

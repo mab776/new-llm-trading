@@ -166,6 +166,15 @@ class TestLoadConfig:
         assert config.position_sizing.global_max_notional_pct == 0
         assert config.position_sizing.max_position_usd == 1_000_000_000
 
+    @pytest.mark.parametrize("name", (
+        "config.json", "config-eth.json", "config-sol.json",
+        "config-aggressive.json", "config-eth-aggressive.json",
+        "config-sol-aggressive.json",
+    ))
+    def test_shipped_profiles_use_deterministic_marginal_execution(self, name):
+        root = Path(__file__).resolve().parents[1]
+        assert load_config(root / name).openwebui.marginal_execution == "deterministic"
+
 
 class TestFiltersConfig:
     def test_defaults(self):

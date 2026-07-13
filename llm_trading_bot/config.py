@@ -18,6 +18,9 @@ class OpenWebUIConfig(BaseModel):
     api_key: str = ""
     model_ids: list[str] = ["llama3.1:8b"]
     timeout_seconds: int = 120
+    # deterministic matches the validated backtest: passed MARGINAL signals trade
+    # directly. consensus remains available for explicit experiments.
+    marginal_execution: Literal["deterministic", "consensus"] = "consensus"
 
 
 class LeverageTier(BaseModel):
