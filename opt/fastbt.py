@@ -220,6 +220,26 @@ DEFAULT_STRAT = {
     "dd_throttle": None,          # e.g. 0.10 -> while balance DD >= 10%, pyramiding pauses
     "dd_throttle_slots": 1,       # slots allowed while throttled (1 = full pause of pyramiding)
     "dd_throttle_risk": 1.0,      # risk multiplier applied while throttled (e.g. 0.5)
+    # Funding-as-signal (backlog #1). fund_metric[i] is a CAUSAL funding metric (EWM of the
+    # per-bar funding-rate sum, all events <= bar i — available at the bar's close). Extreme
+    # positive funding = crowded longs; extreme negative = crowded shorts. EDA (opt/eda_funding*)
+    # showed the effect is trend-confounded: high funding is fine in an uptrend but strongly
+    # bearish in a downtrend, so gating is trend-conditioned by default.
+    "funding_block_long": None,   # e.g. 1.5e-4 -> skip LONG entries when fund_metric >= this
+    "funding_block_short": None,  # e.g. 0.0    -> skip SHORT entries when fund_metric <= this
+    "funding_trend_gate": True,   # only block LONG when below ema200 (downtrend) and only block
+    #                               SHORT when above ema200 (uptrend); False = block regardless.
+    # Funding SHORT-boost: crowded longs in a downtrend (fund_metric >= funding_boost_thr AND
+    # below ema200) are the one cell with a real fade edge (EDA: -1.46%/30bar). Ease the SHORT
+    # entry thresholds there by this multiplier (<1 = more shorts) to capture it.
+    "funding_short_boost": None,  # e.g. 0.7 -> eff short thresholds x0.7 in that regime
+    "funding_boost_thr": 1.5e-4,  # funding level that counts as "crowded longs"
+    # Funding LONG-boost: very low/negative funding = crowded shorts / capitulation, the
+    # strongest raw EDA cell (+2.95%/30bar, robust in both trends). Ease LONG thresholds when
+    # fund_metric <= funding_long_thr. funding_long_trend_gate=True restricts to uptrends.
+    "funding_long_boost": None,   # e.g. 0.7 -> eff long thresholds x0.7 when funding very low
+    "funding_long_thr": 0.0,      # funding level that counts as "crowded shorts"
+    "funding_long_trend_gate": False,
 }
 
 
@@ -227,7 +247,8 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
              slip: float = 0.0, model_liquidation: bool = True,
              maintenance_margin: float = 0.005, strat: dict | None = None,
              funding_by_pos: "list[float] | None" = None,
-             exit_granularity: str = "primary") -> Result:
+             exit_granularity: str = "primary",
+             fund_metric: "list[float] | None" = None) -> Result:
     """slip: per-side price slippage fraction applied to market fills (entry, SL, time/EOB).
     model_liquidation: if True, a stop placed beyond the isolated-margin liquidation
     distance is capped at the liquidation price (position wipes ~full margin first).
@@ -373,8 +394,21 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         side_mult = 1.0
         if result.direction == Direction.BULLISH:
             side_mult = st["long_threshold_mult"]
+            # Funding long-boost: ease long thresholds when shorts are crowded (funding very low).
+            if (st["funding_long_boost"] is not None and fund_metric is not None):
+                fm = fund_metric[i]
+                trend_ok = (not st["funding_long_trend_gate"]
+                            or (prim.ema_200 is not None and bar_close > prim.ema_200))
+                if fm == fm and fm <= st["funding_long_thr"] and trend_ok:
+                    side_mult *= st["funding_long_boost"]
         elif result.direction == Direction.BEARISH:
             side_mult = st["short_threshold_mult"]
+            # Funding short-boost: ease short thresholds when longs are crowded in a downtrend.
+            if (st["funding_short_boost"] is not None and fund_metric is not None
+                    and prim.ema_200 is not None and bar_close < prim.ema_200):
+                fm = fund_metric[i]
+                if fm == fm and fm >= st["funding_boost_thr"]:
+                    side_mult *= st["funding_short_boost"]
         eff_marg = tier.marginal_threshold_low * side_mult + lp
         eff_strong = tier.strong_threshold * side_mult + lp
         if abs_score >= eff_strong:
@@ -412,6 +446,23 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     skip_volatile_regime=ft.skip_volatile_regime,
                 )
                 direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                # Funding-as-signal gate: skip entries into a crowded side. Trend-conditioned
+                # by default (high funding only fades longs in a downtrend; low funding only
+                # blocks shorts in an uptrend) — see DEFAULT_STRAT / opt/eda_funding.
+                fund_block = False
+                if fund_metric is not None:
+                    fm = fund_metric[i]
+                    if fm == fm:  # not NaN
+                        below = (prim.ema_200 is not None) and (bar_close < prim.ema_200)
+                        above = (prim.ema_200 is not None) and (bar_close > prim.ema_200)
+                        if (st["funding_block_long"] is not None and direction_str == "LONG"
+                                and fm >= st["funding_block_long"]
+                                and (below or not st["funding_trend_gate"])):
+                            fund_block = True
+                        if (st["funding_block_short"] is not None and direction_str == "SHORT"
+                                and fm <= st["funding_block_short"]
+                                and (above or not st["funding_trend_gate"])):
+                            fund_block = True
                 # DD-throttle: while balance drawdown >= threshold, pyramiding pauses
                 # (slots drop to 1) and risk is optionally cut, until equity recovers.
                 slots = st["max_positions"]
@@ -424,7 +475,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                 # Entry slot: default single position; pyramiding allows same-direction adds
                 can_enter = (len(port.open_trades) < slots
                              and all(t.direction == direction_str for t in port.open_trades))
-                if not fails and can_enter:
+                if not fails and can_enter and not fund_block:
                     # Vol-targeted leverage: normalize per-trade risk across vol regimes
                     lev_eff = tier.leverage
                     if st["vol_target_lev"] is not None and prim.atr_pct:

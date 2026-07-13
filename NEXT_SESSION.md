@@ -55,10 +55,12 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
 
 ## Improvement backlog, ranked (untried ideas)
 
-1. **Funding as a SIGNAL** — extreme positive funding = crowded longs (mean-reversion
-   fuel + paid to short). The series is already loaded in `driver._FUND` (per-bar sums;
-   raw series via `funding.fetch_funding_history`). Add a funding feature to scoring or
-   as an entry filter/bias; validate walk-forward. Likely the cheapest real alpha left.
+1. ~~**Funding as a SIGNAL**~~ — **DONE / REJECTED (Round 7, 2026-07-12).** Measured: the
+   raw funding→forward-return effect is real but trend-confounded and barely intersects the
+   strategy's actual entries; every apparent win is in-sample-concentrated and fails
+   held-out TEST. Config unchanged. Opt-in machinery + EDA kept in `fastbt`/`opt/eda_funding*.py`/
+   `opt/probe_funding.py`; full write-up in `opt/README.md` Round 7. Don't retry without a
+   materially different mechanism.
 2. **LLM consensus layer backtest** — the project's namesake, never measured! Backtest
    treats MARGINAL signals as auto-trades. Replay historical MARGINAL entries through
    Marc's ollama (192.168.0.70:11435, e.g. qwen3.5-122b / gpt-oss:120b — read the

@@ -158,10 +158,52 @@ ratchets once per bar on its favorable extreme (`last_trail_bar` gate). Guarded 
 `tests/test_trailing_cadence.py` + the updated scheduler test — do not "improve" this
 back to continuous trailing.
 
+## Round 7 — funding as a SIGNAL: measured, REJECTED (no robust edge)
+
+Backlog #1 ("extreme funding = crowded positioning → fade it") — measured, and it does
+**not** produce a robust edge for this strategy. Kept as opt-in machinery in `fastbt`
+(`fund_metric=` + `strat` keys `funding_block_long/short`, `funding_trend_gate`,
+`funding_short_boost`/`funding_long_boost` + thresholds; all default None ⇒ engine
+behavior unchanged, regression-verified: gate-on with no thresholds == baseline 227.6×
+to the digit). Repro: `opt/eda_funding*.py` (raw conditional forward returns) and
+`opt/probe_funding.py` (walk-forward TRAIN/TEST/chrono).
+
+**EDA (causal EWM-30 of per-bar funding, all events ≤ bar):** the raw funding→forward-
+return effect is real but **trend-confounded**. High funding is *fine* in an uptrend
+(+0.4…+2.0%/30bar) and only bearish in a downtrend (−0.3…−1.5%/30bar); the strongest
+cell is the bottom tail (very low/negative funding = crowded shorts/capitulation,
++2.95%/30bar, ~57-59% up, robust in both trends). A naive "fade high funding" rule would
+wrongly kill 2021-bull longs.
+
+**Strategy integration (2 bps + funding, select on TRAIN half-years, report held-out
+TEST + yearly chrono):** four integrations, none survives the discipline:
+- **Block LONG (high funding + downtrend)** — a **no-op**: trades unchanged (2427) at every
+  threshold. The trend-following strategy essentially never takes crowded-knife longs in a
+  downtrend, so the flagged-bad longs aren't trades it makes anyway.
+- **Block LONG (no trend gate)** — *hurts* (227×→126×): removes profitable bull-market longs.
+- **Block SHORT (low funding)** — ~no-op (≤5 trades).
+- **SHORT-boost (ease short thresholds, high funding + downtrend)** — TRAIN/FULL rise
+  (30.6→38, 227×→286×) but **held-out TEST is flat** (7.5→7.6) and the *entire* gain is
+  ~17 lucky shorts in **2021's** sharp pullbacks (766%→982%); **2022, the real bear, is
+  unchanged** (funding went negative there — "crowded longs" rarely triggered). In-sample
+  artifact.
+- **LONG-boost (ease long thresholds, very low funding)** — marginal and inconsistent:
+  gentle settings nudge TEST +5-8% (within noise), aggressive ones degrade TRAIN and flip
+  a fold negative (worst-fold −15%). No setting improves TRAIN and TEST together with all
+  folds green.
+
+**Conclusion:** funding's predictive signal barely intersects the strategy's actual
+entries, and every apparent win is in-sample-concentrated → **config unchanged**. Funding
+stays modeled as a realistic **cost** (Round 4), not a signal. Don't re-pitch funding-as-
+signal without a materially different mechanism (e.g. a positioning feature inside the
+composite score searched under strict held-out discipline — high overfit surface).
+
 ## Repro
 
 ```bash
 PYTHONPATH=. python opt/driver.py            # baseline eval over folds
+PYTHONPATH=. python opt/eda_funding.py       # funding predictive-edge EDA (Round 7)
+PYTHONPATH=. python opt/probe_funding.py     # funding-signal walk-forward probe (Round 7)
 PYTHONPATH=. python opt/search_wf.py 5000 7  # walk-forward search
 PYTHONPATH=. python opt/finalize.py 0        # validation battery on a candidate
 ```

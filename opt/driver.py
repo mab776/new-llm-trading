@@ -40,12 +40,13 @@ TEST_FOLDS  = [HALF_FOLDS[i] for i in (1, 3, 5, 7)]        # 21H2,22H2,23H2,24H2
 _PRE = None
 _BASE = None
 _FUND = None  # per-bar funding rate sums aligned to _PRE.timestamps
+_FMETRIC = None  # causal funding SIGNAL metric: EWM(span=30) of _FUND (all events <= bar i)
 
 
 def setup(symbol: str | None = None):
     """Load data + funding and precompute indicators. symbol overrides the config's
     exchange_symbol (e.g. "ETH/USDT:USDT" to evaluate the same strategy on ETH)."""
-    global _PRE, _BASE, _FUND
+    global _PRE, _BASE, _FUND, _FMETRIC
     if _PRE is not None:
         return
     cfg = load_config("config.json")
@@ -71,10 +72,14 @@ def setup(symbol: str | None = None):
                                      start_date="2020-08-01", end_date="2025-06-02")
         tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(cfg.trading.primary_timeframe, 4)
         _FUND = aggregate_funding_to_bars(fund, pd.DatetimeIndex(_PRE.timestamps), tf_hours)
+        # Causal signal metric: EWM of the per-bar funding sum (span 30 bars ≈ 5d @4h).
+        # Uses only events up to & including bar i, so it's leakage-free at the bar close.
+        _FMETRIC = pd.Series(_FUND).ewm(span=30, adjust=False).mean().tolist()
         print(f"  funding: {len(fund)} settlements loaded", file=sys.stderr)
     except Exception as e:
         print(f"  funding unavailable: {e}", file=sys.stderr)
         _FUND = None
+        _FMETRIC = None
 
 
 def build_config(overrides: dict) -> AppConfig:
@@ -109,7 +114,8 @@ def build_config(overrides: dict) -> AppConfig:
 
 def evaluate(overrides: dict, folds=FOLDS, slip: float = 0.0,
              model_liquidation: bool = True, strat: dict | None = None,
-             funding: bool = False, exit_granularity: str = "primary") -> dict:
+             funding: bool = False, exit_granularity: str = "primary",
+             fund_signal: bool = False) -> dict:
     cfg = build_config(overrides)
     per = {}
     rets = []
@@ -118,7 +124,8 @@ def evaluate(overrides: dict, folds=FOLDS, slip: float = 0.0,
     for name, sd, ed in folds:
         r = fb.simulate(_PRE, cfg, sd, ed, slip=slip, model_liquidation=model_liquidation,
                         strat=strat, funding_by_pos=_FUND if funding else None,
-                        exit_granularity=exit_granularity)
+                        exit_granularity=exit_granularity,
+                        fund_metric=_FMETRIC if fund_signal else None)
         per[name] = {"ret": r.return_pct, "dd": r.max_dd_pct, "tr": r.trades,
                      "wr": round(r.win_rate, 1), "pf": r.profit_factor}
         rets.append(r.return_pct)
