@@ -4,8 +4,8 @@ This document is for AI agents and developers working on the LLM Trading Bot pro
 
 ## Project Overview
 
-An automated cryptocurrency trading bot using a **hybrid intelligence approach**:
-deterministic technical analysis scoring combined with LLM reasoning for marginal signals.
+An automated cryptocurrency trading bot using deterministic technical analysis scoring, with an
+optional LLM consensus mode retained for marginal-signal experiments.
 
 ## Architecture
 
@@ -17,7 +17,8 @@ Market Data → Scoring Engine → Signal Router
                     ┌────────────┼────────────┐
                     ▼            ▼             ▼
                 STRONG       MARGINAL         WAIT
-            (Template)    (LLM Consensus)   (Skip)
+            (Template)   (Deterministic;    (Skip)
+                           LLM opt-in)
                     │            │
                     ▼            ▼
                Bitget Execution (TP/SL mandatory)
@@ -39,6 +40,8 @@ Market Data → Scoring Engine → Signal Router
 | **OpenWebUI Client** | `llm_trading_bot/openwebui_client.py` | API client + robust JSON parsing + consensus |
 | **Exchange** | `llm_trading_bot/exchange.py` | Bitget API — orders, balance, stop updates, safety checks |
 | **Trailing** | `llm_trading_bot/trailing.py` | Shared trailing-stop math (backtest + live, no drift) |
+| **Live state** | `llm_trading_bot/live_state.py` | Atomic persisted account peak + pending/trailing lifecycle state |
+| **Live orchestration** | `llm_trading_bot/orchestrator.py` | Serialized multi-symbol scheduling and process lock |
 | **Portfolio** | `llm_trading_bot/portfolio.py` | Fee-aware portfolio simulation |
 | **Backtesting** | `llm_trading_bot/backtesting.py` | Historical replay engine |
 | **Reporting** | `llm_trading_bot/reporting.py` | Charts, text reports, CSV export |
@@ -62,6 +65,10 @@ bar trades back to the limit, otherwise cancel. A fill is immediately exposed to
 fill bar's adverse-first SL/TP checks. The pending order counts as a position slot and is
 placed with mandatory preset SL+TP. `"taker"` remains available for comparison/fallback.
 
+The shipped configs set `openwebui.marginal_execution: "deterministic"`, matching the backtest's
+auto-trade behavior and the rejected Round 8/8c per-entry LLM gate. `"consensus"` remains available
+only as an explicit experiment; do not enable it for paper/live while claiming backtest parity.
+
 `scoring.points` contains the nine OOS/cross-asset-validated overrides selected in Round 14.
 All other point awards come from `openwebui_filter.DEFAULT_SCORING_POINTS`. Never copy these
 values into `scoring.py`; the filter remains the source of truth.
@@ -71,6 +78,13 @@ validated it as a return overlay under portfolio-wide ex-ante exposure caps. Rou
 that capped policy as the default and added separate `*-aggressive.json` profiles which inherit the
 base configs but disable the shared margin/notional caps. The shared math lives in
 `llm_trading_bot/exposure.py` and is used by fastbt, the full engine, and live scheduling.
+
+Round 18 corrected a later-discovered sub-bar harness cadence violation: 1h exit replay must keep
+the trailing stop fixed through all sub-bars and ratchet exactly once after the completed 4h bar.
+The corrected shared continuous results are 292,212.44× at 19.95% reported / 20.67% mark-to-market
+maxDD for the standard profile and 5.749 trillion× at 34.28% reported / 34.11% mark-to-market maxDD
+for aggressive. These path-dependent multiples are robustness results, never forecasts. The old
+Round 16/17 sub-bar headline results are superseded by `opt/cadence_correction_results.json`.
 
 These are implemented in both `backtesting.py` (full engine) and `grid_search.py` (fast backtest).
 
@@ -252,9 +266,11 @@ exists for a reason — it's the last line of defense.
   converted to base size at entry. Live reads the balance via
   `BitgetClient.get_available_balance()` (dry-run returns a default so sizing still works).
 - **Shared risk profiles**: the default capped profile targets natural realized shared-portfolio
-  maxDD of approximately 25% (Round 16: 25.03%). The explicit aggressive profile accepts the
-  validated ~36% historical maxDD in exchange for uncapped compounding; never present that
-  backtest as a forecast or assume live DD cannot be materially worse.
+  maxDD of approximately 25%. Corrected-cadence validation realizes 19.95% reported / 20.67% 4h
+  mark-to-market maxDD; a looser TRAIN winner failed held-out validation at 28.6%, so the existing
+  caps remain. The explicit aggressive profile accepts ~34% corrected historical maxDD in exchange
+  for uncapped compounding; never present that backtest as a forecast or assume live DD cannot be
+  materially worse.
 - **Trailing stops**: `trailing.py::compute_trailing_stop` is the single source of truth,
   used by `backtesting.py::_update_trailing_stop` AND `scheduler.py::_maybe_trail_stop`
   (which calls `exchange.modify_stop_loss`). A stop only ever moves in the trade's favour.
@@ -266,6 +282,9 @@ exists for a reason — it's the last line of defense.
 - **Fees compound significantly at high leverage** — a 0.06% fee at 20x = 2.4% per round trip
 - **Maker entry is not guaranteed** — post-only limits can miss or lose queue priority; live
   reconciliation cancels unfilled orders after one completed primary bar
+- **One account, one orchestrator** — multi-symbol live/paper execution must use
+  `--shared-configs` so exposure check/size/place is serialized and the account peak plus pending
+  and trailing state survive restarts. Do not run independent symbol processes against one budget.
 - **ATR adapts to volatility** — all targets (SL, TP1, TP2) scale with market conditions
 - **Partial exits** — TP1 closes a fraction (default 50%), TP2 closes the rest
 - **The OpenWebUI filter file is self-contained** — it contains the canonical indicator and scoring functions that `scoring.py` imports

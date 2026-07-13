@@ -476,8 +476,83 @@ results are in `opt/aggressive_profile_results.json`.
 
 These multiples are path-dependent backtest compounding, not forecasts. Touched maker limits do
 not model queue priority, and live slippage, outages, correlation, execution races, or a new regime
-can produce drawdown materially above 36%. Use the explicit aggressive filenames so the uncapped
+can produce drawdown materially above the corrected ~34% history. Use the explicit aggressive filenames so the uncapped
 policy cannot be mistaken for the standard profile.
+
+## Round 18 — sub-bar cadence correction + maker queue sensitivity
+
+An audit of `exit_granularity="sub"` found that its 1h replay was incorrectly ratcheting the
+trailing stop after every sub-bar. That contradicted the strategy's non-negotiable cadence: replay
+1h bars for exit ordering, keep the stop fixed intrabar, then ratchet once using the completed 4h
+bar's favorable extreme. `fastbt` and the shared harness now do exactly that, guarded by focused
+single/shared cadence tests. Round 16/17's sub-bar numbers are therefore superseded (their configs
+are unchanged):
+
+- Standard continuous: **292,212.44×**, 19.95% reported maxDD, 20.67% independent 4h MTM maxDD;
+  held-out TEST 104.99×. Standalone BTC/ETH/SOL: 301.18× / 2,436.13× / 66,125.23×.
+- Aggressive continuous: **5,748,971,553,896.69×**, 34.28% reported maxDD, 34.11% 4h MTM maxDD;
+  held-out TEST 686,340.87×. This enormous path-dependent multiple is emphatically not a forecast.
+- A fresh TRAIN-only exposure search chose 12% margin/3.0× notional/3 slots, but it failed held-out
+  maxDD at 28.6%. The shipped standard 4.4%/1.10× caps remain unchanged and validate at 19–21% DD.
+
+Maker queue stress is deterministic and reproducible: require 0–10bps penetration beyond the
+limit and/or accept only 70–95% of eligible touched orders using an order-identity hash. Across five
+seeds, 70% fills alone retained a median 79.3% of baseline log growth. The harsh combined 5bps +
+70% case retained 65.6%, produced 231.82 million× median continuous growth, kept every annual fold
+green, and reached 38.15% worst 4h MTM DD. This establishes broad historical execution tolerance;
+it does not replace paper measurement of actual fill rate. Full artifacts:
+`opt/cadence_correction_results.json`, `opt/queue_fill_sensitivity_results.json`, and
+`opt/portfolio_exposure_cadence_results.json`.
+
+## Round 19 — shared live orchestration/state parity: SHIPPED
+
+Added one-process `SharedTradingOrchestrator` plus atomic `SharedLiveState`. BTC/ETH/SOL cycles run
+serially and every account-wide exposure check → size → place sequence shares one re-entrant lock,
+so simultaneous symbol signals cannot independently consume the same capacity. A non-blocking
+process lock rejects a second orchestrator in the same deployment state directory.
+
+The realized account-balance peak, maker pending orders, and trailing context/current stop are
+atomically persisted and restored. Exchange equity minus open unrealized PnL reconstructs the
+realized balance used by the backtest DD throttle. Shared pending reconciliation and opposite-order
+cancellation are symbol-local. The legacy pending file migrates once without resurrecting stale
+orders. Shipped configs now set marginal execution to deterministic, matching both fast/full
+backtests and Round 8c's signal-only winner; three-model consensus remains an explicit opt-in mode.
+Start later (only with explicit authorization) via `main --mode live --shared-configs ...`; no
+live/testnet process was started in this round.
+
+## Round 20 — expanded walk-forward retuning: RETURN-ROBUST, NOT SHIPPED
+
+Expanded the Round 13 pilot with corrected 4h-close trailing cadence: five seeds at 60 and 300
+candidates/window, three seeds at 1,000, and explicit normalized parameter-turnover penalties.
+Every unpenalized run beat static across the chained unseen 2023/2024/2025H1 windows:
+
+- 60 trials: median 17.93× vs static 10.91×, median ratio 1.644 (range 1.608–1.966).
+- 300 trials: median 20.60×, ratio 1.889 (range 1.311–2.287).
+- 1,000 trials: median 22.03×, ratio 2.020 (range 1.950–2.358).
+
+The return effect is robust, including the previously weak 2025H1 window (wins in 80% / 60% /
+100% of the 60/300/1,000-trial runs). Parameter selection is not stable: every seed chose a unique
+winner in every deployment window. A 15-point turnover penalty changed nothing. Penalties of 200
+and 500 reduced median turnover only modestly (about 0.71→0.58 at 500); the 500-point study made
+one seed revert to static while the other four still chose different parameter sets. Automatic
+annual search/reload and a complete pre-deployment training window are also absent.
+
+Verdict: the adaptive *process* has convincing historical return evidence, but specific deployable
+parameters do not converge and operational retuning would confound the first execution-validation
+paper run. Keep static production configs for paper trading; retain this as the leading post-paper
+research item. Artifacts: `opt/walk_forward_robustness_results.json` and
+`opt/walk_forward_turnover_results.json`.
+
+## Round 21 — regime-switching parameters: REJECTED
+
+Added research-only causal overlays for regime-specific entry thresholds, leverage, and trailing
+activation/callback distances. Five independent 60-candidate searches selected only on shared
+aggressive TRAIN half-years tested bounded trending/weak/ranging/volatile variants. The unchanged
+static strategy ranked first in **all five searches**; consequently held-out TEST, chronological,
+continuous-improvement, and seed-stability acceptance checks all failed. Nothing was ported to
+engine/config/scheduler. The empty-overlay path remains exact and the research result is retained
+in `opt/regime_search_results.json`; do not retry this parameterization without a materially new
+regime mechanism.
 
 ## Repro
 

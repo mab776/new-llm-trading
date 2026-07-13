@@ -5,6 +5,58 @@ Copy-paste everything below the line into a fresh Claude Code session started in
 
 ---
 
+## LATEST handoff — pre-paper backlog complete (2026-07-13)
+
+This section supersedes older Round 16/17 numbers and backlog text below. No paper/testnet/live
+process has been started.
+
+- **Round 18 fixed a sub-bar harness cadence bug:** `exit_granularity="sub"` had ratcheted trailing
+  after each 1h bar. It now replays 1h exits with the stop fixed intrabar and ratchets exactly once
+  after the completed 4h bar, matching engine/live strategy cadence.
+- Corrected standard shared continuous: **292,212.44×**, 19.95% reported / 20.67% independent 4h
+  mark-to-market maxDD. Standalone BTC/ETH/SOL: 301.18× / 2,436.13× / 66,125.23×.
+- Corrected aggressive shared continuous: **5,748,971,553,896.69×**, 34.28% reported / 34.11% 4h
+  mark-to-market maxDD. This path-dependent multiple is not a forecast; live DD can be far worse.
+- Queue sensitivity is complete across five deterministic seeds. The harsh combined 5bps
+  penetration + 70% eligible-fill case retains 65.6% median log growth, stays green in every
+  annual fold, and reaches 38.15% worst 4h MTM DD.
+- The standard exposure policy was re-searched. A looser TRAIN winner failed held-out DD at 28.6%,
+  so the shipped 4.4% margin / 1.10× notional caps remain unchanged.
+- **Round 19 shared live parity shipped:** one multi-symbol orchestrator serializes the account-wide
+  exposure check/size/place sequence; a process lock rejects duplicates; realized-balance peak,
+  maker pending orders, and trailing context persist atomically across restarts.
+- Shipped configs now use deterministic marginal execution, matching fast/full backtests and the
+  Round 8c signal-only winner. LLM consensus remains explicit opt-in only.
+- **Round 20 walk-forward expansion:** return advantage is robust (all seeds/search sizes beat
+  static; median ratios 1.64×, 1.89×, and 2.02× at 60/300/1,000 trials), but every seed/window chose
+  a different parameter winner and even high turnover penalties did not produce convergence. Keep
+  static configs for the first paper run; operational retuning is post-paper research.
+- **Round 21 regime switching rejected:** the unchanged static strategy won all five independent
+  TRAIN searches. No regime overlay was ported.
+- Verification: **329 tests pass**; full-engine↔fastbt 2024 maker parity remains exactly equal
+  (+226.20%, 562 trades, 22.03% maxDD, no mismatches).
+
+### Only next externally visible task: paper trading (requires explicit start approval)
+
+Use one shared testnet process, not independent symbol stacks:
+
+```bash
+python -m llm_trading_bot.main --mode live --shared-configs \
+  config-aggressive.json config-eth-aggressive.json config-sol-aggressive.json
+```
+
+The command trades immediately. Before running it, supply testnet credentials and get explicit
+approval to start. Then add the requested Portainer/Grafana deployment around this single
+orchestrator and measure actual maker fill rate plus live-vs-backtest drift.
+
+Artifacts: `opt/cadence_correction_results.json`, `opt/queue_fill_sensitivity_results.json`,
+`opt/portfolio_exposure_cadence_results.json`, `opt/walk_forward_robustness_results.json`,
+`opt/walk_forward_turnover_results.json`, and `opt/regime_search_results.json`.
+
+---
+
+## Historical handoff through Round 17 (superseded where the latest section differs)
+
 Continue the profit-maximization loop on this trading bot. Read `AGENTS.md` and
 `opt/README.md` first — they document the architecture and all seventeen completed
 optimization rounds. This file is the handoff; trust it over stale prose elsewhere.
@@ -120,7 +172,7 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
 - ~~**Uncapped aggressive profile**~~ — **DONE / SHIPPED SEPARATELY (Round 17).** Standard configs
   remain capped; the `*-aggressive.json` inheritance profiles reproduce 920,165.82× / 35.95% DD.
 
-## Improvement backlog, ranked for the aggressive profile (2026-07-13)
+## Historical improvement backlog (completed/superseded by the latest section)
 
 1. **Queue/fill sensitivity** — haircut touched maker fills or probabilistically model queue
    position. This is now the highest-value stress test because the aggressive result assumes every
@@ -139,8 +191,6 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
    Live-vs-backtest drift is the ultimate validation. Maker lifecycle is ready. Do not start
    unprompted.
 
-Work the loop: start with aggressive queue/fill sensitivity, implement in fastbt first, validate
-across TRAIN/TEST/chronological/continuous periods,
-port winners to engine+config+scheduler with tests, verify parity, update
-`opt/README.md` + `AGENTS.md`, commit. Ask Marc before anything irreversible or
-externally visible. He reviews via git log — keep commits self-explanatory.
+All non-paper items in this historical backlog were completed in Rounds 18–21. Use the latest
+section at the top for current status. Ask Marc before anything irreversible or externally visible;
+he reviews via git log, so keep commits self-explanatory.
