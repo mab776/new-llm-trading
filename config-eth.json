@@ -132,6 +132,13 @@
         "risk_pct_per_trade": 0.02,
         "max_position_usd": 100,
         "max_positions": 3,
-        "conviction_exponent": 1.0
+        "conviction_exponent": 1.0,
+        "anti_martingale_step": 0.05,
+        "anti_martingale_min": 0.7,
+        "anti_martingale_max": 1.1,
+        "portfolio_risk_multiplier": 1.0,
+        "global_max_positions": 0,
+        "global_max_margin_pct": 0.044,
+        "global_max_notional_pct": 1.1
     }
 }

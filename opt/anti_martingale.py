@@ -27,6 +27,10 @@ def strategy(step: float, minimum: float, maximum: float) -> dict:
         "anti_martingale_step": step,
         "anti_martingale_min": minimum,
         "anti_martingale_max": maximum,
+        "global_max_positions": None,
+        "portfolio_risk_multiplier": 1.0,
+        "global_max_margin_pct": None,
+        "global_max_notional_pct": None,
     }
 
 

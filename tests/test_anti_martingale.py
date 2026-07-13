@@ -2,7 +2,9 @@
 
 import pytest
 
-from opt.fastbt import anti_martingale_multiplier, update_outcome_streak
+from llm_trading_bot.exposure import (
+    anti_martingale_multiplier, update_outcome_streak,
+)
 
 
 def test_signed_outcome_streak_resets_when_outcome_flips():

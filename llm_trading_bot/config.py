@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class OpenWebUIConfig(BaseModel):
@@ -132,6 +132,19 @@ class PositionSizingConfig(BaseModel):
     max_positions: int = 1             # Concurrent SAME-direction positions (pyramiding); 1 = classic
     conviction_exponent: float = 0.0   # 0 = off; scale risk by (|score|/strong_threshold)^k,
     #                                    clamped to [0.5, 1.5] — bigger signals get bigger size
+    anti_martingale_step: float = Field(0.0, ge=0)  # signed streak step; 0 = disabled
+    anti_martingale_min: float = Field(0.7, gt=0)   # lower multiplier after losses
+    anti_martingale_max: float = Field(1.1, gt=0)   # upper multiplier after wins
+    portfolio_risk_multiplier: float = Field(1.0, gt=0)  # before exposure caps
+    global_max_positions: int = Field(0, ge=0)      # all symbols + resting entries; 0 = off
+    global_max_margin_pct: float = Field(0.0, ge=0) # committed margin / equity; 0 = off
+    global_max_notional_pct: float = Field(0.0, ge=0)  # entry notional / equity; 0 = off
+
+    @model_validator(mode="after")
+    def validate_anti_martingale_bounds(self):
+        if self.anti_martingale_min > self.anti_martingale_max:
+            raise ValueError("anti_martingale_min must be <= anti_martingale_max")
+        return self
 
 
 class BacktestingConfig(BaseModel):

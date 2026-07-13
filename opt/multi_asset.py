@@ -15,16 +15,16 @@ from typing import Optional
 import pandas as pd
 
 from llm_trading_bot.entry import PendingEntry, maker_limit_touched
+from llm_trading_bot.exposure import (
+    anti_martingale_multiplier, cap_risk_pct, update_outcome_streak,
+)
 from llm_trading_bot.funding import funding_cost
 from llm_trading_bot.portfolio import Portfolio
 from llm_trading_bot.scoring import (
     Direction, SignalStrength, apply_pre_trade_filters, calculate_targets,
     compute_composite_score,
 )
-from opt.fastbt import (
-    DEFAULT_STRAT, Precomputed, _check_exits, anti_martingale_multiplier,
-    update_outcome_streak,
-)
+from opt.fastbt import DEFAULT_STRAT, Precomputed, _check_exits
 
 
 @dataclass
@@ -73,6 +73,39 @@ def _loss_penalty(state: _AssetState) -> float:
     return base
 
 
+def committed_exposure(port: Portfolio, pending: list[PendingEntry],
+                       balance: float) -> tuple[int, float, float]:
+    """Return global committed slots, isolated margin, and entry notional.
+
+    Resting maker entries count because they can fill without another strategy
+    decision. Pending size is estimated from the risk percentage locked in when
+    the order was placed, matching the fast backtest's fill sizing convention.
+    """
+    slots = len(port.open_trades) + len(pending)
+    margin = sum(
+        t.remaining_size * t.entry_price / t.leverage
+        for t in port.open_trades if t.leverage > 0
+    )
+    notional = sum(t.remaining_size * t.entry_price for t in port.open_trades)
+    for order in pending:
+        order_margin = balance * order.risk_pct
+        margin += order_margin
+        notional += order_margin * order.leverage
+    return slots, margin, notional
+
+
+def apply_exposure_caps(risk_pct: float, leverage: int, balance: float,
+                        committed_margin: float, committed_notional: float,
+                        strategy: dict) -> float:
+    """Scale a proposed order to remaining ex-ante portfolio capacity."""
+    return cap_risk_pct(
+        risk_pct, leverage, balance, committed_margin, committed_notional,
+        risk_multiplier=strategy["portfolio_risk_multiplier"],
+        max_margin_pct=strategy["global_max_margin_pct"] or 0.0,
+        max_notional_pct=strategy["global_max_notional_pct"] or 0.0,
+    )
+
+
 def simulate_multi(
     assets: dict[str, AssetInput], start_date: str, end_date: str,
     *, slip: float = 0.0, model_liquidation: bool = True,
@@ -82,10 +115,20 @@ def simulate_multi(
     """Replay multiple symbols against one compounding balance."""
     if not assets:
         raise ValueError("At least one asset is required")
+    first = next(iter(assets.values())).config
+    ps_first = first.position_sizing
     strategy = dict(DEFAULT_STRAT)
+    strategy.update({
+        "anti_martingale_step": getattr(ps_first, "anti_martingale_step", 0.0),
+        "anti_martingale_min": getattr(ps_first, "anti_martingale_min", 0.7),
+        "anti_martingale_max": getattr(ps_first, "anti_martingale_max", 1.1),
+        "portfolio_risk_multiplier": getattr(ps_first, "portfolio_risk_multiplier", 1.0),
+        "global_max_positions": getattr(ps_first, "global_max_positions", 0) or None,
+        "global_max_margin_pct": getattr(ps_first, "global_max_margin_pct", 0.0) or None,
+        "global_max_notional_pct": getattr(ps_first, "global_max_notional_pct", 0.0) or None,
+    })
     if strat:
         strategy.update(strat)
-    first = next(iter(assets.values())).config
     for symbol, item in assets.items():
         cfg = item.config
         if cfg.backtesting.initial_balance != first.backtesting.initial_balance:
@@ -281,7 +324,14 @@ def simulate_multi(
                         throttled = True
                 committed = len(open_symbol) + (state.pending is not None)
                 same_side = all(t.direction == direction for t in open_symbol)
-                if not failures and committed < slots and same_side:
+                pending_all = [s.pending for s in states.values() if s.pending is not None]
+                global_slots, committed_margin, committed_notional = committed_exposure(
+                    port, pending_all, port.balance
+                )
+                global_limit = strategy["global_max_positions"]
+                global_slot_ok = global_limit is None or global_slots < global_limit
+                if (not failures and committed < slots and same_side
+                        and global_slot_ok):
                     risk_eff = ps.risk_pct_per_trade
                     if ps.conviction_exponent > 0 and strong > 0:
                         mult = (abs_score / strong) ** ps.conviction_exponent
@@ -294,6 +344,12 @@ def simulate_multi(
                         strategy["anti_martingale_min"],
                         strategy["anti_martingale_max"],
                     )
+                    risk_eff = apply_exposure_caps(
+                        risk_eff, tier.leverage, port.balance,
+                        committed_margin, committed_notional, strategy,
+                    )
+                    if risk_eff <= 0:
+                        continue
                     if tr.entry_mode == "maker":
                         state.pending = PendingEntry(
                             direction, bar_close, targets.stop_loss,

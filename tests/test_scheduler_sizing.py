@@ -82,6 +82,37 @@ class TestLiveSizing:
         sched._execute_trade(_decision())
         assert called["placed"] is False
 
+    def test_exchange_wide_exposure_cap_scales_new_order(self, monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        cfg = _config()
+        cfg.position_sizing.max_position_usd = 1000
+        cfg.position_sizing.global_max_margin_pct = .01
+        sched = TradingScheduler(cfg)
+        monkeypatch.setattr(sched.exchange, "get_available_balance", lambda *a, **k: 5000.0)
+        monkeypatch.setattr(sched.exchange, "get_account_equity", lambda *a, **k: 5000.0)
+
+        existing = Position(
+            symbol="ETH-USDT", side="long", size=.1, entry_price=4000,
+            unrealized_pnl=0, leverage=10, margin_mode="crossed",
+            timestamp="t", margin_size=40,
+        )
+        monkeypatch.setattr(
+            sched.exchange, "get_positions",
+            lambda symbol=None: [] if symbol else [existing],
+        )
+        monkeypatch.setattr(sched.exchange, "get_pending_orders", lambda: [])
+        captured = {}
+        monkeypatch.setattr(
+            sched.exchange, "place_order",
+            lambda symbol, side, size, targets, leverage: captured.update(size=size)
+            or type("R", (), {"order_id": "x"})(),
+        )
+
+        sched._execute_trade(_decision())
+
+        # Equity cap is $50 margin; $40 is already committed, so only $10 remains.
+        assert captured["size"] == pytest.approx((10 * 10) / 50000)
+
 
 class TestLiveTrailing:
     def test_trailing_update_moves_stop_up_on_completed_bar(self, monkeypatch, tmp_path):

@@ -22,6 +22,9 @@ import schedule
 from llm_trading_bot.config import AppConfig
 from llm_trading_bot.data import configure_cache, fetch_multi_timeframe
 from llm_trading_bot.exchange import BitgetClient, SafetyViolation
+from llm_trading_bot.exposure import (
+    anti_martingale_multiplier, cap_risk_pct, outcome_streak,
+)
 from llm_trading_bot.openwebui_client import run_consensus
 from llm_trading_bot.routing import RoutingDecision, route_signal
 from llm_trading_bot.scoring import Direction, SignalStrength, calculate_indicators
@@ -302,6 +305,7 @@ class TradingScheduler:
         want_side = "long" if targets.direction == Direction.BULLISH else "short"
 
         balance = self.exchange.get_available_balance()
+        equity = self.exchange.get_account_equity(dry_run_default=balance)
 
         # DD circuit-breaker (tail insurance, mirrors backtest engine): while the
         # balance drawdown from its in-session peak >= threshold, cap entry slots and
@@ -326,8 +330,21 @@ class TradingScheduler:
         # (pyramiding); never stack against an opposite-direction position.
         try:
             positions = self.exchange.get_positions(self.config.trading.symbol)
+            global_positions = self.exchange.get_positions()
+            exchange_pending = self.exchange.get_pending_orders()
+            exchange_pending_ids = {p.order_id for p in exchange_pending}
+            local_pending = [
+                p for oid, p in self._pending_orders.items()
+                if oid not in exchange_pending_ids
+            ]
             pending_for_symbol = [p for p in self._pending_orders.values()
                                   if p["symbol"] == self.config.trading.symbol]
+            pending_for_symbol += [
+                {"direction": "LONG" if p.side in ("long", "buy") else "SHORT"}
+                for p in exchange_pending
+                if p.symbol == self.config.trading.symbol
+                and p.order_id not in self._pending_orders
+            ]
             committed = len(positions) + len(pending_for_symbol)
             if committed >= slots:
                 self._log(f"Already have {committed}/{slots} committed slot(s) — skipping")
@@ -339,8 +356,16 @@ class TradingScheduler:
                    for p in pending_for_symbol):
                 self._log("Resting order in the opposite direction — not stacking, skipping")
                 return
+            global_committed = len(global_positions) + len(exchange_pending) + len(local_pending)
+            if ps.global_max_positions > 0 and global_committed >= ps.global_max_positions:
+                self._log(
+                    f"GLOBAL EXPOSURE: {global_committed}/{ps.global_max_positions} "
+                    "committed slots — skipping"
+                )
+                return
         except Exception as e:
-            self._log(f"Warning: Could not check positions: {e}")
+            self._log(f"Exposure check failed — skipping new order: {e}")
+            return
 
         # Risk-based position sizing: commit min(balance * risk_pct, max_usd) as margin,
         # leverage it up to the notional, then convert to base-currency size at entry.
@@ -349,7 +374,51 @@ class TradingScheduler:
         if ps.conviction_exponent > 0 and tier.strong_threshold > 0:
             m = (abs(decision.scoring_result.raw_score) / tier.strong_threshold) ** ps.conviction_exponent
             risk_pct *= max(0.5, min(1.5, m))
-        margin = min(balance * risk_pct, ps.max_position_usd)
+        if ps.anti_martingale_step > 0:
+            try:
+                history = self.exchange.get_position_history(
+                    self.config.trading.symbol, limit=100
+                )
+                history = sorted(history, key=lambda row: int(row.get("utime", 0) or 0))
+                streak = outcome_streak([
+                    float(row.get("netProfit", 0) or 0) for row in history
+                ])
+            except Exception as e:
+                streak = 0
+                self._log(f"Outcome-streak history unavailable; using neutral size: {e}")
+            streak_mult = anti_martingale_multiplier(
+                streak, ps.anti_martingale_step,
+                ps.anti_martingale_min, ps.anti_martingale_max,
+            )
+            risk_pct *= streak_mult
+        committed_margin = sum(
+            p.margin_size if p.margin_size > 0
+            else (p.size * p.entry_price / p.leverage if p.leverage > 0 else 0)
+            for p in global_positions
+        )
+        committed_notional = sum(
+            p.size * p.entry_price for p in global_positions
+        )
+        for pending in exchange_pending:
+            remaining = max(0.0, pending.size - pending.filled_size)
+            pending_notional = remaining * pending.price
+            committed_notional += pending_notional
+            if pending.leverage > 0:
+                committed_margin += pending_notional / pending.leverage
+        for pending in local_pending:
+            pending_notional = float(pending["size"]) * float(pending["entry"])
+            leverage = int(pending.get("leverage", tier.leverage))
+            committed_notional += pending_notional
+            if leverage > 0:
+                committed_margin += pending_notional / leverage
+        risk_pct = cap_risk_pct(
+            risk_pct, tier.leverage, equity,
+            committed_margin, committed_notional,
+            risk_multiplier=ps.portfolio_risk_multiplier,
+            max_margin_pct=ps.global_max_margin_pct,
+            max_notional_pct=ps.global_max_notional_pct,
+        )
+        margin = min(equity * risk_pct, balance, ps.max_position_usd)
         size = (margin * tier.leverage) / targets.entry if targets.entry > 0 else 0.0
         if size <= 0:
             self._log(
@@ -396,6 +465,7 @@ class TradingScheduler:
                     "take_profit_1": targets.take_profit_1,
                     "take_profit_2": targets.take_profit_2,
                     "size": size,
+                    "leverage": tier.leverage,
                     "placed_at": placed_at,
                     "expires_at": expires_at,
                 }

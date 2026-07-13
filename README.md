@@ -81,13 +81,15 @@ uncovered (backtests must assume the adverse extreme hits first), and full resul
 The current configuration uses a post-only maker limit at the completed decision bar's
 close, good for the following primary bar. Honest 1h sub-bar replay (2021-01→2025-06,
 2bps market-exit slippage, liquidation and perp funding modeled) remains profitable in
-every yearly fold on **BTC (70.28×), ETH (157.45×), and SOL (777.00×)** after a constrained
+every yearly fold on **BTC (30.08×), ETH (92.46×), and SOL (492.23×)** with the shipped
+portfolio exposure controls after a constrained
 scoring-point search selected on BTC TRAIN and validated on BTC TEST plus untouched ETH/SOL.
 These multiples
 are robustness signals, not forecasts; touched OHLC limits do not model real queue position.
 Structural changes vs the original design:
 **trailing stops ON** (activation 0.94%, callback 0.33%), **pyramiding** (up to 3
-same-direction positions), **conviction sizing** (risk scales with |score|), and an
+same-direction positions), **conviction sizing** (risk scales with |score|), bounded
+**anti-martingale sizing**, portfolio-wide **margin/notional caps**, and an
 **opposite-signal exit** (close on a hard composite flip, threshold 20). A shared
 BTC+ETH+SOL portfolio harness and leakage-free annual retuning/scoring-point experiments
 live under `opt/`; see `opt/README.md` for validation results and caveats.

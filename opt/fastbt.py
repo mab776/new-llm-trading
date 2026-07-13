@@ -31,6 +31,9 @@ from llm_trading_bot.scoring import (
 )
 from llm_trading_bot.portfolio import Portfolio
 from llm_trading_bot.entry import PendingEntry, maker_limit_touched
+from llm_trading_bot.exposure import (
+    anti_martingale_multiplier, cap_risk_pct, update_outcome_streak,
+)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -235,6 +238,11 @@ DEFAULT_STRAT = {
     "short_threshold_mult": 1.0,  # >1 = stricter shorts (asymmetry)
     "long_threshold_mult": 1.0,
     "max_positions": 1,           # >1 allows pyramiding same-direction entries
+    # Ex-ante exposure controls; None preserves the uncapped behavior.
+    "global_max_positions": None, # open positions + resting maker entries
+    "global_max_margin_pct": None,# committed isolated margin / current balance
+    "global_max_notional_pct": None, # committed entry notional / current balance
+    "portfolio_risk_multiplier": 1.0, # scales every new trade before caps
     "marginal_size_frac": 1.0,    # size fraction for MARGINAL (vs STRONG) entries
     "dd_throttle": None,          # e.g. 0.10 -> while balance DD >= 10%, pyramiding pauses
     "dd_throttle_slots": 1,       # slots allowed while throttled (1 = full pause of pyramiding)
@@ -262,22 +270,6 @@ DEFAULT_STRAT = {
 }
 
 
-def update_outcome_streak(streak: int, won: bool) -> int:
-    """Return the signed consecutive closed-trade streak (wins +, losses -)."""
-    if won:
-        return streak + 1 if streak > 0 else 1
-    return streak - 1 if streak < 0 else -1
-
-
-def anti_martingale_multiplier(streak: int, step: float,
-                               minimum: float = 0.5,
-                               maximum: float = 1.5) -> float:
-    """Causal risk multiplier for the streak known before an entry is placed."""
-    if step <= 0:
-        return 1.0
-    return max(minimum, min(maximum, 1.0 + streak * step))
-
-
 def simulate(pre: Precomputed, config, start_date: str, end_date: str,
              slip: float = 0.0, model_liquidation: bool = True,
              maintenance_margin: float = 0.005, strat: dict | None = None,
@@ -299,6 +291,16 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     st["max_positions"] = getattr(ps_cfg, "max_positions", 1)
     conv = getattr(ps_cfg, "conviction_exponent", 0.0)
     st["conviction_sizing"] = conv if conv > 0 else None
+    st["anti_martingale_step"] = getattr(ps_cfg, "anti_martingale_step", 0.0)
+    st["anti_martingale_min"] = getattr(ps_cfg, "anti_martingale_min", 0.7)
+    st["anti_martingale_max"] = getattr(ps_cfg, "anti_martingale_max", 1.1)
+    st["portfolio_risk_multiplier"] = getattr(ps_cfg, "portfolio_risk_multiplier", 1.0)
+    gslots = getattr(ps_cfg, "global_max_positions", 0)
+    st["global_max_positions"] = gslots if gslots > 0 else None
+    gmargin = getattr(ps_cfg, "global_max_margin_pct", 0.0)
+    st["global_max_margin_pct"] = gmargin if gmargin > 0 else None
+    gnotional = getattr(ps_cfg, "global_max_notional_pct", 0.0)
+    st["global_max_notional_pct"] = gnotional if gnotional > 0 else None
     opp = getattr(config.risk_management, "opposite_exit_threshold", 0.0)
     st["opposite_exit"] = opp if opp > 0 else None
     ddt = getattr(config.risk_management, "dd_throttle_threshold", 0.0)
@@ -566,8 +568,11 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                 # Entry slot: default single position; pyramiding allows same-direction adds.
                 # A resting maker limit counts as a committed slot and must agree in direction.
                 committed = len(port.open_trades) + (1 if pending is not None else 0)
+                global_limit = st["global_max_positions"]
+                global_slot_ok = global_limit is None or committed < global_limit
                 pend_ok = pending is None or pending.direction == direction_str
                 can_enter = (committed < slots
+                             and global_slot_ok
                              and all(t.direction == direction_str for t in port.open_trades)
                              and pend_ok)
                 if not fails and can_enter and not fund_block:
@@ -598,6 +603,26 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                             outcome_streak, st["anti_martingale_step"],
                             st["anti_martingale_min"], st["anti_martingale_max"],
                         )
+                        committed_margin = sum(
+                            t.remaining_size * t.entry_price / t.leverage
+                            for t in port.open_trades if t.leverage > 0
+                        )
+                        committed_notional = sum(
+                            t.remaining_size * t.entry_price for t in port.open_trades
+                        )
+                        if pending is not None:
+                            pending_margin = port.balance * pending.risk_pct
+                            committed_margin += pending_margin
+                            committed_notional += pending_margin * pending.leverage
+                        risk_eff = cap_risk_pct(
+                            risk_eff, lev_eff, port.balance,
+                            committed_margin, committed_notional,
+                            risk_multiplier=st["portfolio_risk_multiplier"],
+                            max_margin_pct=st["global_max_margin_pct"] or 0.0,
+                            max_notional_pct=st["global_max_notional_pct"] or 0.0,
+                        )
+                        if risk_eff <= 0:
+                            continue
                         if st["entry_mode"] == "maker":
                             # Rest a limit at this bar's close; it fills next bar only if
                             # price trades back to it (checked at the top of the next bar).

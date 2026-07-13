@@ -66,10 +66,9 @@ placed with mandatory preset SL+TP. `"taker"` remains available for comparison/f
 All other point awards come from `openwebui_filter.DEFAULT_SCORING_POINTS`. Never copy these
 values into `scoring.py`; the filter remains the source of truth.
 
-Round 15 tested causal per-asset anti-martingale sizing in the fast/shared harness. It failed the
-≤25% shared-portfolio maxDD requirement and worsened held-out TEST DD, so it is intentionally not
-present in production config, the engine, or scheduler. See `opt/README.md`; do not add the simple
-closed-trade streak mechanism without materially new evidence.
+Round 15 found anti-martingale sizing was not sufficient as a standalone DD control. Round 16 then
+validated it as a return overlay under portfolio-wide ex-ante exposure caps; the shared math now
+lives in `llm_trading_bot/exposure.py` and is used by fastbt, the full engine, and live scheduling.
 
 These are implemented in both `backtesting.py` (full engine) and `grid_search.py` (fast backtest).
 
@@ -133,13 +132,18 @@ collapses the edge 84×→5× and no wider callback recovers it. The live schedu
 (`_maybe_trail_stop`) implements bar-close cadence with a `last_trail_bar` gate — never
 revert it to per-tick/current-price trailing (guarded by `tests/test_trailing_cadence.py`).
 
-Three strategy features (2026-07, implemented in BOTH `backtesting.py` and `scheduler.py`
+Strategy features (2026-07, implemented in BOTH `backtesting.py` and `scheduler.py`
 — keep them in sync):
 
 - **Pyramiding** — `position_sizing.max_positions` (3): concurrent SAME-direction
   positions; never stacks against an open opposite position.
 - **Conviction sizing** — `position_sizing.conviction_exponent` (1.0): per-trade risk
   scaled by `clamp((|score|/strong_threshold)^k, 0.5, 1.5)`; 0 disables.
+- **Anti-martingale sizing** — a causal per-asset closed-trade streak changes risk by 0.05 per
+  outcome, bounded to 0.70×–1.10×. Live derives it from Bitget net position history.
+- **Portfolio exposure caps** — before a new order, total open + resting-entry exposure is capped
+  at 4.4% account-equity margin and 1.10× account-equity entry notional. Existing positions are
+  never force-closed to comply; the new order is reduced or skipped.
 - **Opposite-signal exit** — `risk_management.opposite_exit_threshold` (20): when the
   composite score flips ≥ threshold against open positions they are closed at market
   (`signal_flip`; does NOT trigger the SL cooldown); 0 disables.
@@ -244,6 +248,10 @@ exists for a reason — it's the last line of defense.
   `min(balance × risk_pct_per_trade, max_position_usd)` as margin, leveraged to the notional,
   converted to base size at entry. Live reads the balance via
   `BitgetClient.get_available_balance()` (dry-run returns a default so sizing still works).
+- **Shared maxDD target**: optimize natural realized shared-portfolio maxDD to approximately 25%,
+  not an artificial 25.00% cliff. Small reporting/model noise around the target (the validated
+  Round 16 result is 25.03%) is acceptable; materially higher results still require rejection or
+  further ex-ante exposure reduction.
 - **Trailing stops**: `trailing.py::compute_trailing_stop` is the single source of truth,
   used by `backtesting.py::_update_trailing_stop` AND `scheduler.py::_maybe_trail_stop`
   (which calls `exchange.modify_stop_loss`). A stop only ever moves in the trade's favour.

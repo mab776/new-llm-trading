@@ -20,6 +20,9 @@ import pandas as pd
 
 from llm_trading_bot.config import AppConfig
 from llm_trading_bot.entry import PendingEntry, maker_limit_touched
+from llm_trading_bot.exposure import (
+    anti_martingale_multiplier, cap_risk_pct, update_outcome_streak,
+)
 from llm_trading_bot.portfolio import Portfolio, PortfolioStats, Trade
 from llm_trading_bot.trailing import compute_trailing_stop
 from llm_trading_bot.scoring import (
@@ -92,6 +95,7 @@ class BacktestEngine:
         # Risk management state (imported from predecessor project)
         self.risk_cfg = risk_cfg
         self.consecutive_losses = 0
+        self.outcome_streak = 0
         self.candles_since_last_loss = 999  # large initial = no penalty
         self.cooldown_remaining = 0  # candles to skip after SL
         self.pending_entry: Optional[PendingEntry] = None
@@ -178,6 +182,9 @@ class BacktestEngine:
         Update consecutive loss tracking and cooldown after a trade closes.
         Imported from predecessor project's risk management system.
         """
+        self.outcome_streak = update_outcome_streak(
+            self.outcome_streak, trade.net_pnl > 0
+        )
         if trade.net_pnl <= 0:
             self.consecutive_losses += 1
             self.candles_since_last_loss = 0
@@ -484,9 +491,12 @@ class BacktestEngine:
                             throttled = True
 
                     committed = len(open_now) + (1 if self.pending_entry else 0)
+                    global_limit = ps_cfg.global_max_positions
+                    global_slot_ok = global_limit <= 0 or committed < global_limit
                     pending_ok = (self.pending_entry is None
                                   or self.pending_entry.direction == direction_str)
                     can_enter = (committed < slots
+                                 and global_slot_ok
                                  and all(t.direction == direction_str for t in open_now)
                                  and pending_ok)
 
@@ -500,6 +510,34 @@ class BacktestEngine:
                             risk_eff *= max(0.5, min(1.5, m))
                         if throttled:
                             risk_eff *= self.risk_cfg.dd_throttle_risk
+                        risk_eff *= anti_martingale_multiplier(
+                            self.outcome_streak, ps_cfg.anti_martingale_step,
+                            ps_cfg.anti_martingale_min, ps_cfg.anti_martingale_max,
+                        )
+                        committed_margin = sum(
+                            t.remaining_size * t.entry_price / t.leverage
+                            for t in open_now if t.leverage > 0
+                        )
+                        committed_notional = sum(
+                            t.remaining_size * t.entry_price for t in open_now
+                        )
+                        if self.pending_entry is not None:
+                            pending_margin = (
+                                self.portfolio.balance * self.pending_entry.risk_pct
+                            )
+                            committed_margin += pending_margin
+                            committed_notional += (
+                                pending_margin * self.pending_entry.leverage
+                            )
+                        risk_eff = cap_risk_pct(
+                            risk_eff, self.tier.leverage, self.portfolio.balance,
+                            committed_margin, committed_notional,
+                            risk_multiplier=ps_cfg.portfolio_risk_multiplier,
+                            max_margin_pct=ps_cfg.global_max_margin_pct,
+                            max_notional_pct=ps_cfg.global_max_notional_pct,
+                        )
+                        if risk_eff <= 0:
+                            continue
                         if self.config.trading.entry_mode == "maker":
                             self.pending_entry = PendingEntry(
                                 direction=direction_str, limit_price=bar_close,

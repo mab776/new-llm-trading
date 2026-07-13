@@ -71,6 +71,19 @@ class Position:
     leverage: int
     margin_mode: str
     timestamp: str
+    margin_size: float = 0.0
+
+
+@dataclass
+class PendingOrder:
+    """One exchange-wide resting futures entry used by exposure controls."""
+    order_id: str
+    symbol: str
+    side: str
+    size: float
+    filled_size: float
+    price: float
+    leverage: int
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -341,9 +354,52 @@ class BitgetClient:
                     leverage=int(pos_data.get("leverage", 1)),
                     margin_mode=pos_data.get("marginMode", ""),
                     timestamp=datetime.now().isoformat(),
+                    margin_size=float(pos_data.get("marginSize", 0) or 0),
                 ))
 
         return positions
+
+    def get_pending_orders(self, symbol: Optional[str] = None) -> list[PendingOrder]:
+        """Return all normal opening orders still capable of adding exposure."""
+        path = "/api/v2/mix/order/orders-pending"
+        params = {"productType": self.config.product_type, "status": "live"}
+        if symbol:
+            params["symbol"] = symbol
+        result = self._request("GET", path, params=params)
+        data = result.get("data", {}) or {}
+        rows = data.get("entrustedList", []) if isinstance(data, dict) else []
+        orders = []
+        for row in rows:
+            trade_side = str(row.get("tradeSide", "open")).lower()
+            reduce_only = str(row.get("reduceOnly", "NO")).upper()
+            if trade_side not in ("open", "buy_single", "sell_single"):
+                continue
+            if reduce_only == "YES":
+                continue
+            orders.append(PendingOrder(
+                order_id=str(row.get("orderId", "")),
+                symbol=str(row.get("symbol", "")),
+                side=str(row.get("posSide") or row.get("side") or "").lower(),
+                size=float(row.get("size", 0) or 0),
+                filled_size=float(row.get("baseVolume", 0) or 0),
+                price=float(row.get("price", 0) or 0),
+                leverage=int(float(row.get("leverage", 1) or 1)),
+            ))
+        return orders
+
+    def get_position_history(self, symbol: Optional[str] = None,
+                             limit: int = 100) -> list[dict]:
+        """Return recent closed positions for causal live streak sizing."""
+        path = "/api/v2/mix/position/history-position"
+        params = {
+            "productType": self.config.product_type,
+            "limit": str(max(1, min(100, limit))),
+        }
+        if symbol:
+            params["symbol"] = symbol
+        result = self._request("GET", path, params=params)
+        data = result.get("data", {}) or {}
+        return data.get("list", []) if isinstance(data, dict) else []
 
     def close_position(self, symbol: str, side: str, size: float) -> dict:
         """Close a position."""
@@ -389,4 +445,19 @@ class BitgetClient:
                 return float(acct.get("available", 0) or 0)
         except (KeyError, IndexError, TypeError, ValueError) as e:
             print(f"⚠ Could not parse account balance: {e}")
+        return 0.0
+
+    def get_account_equity(self, dry_run_default: float = 100.0) -> float:
+        """Return USDT futures account equity, including unrealized PnL."""
+        if self._dry_run:
+            return dry_run_default
+        try:
+            data = self.get_account_info().get("data", [])
+            for acct in data:
+                if acct.get("marginCoin") == "USDT":
+                    return float(acct.get("accountEquity", acct.get("usdtEquity", 0)) or 0)
+            if data:
+                return float(data[0].get("accountEquity", 0) or 0)
+        except (KeyError, IndexError, TypeError, ValueError) as e:
+            print(f"⚠ Could not parse account equity: {e}")
         return 0.0

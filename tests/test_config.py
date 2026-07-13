@@ -8,6 +8,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from llm_trading_bot.config import (
     AppConfig,
@@ -15,6 +16,7 @@ from llm_trading_bot.config import (
     FeesConfig,
     FiltersConfig,
     LeverageTier,
+    PositionSizingConfig,
     RiskManagementConfig,
     ScoringConfig,
     TradingConfig,
@@ -142,6 +144,16 @@ class TestBacktestingConfig:
         assert bc.warmup_periods == 200
         assert bc.enable_partial_exits is True
         assert bc.enable_trailing_stops is False
+
+
+class TestPositionSizingConfig:
+    def test_rejects_inverted_anti_martingale_bounds(self):
+        with pytest.raises(ValidationError, match="anti_martingale_min"):
+            PositionSizingConfig(anti_martingale_min=1.2, anti_martingale_max=1.1)
+
+    def test_rejects_negative_exposure_cap(self):
+        with pytest.raises(ValidationError):
+            PositionSizingConfig(global_max_margin_pct=-0.01)
 
 
 class TestRiskManagementConfig:

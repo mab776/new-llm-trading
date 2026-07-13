@@ -74,6 +74,38 @@ class TestAvailableBalance:
         monkeypatch.setattr(client, "get_account_info", lambda: {"data": []})
         assert client.get_available_balance() == 0.0
 
+    def test_parses_account_equity(self, monkeypatch):
+        client = BitgetClient(BitgetConfig(api_key="k", api_secret="s", passphrase="p"))
+        monkeypatch.setattr(
+            client, "get_account_info",
+            lambda: {"data": [{"marginCoin": "USDT", "accountEquity": "4321.5"}]},
+        )
+        assert client.get_account_equity() == 4321.5
+
+
+class TestExposureQueries:
+    def test_pending_orders_keep_only_exposure_adding_orders(self, monkeypatch):
+        client = BitgetClient(BitgetConfig(api_key="k", api_secret="s", passphrase="p"))
+        monkeypatch.setattr(client, "_request", lambda *a, **k: {"data": {
+            "entrustedList": [
+                {"orderId": "open", "symbol": "BTCUSDT", "size": "2",
+                 "baseVolume": ".5", "price": "100", "leverage": "10",
+                 "tradeSide": "open", "reduceOnly": "NO", "posSide": "long"},
+                {"orderId": "close", "symbol": "BTCUSDT", "size": "1",
+                 "price": "110", "leverage": "10", "tradeSide": "close"},
+            ]
+        }})
+        orders = client.get_pending_orders()
+        assert [o.order_id for o in orders] == ["open"]
+        assert orders[0].filled_size == .5
+
+    def test_position_history_returns_list(self, monkeypatch):
+        client = BitgetClient(BitgetConfig(api_key="k", api_secret="s", passphrase="p"))
+        monkeypatch.setattr(client, "_request", lambda *a, **k: {
+            "data": {"list": [{"positionId": "x", "netProfit": "2"}]}
+        })
+        assert client.get_position_history("BTCUSDT")[0]["positionId"] == "x"
+
 
 class TestModifyStopLoss:
     def test_rejects_invalid_stop(self, dry_run_client):

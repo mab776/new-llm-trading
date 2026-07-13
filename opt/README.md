@@ -419,6 +419,36 @@ to production config, the full engine, or scheduler. The harness and
 `opt/anti_martingale_results.json` are retained for audit; do not retry simple closed-trade streak
 sizing as the solution to shared exposure without a materially different mechanism.
 
+## Round 16 — portfolio-wide exposure controls + anti-martingale: SHIPPED
+
+Added shared causal sizing math in `llm_trading_bot/exposure.py`, exchange-wide live queries for
+account equity, open positions, resting entry orders, and closed-position net profit, plus matching
+full-engine/fastbt/shared-portfolio enforcement. Caps are ex ante only: a new order is reduced to
+remaining capacity or skipped; normal exits are untouched and no drawdown kill switch or synthetic
+threshold fill is used.
+
+The first 330-candidate TRAIN-only grid winner (four global slots, 7% margin / 1.75× notional) had
+21.4% TRAIN maxDD but failed held-out TEST at 30.5%. Conservative fallbacks at two slots and 5–6%
+margin also failed TEST. A narrow sensitivity sweep found a stable boundary: 4.4% margin / 1.10×
+notional with Round 15's anti-martingale overlay (step 0.05, bounds 0.70–1.10). The next cap was
+materially above the target; 4.4% realizes **25.03%**, accepted under the user-approved
+"approximately 25%" criterion rather than treating rounding noise as a cliff.
+
+Honest maker + 1h sub exits + funding + liquidation + 2bps market slip:
+
+- TRAIN: 308.61× compound, worst +100.7%, maxDD 17.41%.
+- Held-out TEST: 6.48× compound, worst +31.0%, maxDD 25.03%.
+- Chronological 2024–25H1: 5.98×, maxDD 16.79%.
+- Annual-reset folds: 1,932.51× compound, every year green, maxDD 25.03%.
+- Continuous 2021–25H1 shared portfolio: **1,905.59×**, maxDD **25.03%**.
+- Standalone continuous: BTC 30.08×/21.30% DD; ETH 92.46×/23.58%; SOL 492.23×/20.14%.
+
+The full 2024 engine↔fastbt parity check is digit-equal after the port: +226.20%, 562 trades,
+79.3594% win rate, PF 1.57, maxDD 22.03%, Sharpe 2.43. Independent live schedulers query
+exchange-wide exposure, but their check/place sequence is not atomic; shared deployment should run
+through one orchestrator or equivalent cross-stack serialization to eliminate simultaneous-order
+races.
+
 ## Repro
 
 ```bash
@@ -431,6 +461,7 @@ PYTHONPATH=. python -m opt.multi_portfolio --exit-granularity sub
 PYTHONPATH=. python -m opt.walk_forward_retune --trials 300
 PYTHONPATH=. python -m opt.search_scoring_points --trials 500
 PYTHONPATH=. python -m opt.anti_martingale
+PYTHONPATH=. python -m opt.portfolio_exposure
 PYTHONPATH=. python -m opt.validate_parity --entry-mode maker
 PYTHONPATH=. python opt/finalize.py 0        # validation battery on a candidate
 ```

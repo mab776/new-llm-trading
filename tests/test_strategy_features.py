@@ -16,6 +16,9 @@ def test_config_has_strategy_fields():
     cfg = _cfg()
     assert cfg.position_sizing.max_positions >= 1
     assert cfg.position_sizing.conviction_exponent >= 0
+    assert cfg.position_sizing.anti_martingale_step >= 0
+    assert cfg.position_sizing.global_max_margin_pct >= 0
+    assert cfg.position_sizing.global_max_notional_pct >= 0
     assert cfg.risk_management.opposite_exit_threshold >= 0
 
 
