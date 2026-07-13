@@ -293,6 +293,30 @@ after fill) before the magnitude is trusted or anything goes live — where make
 non-fill / queue-position risk not modelled here. Config/engine/scheduler untouched; 264 tests pass.
 Repro: `PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.maker_entry`.
 
+## Round 10 — third-asset transfer: SOL (unchanged BTC config stays green everywhere)
+
+Backlog #6. Ran the **unchanged BTC-tuned `config.json`** on SOL via `driver.setup(symbol=
+"SOL/USDT:USDT")` (fetch is automatic; `config-sol.json` added for engine parity, symbol-only
+diff like `config-eth.json`). Data is genuine — SOL 4h begins 2021-07-23 (when SOL perp actually
+launched, so the 2021 fold is H2-only), 100% sub-bar coverage, no Bitget placeholder junk.
+
+2bps slip + funding + liquidation, every fold green on BOTH entry models and BOTH exit modes:
+
+| exit mode | entry | TRAIN | TEST | FULL | worst · DD | per-year (ret, dd) |
+|---|---|---|---|---|---|---|
+| primary | taker | +114%/f | +335%/f | 15100× | +173% · 18.5% | 21:+173 22:+936 23:+3027 24:+445 25:+213 |
+| primary | maker | +130%/f | +391%/f | 33551× | +217% · 20.5% | 21:+216 22:+937 23:+5029 24:+412 25:+289 |
+| sub (honest) | taker | — | +94%/f | 56.8× | +45% · 24.9% | 21:+48 22:+237 23:+354 24:+45 25:+74 |
+| sub (honest) | maker | — | +145%/f | 244× | +59% · 29.0% | 21:+78 22:+260 23:+994 24:+59 25:+119 |
+
+**Robustness signal, not a return forecast.** The config is now green on every yearly fold of
+**three** assets (BTC, ETH, SOL) with no per-asset retuning — the "near-unfalsifiable" bar from
+the backlog. The absolute multiples are inflated by SOL's cycle-defining volatility × 25× leverage
+and a flat-2bps slip that ignores book size; treat the *green-everywhere* fact, not the number, as
+the finding. Maker beats taker on SOL too, consistent with Round 9. Config/engine untouched (SOL
+config is additive). Repro: `PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.driver` after
+`setup(symbol="SOL/USDT:USDT")`, or point any run script at `config-sol.json`.
+
 ## Repro
 
 ```bash
