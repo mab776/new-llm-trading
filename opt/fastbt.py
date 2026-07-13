@@ -209,6 +209,15 @@ class Result:
 
 DEFAULT_STRAT = {
     # All defaults preserve the current engine behavior exactly.
+    # Entry fill model (backlog #4). "taker": current behavior — market order at the
+    # decision bar's close, paying taker fee + `slip`. "maker": rest a limit at that
+    # close and fill it only if the NEXT bar trades back to it (LONG: next-bar low <=
+    # limit; SHORT: next-bar high >= limit), paying the maker fee with NO slip. Good-
+    # for-one-bar: an unfilled limit is cancelled (price ran away -> missed trade). The
+    # fill is modelled as end-of-fill-bar (exits start the bar after, mirroring taker's
+    # enter-at-close), so it slightly delays the first exit — an honest engine/sub-bar
+    # port is required before shipping if this screens EV-positive.
+    "entry_mode": "taker",        # "taker" | "maker"
     "vol_target_lev": None,       # e.g. 40.0 -> lev_eff = min(lev, vol_target_lev / atr_pct)
     "trail_mode": "pct",          # "pct" (of entry) | "atr" (multiples of entry ATR)
     "trail_act_atr": 0.5,          # activation distance in ATRs (trail_mode="atr")
@@ -288,6 +297,11 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         default_order_type=config.fees.default_order_type,
         use_maker_fee_for_tp=risk.use_maker_fee_for_tp,
     )
+    # Maker-entry: entries become limit fills → maker fee. Exit fees are unchanged
+    # (SL=taker, TP=maker via _fee_rate_for_exit when use_maker_fee_for_tp, which the
+    # config enables), so flipping the entry default here only affects entry fees.
+    if st["entry_mode"] == "maker":
+        port.default_order_type = "maker"
     weights = sc.weights
     primary_tf = tr.primary_timeframe
     tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(primary_tf, 4)
@@ -301,6 +315,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     consec_losses = 0
     candles_since_loss = 999
     cooldown = 0
+    pending = None  # maker-entry: resting limit order awaiting a next-bar fill
     last_close = None; last_time = None
     ti = -1  # test-bar counter (mirrors engine's enumerate over test_indices)
     marginal_candidates = 0
@@ -382,6 +397,23 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         candles_since_loss += 1
         if cooldown > 0:
             cooldown -= 1
+
+        # 1.75 maker-entry fill: a limit placed at the PREVIOUS bar's close fills iff
+        # this bar trades back to it (good-for-one-bar; else the price ran away and the
+        # order is cancelled). Filled AFTER this bar's exits+funding, so the new trade's
+        # first exit check is next bar — same one-bar delay as a taker enter-at-close.
+        if pending is not None:
+            filled = (bar_low <= pending["limit"]) if pending["dir"] == "LONG" \
+                else (bar_high >= pending["limit"])
+            if filled:
+                trade = port.open_trade(
+                    direction=pending["dir"], entry_price=pending["limit"], entry_time=ts,
+                    stop_loss=pending["sl"], take_profit_1=pending["tp1"],
+                    take_profit_2=pending["tp2"], leverage=pending["lev"],
+                    risk_pct=pending["risk"], tp1_exit_pct=pending["tp1_exit"],
+                )
+                trade._atr_entry = pending["atr"]
+            pending = None
 
         # 2. score (reuse real composite scorer with secondary-tf alignment)
         inds_by_tf = {primary_tf: prim}
@@ -484,9 +516,13 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     if dd >= st["dd_throttle"]:
                         slots = min(slots, st["dd_throttle_slots"])
                         throttled = True
-                # Entry slot: default single position; pyramiding allows same-direction adds
-                can_enter = (len(port.open_trades) < slots
-                             and all(t.direction == direction_str for t in port.open_trades))
+                # Entry slot: default single position; pyramiding allows same-direction adds.
+                # A resting maker limit counts as a committed slot and must agree in direction.
+                committed = len(port.open_trades) + (1 if pending is not None else 0)
+                pend_ok = pending is None or pending["dir"] == direction_str
+                can_enter = (committed < slots
+                             and all(t.direction == direction_str for t in port.open_trades)
+                             and pend_ok)
                 if not fails and can_enter and not fund_block:
                     gate_accept = True
                     if signal == SignalStrength.MARGINAL:
@@ -511,14 +547,25 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                             risk_eff *= st["marginal_size_frac"]
                         if throttled:
                             risk_eff *= st["dd_throttle_risk"]
-                        entry_eff = bar_close * (1 + slip) if direction_str == "LONG" else bar_close * (1 - slip)
-                        trade = port.open_trade(
-                            direction=direction_str, entry_price=entry_eff, entry_time=ts,
-                            stop_loss=targets.stop_loss, take_profit_1=targets.take_profit_1,
-                            take_profit_2=targets.take_profit_2, leverage=lev_eff,
-                            risk_pct=risk_eff, tp1_exit_pct=tier.tp1_exit_pct,
-                        )
-                        trade._atr_entry = prim.atr_14  # for ATR-based trailing
+                        if st["entry_mode"] == "maker":
+                            # Rest a limit at this bar's close; it fills next bar only if
+                            # price trades back to it (checked at the top of the next bar).
+                            pending = {
+                                "dir": direction_str, "limit": bar_close,
+                                "sl": targets.stop_loss, "tp1": targets.take_profit_1,
+                                "tp2": targets.take_profit_2, "lev": lev_eff,
+                                "risk": risk_eff, "tp1_exit": tier.tp1_exit_pct,
+                                "atr": prim.atr_14,
+                            }
+                        else:
+                            entry_eff = bar_close * (1 + slip) if direction_str == "LONG" else bar_close * (1 - slip)
+                            trade = port.open_trade(
+                                direction=direction_str, entry_price=entry_eff, entry_time=ts,
+                                stop_loss=targets.stop_loss, take_profit_1=targets.take_profit_1,
+                                take_profit_2=targets.take_profit_2, leverage=lev_eff,
+                                risk_pct=risk_eff, tp1_exit_pct=tier.tp1_exit_pct,
+                            )
+                            trade._atr_entry = prim.atr_14  # for ATR-based trailing
 
         if ti % 10 == 0:
             port.record_snapshot(ts, bar_close)

@@ -264,6 +264,35 @@ PYTHONPATH=. /tmp/tmlvenv/bin/python opt/llm_gate_pilot.py --sample-size 36 \
   --cache reports/llm_gate_qwen36_35b_q8_think8k.jsonl
 ```
 
+## Round 9 — maker-entry modeling: EV-positive SCREEN (fastbt only, not yet shipped)
+
+Backlog #4. Entries are currently market/taker (0.06% + slip). Alternative: rest a **limit at
+the decision bar's close** and fill it only if the **next bar trades back to it** (LONG:
+next-bar low ≤ limit; SHORT: next-bar high ≥ limit), paying **maker 0.02% with no entry slip**,
+cancelling unfilled orders (good-for-one-bar → missed trades when price runs). Implemented as an
+opt-in `strat["entry_mode"]` in `fastbt.simulate` (default `"taker"` reproduces the engine
+bit-for-bit; the taker baseline still prints BTC 227.6× / ETH 1014.6×). Exit fees/slip unchanged
+(SL=taker+slip, TP=maker). Screen: `opt/maker_entry.py`.
+
+Apples-to-apples (2bps slip + funding + liquidation, only entry model differs):
+
+| exit mode | asset | taker FULL / TEST | maker FULL / TEST | worst · DD · missed fills |
+|---|---|---|---|---|
+| primary | BTC | 227.6× / +65.5%/f | **336.0× / +73.9%/f** | +32.2% · 24.0% · 7.9% |
+| primary | ETH | 1014.6× / +81.4%/f | **2954.9× / +113.5%/f** | +17.9% · 22.4% · 7.3% |
+| sub (honest) | BTC | 12.25× / +16.4%/f | **32.10× / +29.4%/f** | +6.7% · 28.5% |
+| sub (honest) | ETH | 22.46× / +13.4%/f | **101.08× / +39.8%/f** | +1.9% · 24.1% |
+
+Maker wins on **both assets, held-out TEST, and both exit granularities** — the better entry
+price + fee/slip saving more than pays for the ~7–8% of taker fills it misses. Rare unambiguous
+signal. **NOT SHIPPED:** the fastbt fill is booked once per 4h bar *after* that bar's exit step,
+so a freshly filled trade gets a one-bar exit delay (sub mode mitigates but doesn't remove it —
+the fill isn't placed at its precise 1h sub-bar). Per methodology rule #4 the honest intrabar
+sequencing must be validated in the **engine port** (real pending-order lifecycle, same-bar exit
+after fill) before the magnitude is trusted or anything goes live — where maker also carries
+non-fill / queue-position risk not modelled here. Config/engine/scheduler untouched; 264 tests pass.
+Repro: `PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.maker_entry`.
+
 ## Repro
 
 ```bash
