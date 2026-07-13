@@ -554,6 +554,45 @@ engine/config/scheduler. The empty-overlay path remains exact and the research r
 in `opt/regime_search_results.json`; do not retry this parameterization without a materially new
 regime mechanism.
 
+## Round 22 — 1h/5m static transplant: REJECTED; completed-candle blocker found
+
+The shipped BTC numeric parameters were transplanted without tuning to 1h and 5m. To avoid a
+venue-confounded comparison, all cadences use the same Binance USDT-perpetual OHLCV, actual Binance
+funding, Bitget fees, maker entry, liquidation, and 2bps market-exit slippage. Archive timestamps
+are normalized to bar open and secondary indicators are visible only after their candle closes.
+The 4h control retains honest 1h exit replay and one 4h trailing ratchet; 1h replays 5m exits with
+one ratchet after the completed hour; 5m uses adverse-first 5m OHLC.
+
+| primary | alignment timeframes | continuous | maxDD | trades | held-out TEST | worst year |
+|---|---|---:|---:|---:|---:|---:|
+| 4h | 1h / 4h / 1d | **225.91×** | 15.80% | 2,481 | 5.77× | +21.57% |
+| 1h | 1h / 4h / 1d | 76.94× | 28.06% | 6,232 | 7.20× | **-6.76%** |
+| 5m | 5m / 1h / 4h | **0.237×** | **79.26%** | 8,675 | 0.302× | **-59.66%** |
+
+The existing 12× conservative risk dial makes 1h 9.02× / 15.11% continuous, but 2025H1 is still
+-5.64%, so it fails the every-regime acceptance rule. At 5m, removing funding barely changes
+0.237×→0.242× and removing 2bps slip only reaches 0.377×. Removing all fees, slip, and funding
+reveals a thin 4.06× gross edge at 30.40% DD / 1.06 profit factor; realistic execution overwhelms
+it. Lowering leverage to 12× still loses (0.481×). The static 1h and 5m transplants are rejected;
+the production strategy remains 4h.
+
+The experiment exposed a more important causality issue in the existing harness. Bitget rows are
+bar-open stamped, while full/fast secondary selection currently uses
+`secondary_open <= primary_open`. A higher-timeframe row's final high/low/close/volume is thereby
+visible before that candle completes. On identical Bitget BTC data, the legacy path reproduces
+301.18× / 18.93% DD; close-aware secondary alignment produces 204.21× / 17.93% DD. This does not
+erase the edge, but it overstates the current headline and invalidates claimed live parity until
+fixed. Live analysis also needs to remove forming rows and persist a once-per-completed-primary-bar
+decision gate. These are pre-paper blockers, not reasons to tune lower timeframes.
+
+Reproduce all folds and attribution diagnostics with:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.lower_timeframes
+```
+
+Full results: `opt/lower_timeframe_results.json`.
+
 ## Repro
 
 ```bash

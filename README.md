@@ -101,6 +101,30 @@ Queue sensitivity is recorded in `opt/queue_fill_sensitivity_results.json`. Even
 5bps-penetration/70%-fill scenario retained about 65.6% of baseline log growth across five
 deterministic seeds, kept every annual fold green, and had 38.15% worst 4h mark-to-market DD.
 
+### Lower-timeframe research and completed-candle audit
+
+The research branch `experiment/lower-timeframes` transplants the shipped numeric strategy to 1h
+and 5m without tuning. On common Binance USDT-perpetual BTC data (2021-01→2025-06), with maker
+entry, funding, liquidation, and 2bps market-exit slippage, the causal 4h control returned 225.91×
+at 15.80% maxDD. The 1h transplant returned 76.94× at 28.06% maxDD but lost 6.76% in 2025H1; the
+5m transplant fell to 0.237× at 79.26% maxDD and lost in every annual fold. The existing 12× tier
+reduced 1h risk but did not fix its losing 2025H1. The unchanged strategy therefore remains 4h.
+
+The experiment also found that cached Bitget OHLCV is bar-open stamped while historical
+secondary-timeframe selection currently uses only that open timestamp. Higher-timeframe candle
+OHLCV can therefore become visible before its close. The legacy native-Bitget BTC result of
+301.18× falls to 204.21× when secondary inputs are restricted to completed candles (the edge
+survives). Live analysis also needs explicit completed-candle slicing and a once-per-completed-4h
+decision gate. Treat this as a pre-paper blocker; no paper/testnet process has been started.
+
+Reproduce the audit with:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.lower_timeframes
+```
+
+Machine-readable results are in `opt/lower_timeframe_results.json`.
+
 For eventual multi-symbol paper/live execution, use one serialized account orchestrator (do not
 run independent symbol stacks against the same exposure budget):
 

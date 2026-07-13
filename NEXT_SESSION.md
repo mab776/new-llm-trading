@@ -5,7 +5,45 @@ Copy-paste everything below the line into a fresh Claude Code session started in
 
 ---
 
-## LATEST handoff — pre-paper backlog complete (2026-07-13)
+## LATEST handoff — Round 22 lower-timeframe audit (2026-07-13)
+
+This section supersedes the earlier "pre-paper backlog complete" / "paper is the only next task"
+statement below. No paper/testnet/live process has been started.
+
+- Research branch: `experiment/lower-timeframes`.
+- A static, leakage-free BTC transplant used common Binance USDT-perpetual data for all cadences,
+  the shipped numeric parameters, maker entry, funding, liquidation, and 2bps market-exit slip.
+  The causal 4h control produced **225.91× / 15.80% DD**, 1h produced **76.94× / 28.06% DD**
+  with 2025H1 **-6.76%**, and 5m produced **0.237× / 79.26% DD** with every annual fold losing.
+- The pre-existing 12× risk dial reduced 1h continuous DD to 15.11% and returned 9.02×, but did
+  not repair robustness: 2025H1 remained negative at -5.64%. It is not a deployable winner.
+- 5m has only a thin gross edge: removing fees, slippage, and funding yields 4.06× / 30.40% DD,
+  but realistic costs turn it into a 76% capital loss. Funding is minor; fee/slippage drag against
+  much smaller moves is decisive. Do not retune 5m from this evidence.
+- **A pre-paper causality blocker was discovered:** Bitget candles are stamped at bar open, while
+  full/fast backtests currently choose secondary rows with `secondary_open <= primary_open`.
+  That exposes higher-timeframe OHLCV before the secondary candle completes. On the identical
+  native Bitget BTC run, legacy alignment reproduces **301.18×**, while last-completed alignment
+  gives **204.21× / 17.93% DD**. The edge survives, but the current headline is overstated.
+- Live `analyze_market()` also calculates signals from the latest possibly forming candles and the
+  scheduler runs hourly even for a 4h primary. That is not backtest parity and can re-evaluate the
+  same primary bar. Do not start paper trading until close-aware slicing plus a persisted
+  once-per-completed-primary-bar decision gate are implemented and revalidated in full/fast/live.
+- Reproducible artifact: `opt/lower_timeframe_results.json`; runner:
+  `PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.lower_timeframes`.
+- Verification: **333 tests pass**. Production strategy/config/runtime files were not changed on
+  this research branch.
+
+### Next task before paper trading
+
+Fix completed-candle alignment consistently in the full engine, fastbt, analysis/live scheduler,
+and Binance timestamp normalization; add regression tests; then rerun engine↔fast parity and the
+standard/aggressive BTC+ETH+SOL shared validation. Only after the corrected results are accepted is
+paper trading again the next externally visible task.
+
+---
+
+## Prior handoff — pre-paper backlog complete before Round 22 audit (2026-07-13)
 
 This section supersedes older Round 16/17 numbers and backlog text below. No paper/testnet/live
 process has been started.
@@ -36,7 +74,7 @@ process has been started.
 - Verification: **329 tests pass**; full-engine↔fastbt 2024 maker parity remains exactly equal
   (+226.20%, 562 trades, 22.03% maxDD, no mismatches).
 
-### Only next externally visible task: paper trading (requires explicit start approval)
+### Previously expected next task: paper trading (now blocked by Round 22 alignment audit)
 
 Use one shared testnet process, not independent symbol stacks:
 

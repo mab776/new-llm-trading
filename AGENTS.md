@@ -86,6 +86,16 @@ maxDD for the standard profile and 5.749 trillion× at 34.28% reported / 34.11% 
 for aggressive. These path-dependent multiples are robustness results, never forecasts. The old
 Round 16/17 sub-bar headline results are superseded by `opt/cadence_correction_results.json`.
 
+Round 22's lower-timeframe research found a separate completed-candle alignment issue that must be
+resolved before paper trading. Bitget OHLCV indexes are bar-open timestamps, but full/fast
+secondary-timeframe selection currently uses `secondary_open <= primary_open`; for a higher
+secondary timeframe, that exposes its final OHLCV before the candle has closed. Native Bitget BTC
+falls from the legacy 301.18× standalone result to 204.21× when alignment is close-aware. Live
+analysis likewise consumes the latest potentially forming rows and runs hourly for the 4h model.
+Do not start paper trading until full engine, fastbt, and live analysis all use only completed
+candles and live decisions are persisted/gated once per completed primary bar. The research runner
+and evidence are in `opt/lower_timeframes.py` and `opt/lower_timeframe_results.json`.
+
 These are implemented in both `backtesting.py` (full engine) and `grid_search.py` (fast backtest).
 
 ### Key Design Principle: Single Source of Truth
@@ -179,6 +189,10 @@ loss), and the trailing stop is ratcheted only AFTER exit checks, using the bar'
 favorable extreme, taking effect on subsequent bars. Guarded by
 `tests/test_intrabar_conservatism.py` — any change that makes these fail is inflating
 backtest results.
+
+Historical exchange candles may be stamped at bar open. "Index <= decision index" is not enough
+to establish availability across timeframes: compare candle close times. A secondary candle is
+causal only when `secondary_open + secondary_duration <= primary_open + primary_duration`.
 
 ## Development Guidelines
 

@@ -1,0 +1,958 @@
+{
+  "experiment": "lower-timeframe static transplant",
+  "created_at": "2026-07-13T18:31:58.039235+00:00",
+  "symbol": "BTC/USDT",
+  "period": {
+    "warmup_start": "2020-10-01",
+    "test_start": "2021-01-01",
+    "end": "2025-06-01"
+  },
+  "market_data": "Binance USDT perpetual futures (all cadences)",
+  "execution": {
+    "entry": "maker at decision close, valid for next primary bar",
+    "market_exit_slippage_per_side": 0.0002,
+    "fees": {
+      "maker": 0.0002,
+      "taker": 0.0006
+    },
+    "funding": "Binance actual settlements",
+    "liquidation": true
+  },
+  "alignment": "bar-open normalized; secondary OHLCV visible only after the secondary bar has completed",
+  "parameter_policy": "all shipped numeric strategy/risk parameters unchanged",
+  "cadences": {
+    "4h": {
+      "primary_timeframe": "4h",
+      "timeframes": [
+        "1h",
+        "4h",
+        "1d"
+      ],
+      "exit_resolution": "1h sub-bars; trailing ratchets once per 4h",
+      "bars": 10590,
+      "continuous": {
+        "return_pct": 22491.08,
+        "growth_x": 225.91080000000002,
+        "max_dd_pct": 15.8,
+        "trades": 2481,
+        "win_rate": 77.83151954856913,
+        "profit_factor": 1.48,
+        "sharpe": 1.57,
+        "maker_orders": 2481,
+        "maker_touches": 2481,
+        "maker_fills": 2481
+      },
+      "annual_reset": {
+        "compound_x": 227.6712295027331,
+        "geo_growth_x": 2.9611583388785854,
+        "worst_fold_return_pct": 21.57,
+        "worst_fold_max_dd_pct": 15.53,
+        "trades": 2479,
+        "per": {
+          "2021": {
+            "return_pct": 641.98,
+            "growth_x": 7.4198,
+            "max_dd_pct": 15.53,
+            "trades": 710,
+            "win_rate": 77.88732394366197,
+            "profit_factor": 1.61,
+            "sharpe": 2.54,
+            "maker_orders": 710,
+            "maker_touches": 710,
+            "maker_fills": 710
+          },
+          "2022": {
+            "return_pct": 216.74,
+            "growth_x": 3.1674,
+            "max_dd_pct": 13.54,
+            "trades": 482,
+            "win_rate": 80.29045643153528,
+            "profit_factor": 1.7,
+            "sharpe": 3.17,
+            "maker_orders": 482,
+            "maker_touches": 482,
+            "maker_fills": 482
+          },
+          "2023": {
+            "return_pct": 164.67,
+            "growth_x": 2.6467,
+            "max_dd_pct": 13.79,
+            "trades": 516,
+            "win_rate": 75.7751937984496,
+            "profit_factor": 1.59,
+            "sharpe": 2.53,
+            "maker_orders": 516,
+            "maker_touches": 516,
+            "maker_fills": 516
+          },
+          "2024": {
+            "return_pct": 201.08,
+            "growth_x": 3.0108,
+            "max_dd_pct": 14.79,
+            "trades": 566,
+            "win_rate": 78.26855123674912,
+            "profit_factor": 1.55,
+            "sharpe": 2.55,
+            "maker_orders": 567,
+            "maker_touches": 566,
+            "maker_fills": 566
+          },
+          "2025": {
+            "return_pct": 21.57,
+            "growth_x": 1.2157,
+            "max_dd_pct": 13.51,
+            "trades": 205,
+            "win_rate": 75.1219512195122,
+            "profit_factor": 1.31,
+            "sharpe": 1.6,
+            "maker_orders": 205,
+            "maker_touches": 205,
+            "maker_fills": 205
+          }
+        }
+      },
+      "train": {
+        "compound_x": 39.54772878629178,
+        "geo_growth_x": 2.0865284437490312,
+        "worst_fold_return_pct": 21.57,
+        "worst_fold_max_dd_pct": 13.79,
+        "trades": 1388,
+        "per": {
+          "21H1": {
+            "return_pct": 322.43,
+            "growth_x": 4.2242999999999995,
+            "max_dd_pct": 8.82,
+            "trades": 390,
+            "win_rate": 78.46153846153847,
+            "profit_factor": 2.08,
+            "sharpe": 4.32,
+            "maker_orders": 390,
+            "maker_touches": 390,
+            "maker_fills": 390
+          },
+          "22H1": {
+            "return_pct": 111.18,
+            "growth_x": 2.1118,
+            "max_dd_pct": 13.54,
+            "trades": 250,
+            "win_rate": 81.6,
+            "profit_factor": 2.0,
+            "sharpe": 4.2,
+            "maker_orders": 250,
+            "maker_touches": 250,
+            "maker_fills": 250
+          },
+          "23H1": {
+            "return_pct": 84.75,
+            "growth_x": 1.8475000000000001,
+            "max_dd_pct": 13.79,
+            "trades": 268,
+            "win_rate": 76.11940298507463,
+            "profit_factor": 1.73,
+            "sharpe": 3.3,
+            "maker_orders": 268,
+            "maker_touches": 268,
+            "maker_fills": 268
+          },
+          "24H1": {
+            "return_pct": 97.38,
+            "growth_x": 1.9738,
+            "max_dd_pct": 10.79,
+            "trades": 275,
+            "win_rate": 79.63636363636364,
+            "profit_factor": 1.73,
+            "sharpe": 3.22,
+            "maker_orders": 275,
+            "maker_touches": 275,
+            "maker_fills": 275
+          },
+          "25H1": {
+            "return_pct": 21.57,
+            "growth_x": 1.2157,
+            "max_dd_pct": 13.51,
+            "trades": 205,
+            "win_rate": 75.1219512195122,
+            "profit_factor": 1.31,
+            "sharpe": 1.6,
+            "maker_orders": 205,
+            "maker_touches": 205,
+            "maker_fills": 205
+          }
+        }
+      },
+      "held_out_test": {
+        "compound_x": 5.765671539249336,
+        "geo_growth_x": 1.5495745480498686,
+        "worst_fold_return_pct": 44.45,
+        "worst_fold_max_dd_pct": 15.53,
+        "trades": 1091,
+        "per": {
+          "21H2": {
+            "return_pct": 76.63,
+            "growth_x": 1.7663,
+            "max_dd_pct": 15.53,
+            "trades": 323,
+            "win_rate": 77.08978328173374,
+            "profit_factor": 1.43,
+            "sharpe": 2.08,
+            "maker_orders": 323,
+            "maker_touches": 323,
+            "maker_fills": 323
+          },
+          "22H2": {
+            "return_pct": 47.16,
+            "growth_x": 1.4716,
+            "max_dd_pct": 8.92,
+            "trades": 232,
+            "win_rate": 78.44827586206897,
+            "profit_factor": 1.51,
+            "sharpe": 2.57,
+            "maker_orders": 232,
+            "maker_touches": 232,
+            "maker_fills": 232
+          },
+          "23H2": {
+            "return_pct": 44.45,
+            "growth_x": 1.4445000000000001,
+            "max_dd_pct": 12.12,
+            "trades": 246,
+            "win_rate": 74.79674796747967,
+            "profit_factor": 1.52,
+            "sharpe": 2.18,
+            "maker_orders": 246,
+            "maker_touches": 246,
+            "maker_fills": 246
+          },
+          "24H2": {
+            "return_pct": 53.56,
+            "growth_x": 1.5356,
+            "max_dd_pct": 14.79,
+            "trades": 290,
+            "win_rate": 76.89655172413794,
+            "profit_factor": 1.46,
+            "sharpe": 2.24,
+            "maker_orders": 291,
+            "maker_touches": 290,
+            "maker_fills": 290
+          }
+        }
+      },
+      "elapsed_seconds": 2.4669898689026013
+    },
+    "1h": {
+      "primary_timeframe": "1h",
+      "timeframes": [
+        "1h",
+        "4h",
+        "1d"
+      ],
+      "exit_resolution": "5m sub-bars; trailing ratchets once per 1h",
+      "bars": 42340,
+      "continuous": {
+        "return_pct": 7594.1,
+        "growth_x": 76.941,
+        "max_dd_pct": 28.06,
+        "trades": 6232,
+        "win_rate": 67.3620025673941,
+        "profit_factor": 1.16,
+        "sharpe": 0.71,
+        "maker_orders": 6241,
+        "maker_touches": 6232,
+        "maker_fills": 6232
+      },
+      "annual_reset": {
+        "compound_x": 85.2700287482834,
+        "geo_growth_x": 2.4330962080217557,
+        "worst_fold_return_pct": -6.76,
+        "worst_fold_max_dd_pct": 24.29,
+        "trades": 6306,
+        "per": {
+          "2021": {
+            "return_pct": 730.98,
+            "growth_x": 8.3098,
+            "max_dd_pct": 17.09,
+            "trades": 1797,
+            "win_rate": 72.67668336115747,
+            "profit_factor": 1.34,
+            "sharpe": 1.67,
+            "maker_orders": 1803,
+            "maker_touches": 1797,
+            "maker_fills": 1797
+          },
+          "2022": {
+            "return_pct": 199.56,
+            "growth_x": 2.9956,
+            "max_dd_pct": 15.95,
+            "trades": 1306,
+            "win_rate": 71.20980091883614,
+            "profit_factor": 1.37,
+            "sharpe": 1.93,
+            "maker_orders": 1306,
+            "maker_touches": 1306,
+            "maker_fills": 1306
+          },
+          "2023": {
+            "return_pct": 94.63,
+            "growth_x": 1.9463,
+            "max_dd_pct": 15.06,
+            "trades": 1239,
+            "win_rate": 59.887005649717516,
+            "profit_factor": 1.22,
+            "sharpe": 1.2,
+            "maker_orders": 1240,
+            "maker_touches": 1239,
+            "maker_fills": 1239
+          },
+          "2024": {
+            "return_pct": 88.76,
+            "growth_x": 1.8876,
+            "max_dd_pct": 24.29,
+            "trades": 1424,
+            "win_rate": 64.60674157303372,
+            "profit_factor": 1.19,
+            "sharpe": 1.06,
+            "maker_orders": 1425,
+            "maker_touches": 1424,
+            "maker_fills": 1424
+          },
+          "2025": {
+            "return_pct": -6.76,
+            "growth_x": 0.9324,
+            "max_dd_pct": 19.93,
+            "trades": 540,
+            "win_rate": 64.44444444444444,
+            "profit_factor": 0.99,
+            "sharpe": -0.08,
+            "maker_orders": 541,
+            "maker_touches": 540,
+            "maker_fills": 540
+          }
+        }
+      },
+      "train": {
+        "compound_x": 11.661115188445716,
+        "geo_growth_x": 1.6343611004276586,
+        "worst_fold_return_pct": -6.76,
+        "worst_fold_max_dd_pct": 20.02,
+        "trades": 3605,
+        "per": {
+          "21H1": {
+            "return_pct": 301.08,
+            "growth_x": 4.0108,
+            "max_dd_pct": 17.09,
+            "trades": 1044,
+            "win_rate": 73.18007662835248,
+            "profit_factor": 1.34,
+            "sharpe": 1.76,
+            "maker_orders": 1047,
+            "maker_touches": 1044,
+            "maker_fills": 1044
+          },
+          "22H1": {
+            "return_pct": 50.5,
+            "growth_x": 1.505,
+            "max_dd_pct": 12.97,
+            "trades": 644,
+            "win_rate": 73.75776397515527,
+            "profit_factor": 1.22,
+            "sharpe": 1.25,
+            "maker_orders": 644,
+            "maker_touches": 644,
+            "maker_fills": 644
+          },
+          "23H1": {
+            "return_pct": 70.71,
+            "growth_x": 1.7071,
+            "max_dd_pct": 14.53,
+            "trades": 678,
+            "win_rate": 63.12684365781711,
+            "profit_factor": 1.32,
+            "sharpe": 1.7,
+            "maker_orders": 679,
+            "maker_touches": 678,
+            "maker_fills": 678
+          },
+          "24H1": {
+            "return_pct": 21.37,
+            "growth_x": 1.2137,
+            "max_dd_pct": 20.02,
+            "trades": 699,
+            "win_rate": 63.0901287553648,
+            "profit_factor": 1.12,
+            "sharpe": 0.66,
+            "maker_orders": 699,
+            "maker_touches": 699,
+            "maker_fills": 699
+          },
+          "25H1": {
+            "return_pct": -6.76,
+            "growth_x": 0.9324,
+            "max_dd_pct": 19.93,
+            "trades": 540,
+            "win_rate": 64.44444444444444,
+            "profit_factor": 0.99,
+            "sharpe": -0.08,
+            "maker_orders": 541,
+            "maker_touches": 540,
+            "maker_fills": 540
+          }
+        }
+      },
+      "held_out_test": {
+        "compound_x": 7.202020689873358,
+        "geo_growth_x": 1.6381874373560945,
+        "worst_fold_return_pct": 13.33,
+        "worst_fold_max_dd_pct": 18.78,
+        "trades": 2686,
+        "per": {
+          "21H2": {
+            "return_pct": 112.53,
+            "growth_x": 2.1253,
+            "max_dd_pct": 12.12,
+            "trades": 753,
+            "win_rate": 71.97875166002656,
+            "profit_factor": 1.35,
+            "sharpe": 1.82,
+            "maker_orders": 756,
+            "maker_touches": 753,
+            "maker_fills": 753
+          },
+          "22H2": {
+            "return_pct": 95.74,
+            "growth_x": 1.9573999999999998,
+            "max_dd_pct": 15.95,
+            "trades": 659,
+            "win_rate": 68.43702579666162,
+            "profit_factor": 1.47,
+            "sharpe": 2.44,
+            "maker_orders": 659,
+            "maker_touches": 659,
+            "maker_fills": 659
+          },
+          "23H2": {
+            "return_pct": 13.33,
+            "growth_x": 1.1333,
+            "max_dd_pct": 15.06,
+            "trades": 554,
+            "win_rate": 55.95667870036101,
+            "profit_factor": 1.12,
+            "sharpe": 0.7,
+            "maker_orders": 554,
+            "maker_touches": 554,
+            "maker_fills": 554
+          },
+          "24H2": {
+            "return_pct": 52.76,
+            "growth_x": 1.5276,
+            "max_dd_pct": 18.78,
+            "trades": 720,
+            "win_rate": 65.83333333333333,
+            "profit_factor": 1.25,
+            "sharpe": 1.35,
+            "maker_orders": 721,
+            "maker_touches": 720,
+            "maker_fills": 720
+          }
+        }
+      },
+      "diagnostics": {
+        "no_funding": {
+          "return_pct": 9298.7,
+          "growth_x": 93.98700000000001,
+          "max_dd_pct": 25.01,
+          "trades": 6255,
+          "win_rate": 67.30615507593924,
+          "profit_factor": 1.17,
+          "sharpe": 0.74,
+          "maker_orders": 6264,
+          "maker_touches": 6255,
+          "maker_fills": 6255
+        },
+        "no_market_slippage": {
+          "return_pct": 14035.75,
+          "growth_x": 141.3575,
+          "max_dd_pct": 23.07,
+          "trades": 6311,
+          "win_rate": 67.31104420852479,
+          "profit_factor": 1.19,
+          "sharpe": 0.79,
+          "maker_orders": 6320,
+          "maker_touches": 6311,
+          "maker_fills": 6311
+        },
+        "zero_fees_slippage_funding": {
+          "return_pct": 145946.24,
+          "growth_x": 1460.4624,
+          "max_dd_pct": 19.48,
+          "trades": 6300,
+          "win_rate": 67.31746031746032,
+          "profit_factor": 1.26,
+          "sharpe": 0.88,
+          "maker_orders": 6309,
+          "maker_touches": 6300,
+          "maker_fills": 6300
+        },
+        "trailing_disabled": {
+          "return_pct": -20.14,
+          "growth_x": 0.7986,
+          "max_dd_pct": 49.97,
+          "trades": 1279,
+          "win_rate": 31.58717748240813,
+          "profit_factor": 0.97,
+          "sharpe": -0.15,
+          "maker_orders": 1279,
+          "maker_touches": 1279,
+          "maker_fills": 1279
+        },
+        "conservative_12x": {
+          "return_pct": 802.1,
+          "growth_x": 9.021,
+          "max_dd_pct": 15.11,
+          "trades": 6293,
+          "win_rate": 67.77371682822184,
+          "profit_factor": 1.22,
+          "sharpe": 1.09,
+          "maker_orders": 6302,
+          "maker_touches": 6293,
+          "maker_fills": 6293
+        },
+        "conservative_12x_annual_reset": {
+          "compound_x": 9.195951030743386,
+          "geo_growth_x": 1.5585449417721466,
+          "worst_fold_return_pct": -5.64,
+          "worst_fold_max_dd_pct": 12.34,
+          "trades": 6288,
+          "per": {
+            "2021": {
+              "return_pct": 177.6,
+              "growth_x": 2.776,
+              "max_dd_pct": 10.91,
+              "trades": 1783,
+              "win_rate": 73.75210319685922,
+              "profit_factor": 1.36,
+              "sharpe": 1.8,
+              "maker_orders": 1789,
+              "maker_touches": 1783,
+              "maker_fills": 1783
+            },
+            "2022": {
+              "return_pct": 81.06,
+              "growth_x": 1.8106,
+              "max_dd_pct": 7.87,
+              "trades": 1313,
+              "win_rate": 71.8964204112719,
+              "profit_factor": 1.4,
+              "sharpe": 2.03,
+              "maker_orders": 1313,
+              "maker_touches": 1313,
+              "maker_fills": 1313
+            },
+            "2023": {
+              "return_pct": 40.82,
+              "growth_x": 1.4082,
+              "max_dd_pct": 7.33,
+              "trades": 1240,
+              "win_rate": 60.08064516129033,
+              "profit_factor": 1.26,
+              "sharpe": 1.39,
+              "maker_orders": 1241,
+              "maker_touches": 1240,
+              "maker_fills": 1240
+            },
+            "2024": {
+              "return_pct": 37.69,
+              "growth_x": 1.3769,
+              "max_dd_pct": 12.34,
+              "trades": 1417,
+              "win_rate": 64.57304163726182,
+              "profit_factor": 1.21,
+              "sharpe": 1.14,
+              "maker_orders": 1418,
+              "maker_touches": 1417,
+              "maker_fills": 1417
+            },
+            "2025": {
+              "return_pct": -5.64,
+              "growth_x": 0.9436,
+              "max_dd_pct": 12.33,
+              "trades": 535,
+              "win_rate": 64.29906542056075,
+              "profit_factor": 0.95,
+              "sharpe": -0.29,
+              "maker_orders": 536,
+              "maker_touches": 535,
+              "maker_fills": 535
+            }
+          }
+        },
+        "conservative_12x_held_out_test": {
+          "compound_x": 2.5915680764316487,
+          "geo_growth_x": 1.2687926536158443,
+          "worst_fold_return_pct": 7.79,
+          "worst_fold_max_dd_pct": 9.35,
+          "trades": 2685,
+          "per": {
+            "21H2": {
+              "return_pct": 41.62,
+              "growth_x": 1.4162,
+              "max_dd_pct": 6.21,
+              "trades": 750,
+              "win_rate": 71.86666666666667,
+              "profit_factor": 1.36,
+              "sharpe": 1.88,
+              "maker_orders": 753,
+              "maker_touches": 750,
+              "maker_fills": 750
+            },
+            "22H2": {
+              "return_pct": 37.61,
+              "growth_x": 1.3761,
+              "max_dd_pct": 7.87,
+              "trades": 659,
+              "win_rate": 68.5887708649469,
+              "profit_factor": 1.46,
+              "sharpe": 2.31,
+              "maker_orders": 659,
+              "maker_touches": 659,
+              "maker_fills": 659
+            },
+            "23H2": {
+              "return_pct": 7.79,
+              "growth_x": 1.0779,
+              "max_dd_pct": 7.17,
+              "trades": 556,
+              "win_rate": 56.29496402877698,
+              "profit_factor": 1.15,
+              "sharpe": 0.86,
+              "maker_orders": 556,
+              "maker_touches": 556,
+              "maker_fills": 556
+            },
+            "24H2": {
+              "return_pct": 23.37,
+              "growth_x": 1.2337,
+              "max_dd_pct": 9.35,
+              "trades": 720,
+              "win_rate": 65.83333333333333,
+              "profit_factor": 1.27,
+              "sharpe": 1.46,
+              "maker_orders": 721,
+              "maker_touches": 720,
+              "maker_fills": 720
+            }
+          }
+        }
+      },
+      "elapsed_seconds": 15.539119974011555
+    },
+    "5m": {
+      "primary_timeframe": "5m",
+      "timeframes": [
+        "5m",
+        "1h",
+        "4h"
+      ],
+      "exit_resolution": "5m adverse-first OHLC",
+      "bars": 499396,
+      "continuous": {
+        "return_pct": -76.35,
+        "growth_x": 0.23650000000000004,
+        "max_dd_pct": 79.26,
+        "trades": 8675,
+        "win_rate": 48.23054755043228,
+        "profit_factor": 0.92,
+        "sharpe": -0.39,
+        "maker_orders": 8721,
+        "maker_touches": 8675,
+        "maker_fills": 8675
+      },
+      "annual_reset": {
+        "compound_x": 0.11093013549950774,
+        "geo_growth_x": 0.6441839627993274,
+        "worst_fold_return_pct": -59.66,
+        "worst_fold_max_dd_pct": 64.09,
+        "trades": 10435,
+        "per": {
+          "2021": {
+            "return_pct": -59.66,
+            "growth_x": 0.4034,
+            "max_dd_pct": 64.09,
+            "trades": 4237,
+            "win_rate": 50.224215246636774,
+            "profit_factor": 0.92,
+            "sharpe": -0.47,
+            "maker_orders": 4269,
+            "maker_touches": 4237,
+            "maker_fills": 4237
+          },
+          "2022": {
+            "return_pct": -37.33,
+            "growth_x": 0.6267,
+            "max_dd_pct": 43.09,
+            "trades": 2248,
+            "win_rate": 47.10854092526691,
+            "profit_factor": 0.89,
+            "sharpe": -0.78,
+            "maker_orders": 2248,
+            "maker_touches": 2248,
+            "maker_fills": 2248
+          },
+          "2023": {
+            "return_pct": -24.75,
+            "growth_x": 0.7525,
+            "max_dd_pct": 30.61,
+            "trades": 1334,
+            "win_rate": 41.82908545727136,
+            "profit_factor": 0.92,
+            "sharpe": -0.47,
+            "maker_orders": 1338,
+            "maker_touches": 1334,
+            "maker_fills": 1334
+          },
+          "2024": {
+            "return_pct": -32.26,
+            "growth_x": 0.6774,
+            "max_dd_pct": 34.85,
+            "trades": 1753,
+            "win_rate": 45.86423274386765,
+            "profit_factor": 0.91,
+            "sharpe": -0.58,
+            "maker_orders": 1760,
+            "maker_touches": 1753,
+            "maker_fills": 1753
+          },
+          "2025": {
+            "return_pct": -13.92,
+            "growth_x": 0.8608,
+            "max_dd_pct": 21.6,
+            "trades": 863,
+            "win_rate": 50.63731170336037,
+            "profit_factor": 0.96,
+            "sharpe": -0.31,
+            "maker_orders": 873,
+            "maker_touches": 863,
+            "maker_fills": 863
+          }
+        }
+      },
+      "train": {
+        "compound_x": 0.19455092553414668,
+        "geo_growth_x": 0.7207865271030759,
+        "worst_fold_return_pct": -45.25,
+        "worst_fold_max_dd_pct": 51.01,
+        "trades": 7520,
+        "per": {
+          "21H1": {
+            "return_pct": -45.25,
+            "growth_x": 0.5475,
+            "max_dd_pct": 51.01,
+            "trades": 3020,
+            "win_rate": 52.88079470198676,
+            "profit_factor": 0.93,
+            "sharpe": -0.41,
+            "maker_orders": 3042,
+            "maker_touches": 3020,
+            "maker_fills": 3020
+          },
+          "22H1": {
+            "return_pct": -30.21,
+            "growth_x": 0.6979,
+            "max_dd_pct": 31.19,
+            "trades": 1446,
+            "win_rate": 48.686030428769016,
+            "profit_factor": 0.87,
+            "sharpe": -0.88,
+            "maker_orders": 1446,
+            "maker_touches": 1446,
+            "maker_fills": 1446
+          },
+          "23H1": {
+            "return_pct": -22.12,
+            "growth_x": 0.7787999999999999,
+            "max_dd_pct": 27.57,
+            "trades": 1068,
+            "win_rate": 41.760299625468164,
+            "profit_factor": 0.92,
+            "sharpe": -0.49,
+            "maker_orders": 1071,
+            "maker_touches": 1068,
+            "maker_fills": 1068
+          },
+          "24H1": {
+            "return_pct": -24.05,
+            "growth_x": 0.7595,
+            "max_dd_pct": 27.57,
+            "trades": 1123,
+            "win_rate": 46.838824577025825,
+            "profit_factor": 0.92,
+            "sharpe": -0.57,
+            "maker_orders": 1123,
+            "maker_touches": 1123,
+            "maker_fills": 1123
+          },
+          "25H1": {
+            "return_pct": -13.92,
+            "growth_x": 0.8608,
+            "max_dd_pct": 21.6,
+            "trades": 863,
+            "win_rate": 50.63731170336037,
+            "profit_factor": 0.96,
+            "sharpe": -0.31,
+            "maker_orders": 873,
+            "maker_touches": 863,
+            "maker_fills": 863
+          }
+        }
+      },
+      "held_out_test": {
+        "compound_x": 0.3017303139423935,
+        "geo_growth_x": 0.741147650433869,
+        "worst_fold_return_pct": -39.28,
+        "worst_fold_max_dd_pct": 42.03,
+        "trades": 4034,
+        "per": {
+          "21H2": {
+            "return_pct": -39.28,
+            "growth_x": 0.6072,
+            "max_dd_pct": 42.03,
+            "trades": 1467,
+            "win_rate": 43.149284253578735,
+            "profit_factor": 0.81,
+            "sharpe": -1.26,
+            "maker_orders": 1486,
+            "maker_touches": 1467,
+            "maker_fills": 1467
+          },
+          "22H2": {
+            "return_pct": -24.98,
+            "growth_x": 0.7502,
+            "max_dd_pct": 34.07,
+            "trades": 1032,
+            "win_rate": 43.507751937984494,
+            "profit_factor": 0.85,
+            "sharpe": -0.97,
+            "maker_orders": 1032,
+            "maker_touches": 1032,
+            "maker_fills": 1032
+          },
+          "23H2": {
+            "return_pct": -12.89,
+            "growth_x": 0.8711,
+            "max_dd_pct": 14.93,
+            "trades": 550,
+            "win_rate": 41.090909090909086,
+            "profit_factor": 0.9,
+            "sharpe": -0.63,
+            "maker_orders": 551,
+            "maker_touches": 550,
+            "maker_fills": 550
+          },
+          "24H2": {
+            "return_pct": -23.96,
+            "growth_x": 0.7604,
+            "max_dd_pct": 30.87,
+            "trades": 985,
+            "win_rate": 44.06091370558375,
+            "profit_factor": 0.89,
+            "sharpe": -0.75,
+            "maker_orders": 995,
+            "maker_touches": 985,
+            "maker_fills": 985
+          }
+        }
+      },
+      "diagnostics": {
+        "no_funding": {
+          "return_pct": -75.76,
+          "growth_x": 0.24239999999999995,
+          "max_dd_pct": 78.71,
+          "trades": 8758,
+          "win_rate": 48.35578899292076,
+          "profit_factor": 0.93,
+          "sharpe": -0.35,
+          "maker_orders": 8805,
+          "maker_touches": 8758,
+          "maker_fills": 8758
+        },
+        "no_market_slippage": {
+          "return_pct": -62.32,
+          "growth_x": 0.3768,
+          "max_dd_pct": 68.86,
+          "trades": 8774,
+          "win_rate": 48.49555504900843,
+          "profit_factor": 0.96,
+          "sharpe": -0.2,
+          "maker_orders": 8821,
+          "maker_touches": 8774,
+          "maker_fills": 8774
+        },
+        "zero_fees_slippage_funding": {
+          "return_pct": 306.17,
+          "growth_x": 4.0617,
+          "max_dd_pct": 30.4,
+          "trades": 13815,
+          "win_rate": 48.23018458197612,
+          "profit_factor": 1.06,
+          "sharpe": 0.36,
+          "maker_orders": 13904,
+          "maker_touches": 13815,
+          "maker_fills": 13815
+        },
+        "trailing_disabled": {
+          "return_pct": -73.05,
+          "growth_x": 0.2695000000000001,
+          "max_dd_pct": 75.64,
+          "trades": 5432,
+          "win_rate": 31.940353460972016,
+          "profit_factor": 0.9,
+          "sharpe": -0.48,
+          "maker_orders": 5473,
+          "maker_touches": 5432,
+          "maker_fills": 5432
+        },
+        "conservative_12x": {
+          "return_pct": -51.89,
+          "growth_x": 0.48109999999999997,
+          "max_dd_pct": 54.41,
+          "trades": 9436,
+          "win_rate": 48.53751589656634,
+          "profit_factor": 0.93,
+          "sharpe": -0.37,
+          "maker_orders": 9495,
+          "maker_touches": 9436,
+          "maker_fills": 9436
+        }
+      },
+      "elapsed_seconds": 106.88327891600784
+    }
+  },
+  "bitget_alignment_audit": {
+    "reason": "Bitget candles are bar-open stamped. The legacy fast/full backtests select secondary rows with secondary_open <= primary_open, exposing higher-timeframe OHLCV before those bars complete.",
+    "rows": {
+      "legacy_open_stamp_alignment": {
+        "return_pct": 30017.98,
+        "growth_x": 301.1798,
+        "max_dd_pct": 18.93,
+        "trades": 2510,
+        "win_rate": 77.37051792828686,
+        "profit_factor": 1.47,
+        "sharpe": 1.56,
+        "maker_orders": 2513,
+        "maker_touches": 2510,
+        "maker_fills": 2510
+      },
+      "causal_completed_alignment": {
+        "return_pct": 20321.33,
+        "growth_x": 204.2133,
+        "max_dd_pct": 17.93,
+        "trades": 2486,
+        "win_rate": 76.74979887369268,
+        "profit_factor": 1.45,
+        "sharpe": 1.59,
+        "maker_orders": 2488,
+        "maker_touches": 2486,
+        "maker_fills": 2486
+      }
+    }
+  }
+}
