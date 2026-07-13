@@ -6,16 +6,20 @@ Copy-paste everything below the line into a fresh Claude Code session started in
 ---
 
 Continue the profit-maximization loop on this trading bot. Read `AGENTS.md` and
-`opt/README.md` first — they document the architecture and all sixteen completed
+`opt/README.md` first — they document the architecture and all seventeen completed
 optimization rounds. This file is the handoff; trust it over stale prose elsewhere.
 
 ## Current state (2026-07-13, git log has the full story)
 
-- **Headline (honest sub exits + funding + liquidation + 2bps market slip,
-  2021-01→2025-06, compounding): BTC 30.08×, ETH 92.46×, SOL 492.23× with the SAME
-  maker-entry/scoring/exposure config — every yearly fold green, maxDD ~20-24%.** The green-everywhere
-  robustness is the finding, not the multiple. Configs: `config.json`, `config-eth.json`,
-  `config-sol.json`.
+- **Chosen high-return research profile (honest sub exits + funding + liquidation + 2bps market
+  slip, 2021-01→2025-06): the shared BTC+ETH+SOL aggressive portfolio compounds 920,165.82× at
+  35.95% reported maxDD / 36.15% independent 4h-close mark-to-market maxDD.** Configs:
+  `config-aggressive.json`, `config-eth-aggressive.json`, `config-sol-aggressive.json`.
+  This is the user's chosen aggressive profile, but the multiple is not a forecast and live DD can
+  be materially worse.
+- **Standard capped profile remains the default:** standalone BTC 30.08×, ETH 92.46×, SOL 492.23×
+  with every yearly fold green and maxDD ~20–24%; shared continuous is 1,905.59× at 25.03% maxDD.
+  Configs: `config.json`, `config-eth.json`, `config-sol.json`.
 - **Maker entry is shipped (Round 11):** honest same-fill-bar exits, engine/fastbt parity,
   post-only live lifecycle, persisted reconciliation, and one-primary-bar expiry. Strict sub-bar
   maker results remain better on BTC/ETH/SOL; all three configs now use `entry_mode: "maker"`.
@@ -25,19 +29,27 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
   at 25.03% maxDD and every yearly fold is green. **Acceptance now targets approximately 25% maxDD**:
   small reporting/model noise around 25% is acceptable, but materially higher DD is rejected.
   This remains a research/selection target, NOT a live kill switch or forced-liquidation rule.
+- **Separate aggressive profile shipped (Round 17):** `config-aggressive.json` plus ETH/SOL peers
+  inherit the standard configs but disable shared margin/notional caps and raise the per-trade USD
+  ceiling to $1B so sizing continues to compound. All currently inherit `bitget.testnet: true`,
+  and no live/testnet process was started. Continuous historical growth is 920,165.82× at 35.95%
+  reported maxDD (36.15% independent 4h mark-to-market). The three deepest 4h episodes were 36.15%,
+  35.02%, and 33.72%; ≥33% occurred in 11/231 weeks. This is an explicitly accepted aggressive
+  research profile; the capped Round 16 files remain the defaults and the result is not a forecast.
 - **Walk-forward retuning is promising but unstable (Round 13):** with Round 14 points, the
   60-trial cadence produced 13.08× unseen vs 9.63× static across 2023-2025H1, but badly lagged
   static in 2025H1 and has only three deployment windows.
 - **Scoring points shipped (Round 14):** after a 120-trial overfit warning, a 500-trial TRAIN
   winner improved BTC TEST + chrono and transferred strongly to untouched ETH/SOL. Nine point
   overrides are in all configs; canonical defaults/logic remain in `openwebui_filter.py`.
-- **Anti-martingale is a return overlay, not a DD control (Rounds 15/16):** alone it failed DD
-  validation; bounded to 0.70×–1.10× under the Round 16 portfolio caps, it is now shipped.
+- **Anti-martingale is a return overlay, not a DD control (Rounds 15–17):** bounded to
+  0.70×–1.10×; it runs under caps in the standard profile and uncapped at portfolio level in the
+  explicitly named aggressive profile.
 - Strategy: 4h primary, score→route→trade; trailing stops (act 0.94%/cb 0.33%),
   pyramiding (max_positions 3, same-direction), conviction sizing (exponent 1.0),
   opposite-signal exit (threshold 20), DD circuit-breaker (25%→1 slot, risk×0.5),
   lev 25 aggressive / 12 conservative tier, ATR stop 2.26×, TP RR 2.02/3.34 (70% @TP1).
-- Tests: 302 pass (`PYTHONPATH=. /tmp/tmlvenv/bin/python -m pytest tests/ -q`).
+- Tests: 309 pass (`pytest -q`).
   Venv `/tmp/tmlvenv` has everything (pandas/pydantic/ccxt/matplotlib/schedule/pytest);
   the system python has no pip. If the venv is gone, recreate:
   `python3 -m venv --without-pip /tmp/tmlvenv` then bootstrap pip from another venv or get-pip.
@@ -53,6 +65,10 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
   `evaluate(overrides, folds=..., slip=..., funding=True, strat=..., exit_granularity=...)`
   → dict with per-fold returns, geo-mean, compound, worst fold, maxDD.
   Folds: `FOLDS` (yearly), `TRAIN_FOLDS`/`TEST_FOLDS` (interleaved half-years).
+- `opt/drawdown.py` + `MultiAssetResult.equity_curve` — non-mutating 4h-close mark-to-market
+  sampling and peak-to-recovery episode analysis. It deliberately does not update the portfolio's
+  strategy peak, DD throttle, sizing, or entries. Round 17 results:
+  `opt/aggressive_profile_results.json`.
 - Typical eval: ~0.2s for 5 folds. Run scripts with `PYTHONPATH=. /tmp/tmlvenv/bin/python`.
 
 ## NON-NEGOTIABLE methodology (each rule exists because it caught a real error)
@@ -71,14 +87,13 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
    auto-masks); Bitget funding API only serves ~3 months → Binance series is the proxy.
 6. Keep engine + `openwebui_filter.py` + scheduler in sync (single source of truth);
    run the full test suite before every commit; commit after each validated round.
-7. **Shared-portfolio maxDD should be approximately 25%.** Enforce this target in search/validation
-   objectives across TRAIN, held-out TEST, chronological OOS, and the full-period report. Small
-   reporting/model noise around 25% (Round 16: 25.03%) is acceptable; roughly 26%+ is materially
-   above target and requires rejection or further exposure reduction.
-   Do NOT
-   implement a live drawdown kill switch, synthetic threshold fill, or forced portfolio close to
-   manufacture compliance. Reach the target through ex-ante exposure controls (global slots,
-   margin/notional caps, and/or risk scaling), then report the natural realized maxDD honestly.
+7. **Do not mix risk profiles.** The default shared portfolio targets approximately 25% maxDD
+   (Round 16: 25.03%). The explicitly named aggressive configs accept ~36% historical maxDD for the
+   uncapped anti-martingale return path. Always state which profile is being tested and assume live
+   aggressive DD can be materially worse than its backtest.
+   Do NOT implement a live drawdown kill switch, synthetic threshold fill, or forced portfolio
+   close to manufacture compliance. For the standard profile, reach its target through ex-ante
+   exposure controls; for both profiles, report natural realized and 4h mark-to-market DD honestly.
 
 ## Done so far (don't retry — see opt/README.md rounds)
 
@@ -102,25 +117,30 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
   standalone DD control but was validated under the portfolio-wide exposure caps.
 - ~~**Portfolio-wide exposure controls**~~ — **DONE / SHIPPED (Round 16).** 4.4% equity-margin and
   1.10× equity-notional caps produce 25.03% shared maxDD across TEST/annual/full validation.
+- ~~**Uncapped aggressive profile**~~ — **DONE / SHIPPED SEPARATELY (Round 17).** Standard configs
+  remain capped; the `*-aggressive.json` inheritance profiles reproduce 920,165.82× / 35.95% DD.
 
-## Improvement backlog, ranked (2026-07-13)
+## Improvement backlog, ranked for the aggressive profile (2026-07-13)
 
-1. **Expand walk-forward retuning** — multiple seeds/search sizes, stability of selected params,
+1. **Queue/fill sensitivity** — haircut touched maker fills or probabilistically model queue
+   position. This is now the highest-value stress test because the aggressive result assumes every
+   touched maker limit fills; report how much of 920,165.82× survives realistic fill haircuts.
+2. **Shared-live orchestration/state parity** — standard-profile cap checks can race across
+   independent symbol stacks, while each live process also keeps its own in-session DD peak that
+   resets on restart. Use one orchestrator with persisted shared peak/state before treating live
+   behavior as equivalent to the shared backtest; this applies to both profiles.
+3. **Expand walk-forward retuning** — multiple seeds/search sizes, stability of selected params,
    and turnover/operational costs. Adopt only if the 1.36× pilot advantage remains robust.
-2. **Regime-switching params** — `detect_market_regime` exists; different thresholds/leverage per
+4. **Regime-switching params** — `detect_market_regime` exists; different thresholds/leverage per
    regime (e.g. wider trailing in VOLATILE). Medium odds, self-contained.
-3. **Queue/fill sensitivity** — haircut touched maker fills or probabilistically model queue
-   position to bound the backtest's optimistic assumption that every touched limit fills.
-4. **Shared-live serialization** — exchange-wide cap checks are implemented, but independent
-   per-symbol stacks can race between check and order placement. Use one orchestrator or an
-   equivalent cross-stack lock before shared deployment.
 5. **Ship it — paper-trade (needs Marc's explicit go-ahead; externally visible).** Testnet keys are
    the default (`bitget.testnet: true`). Native Portainer stacks (BTC + ETH, optionally SOL) — see
    CLAUDE.md standing preference in ~/Documents/portainer — + Grafana from `logs/decisions.jsonl`.
    Live-vs-backtest drift is the ultimate validation. Maker lifecycle is ready. Do not start
    unprompted.
 
-Work the loop: pick the top item, implement in fastbt first, validate walk-forward,
+Work the loop: start with aggressive queue/fill sensitivity, implement in fastbt first, validate
+across TRAIN/TEST/chronological/continuous periods,
 port winners to engine+config+scheduler with tests, verify parity, update
 `opt/README.md` + `AGENTS.md`, commit. Ask Marc before anything irreversible or
 externally visible. He reviews via git log — keep commits self-explanatory.

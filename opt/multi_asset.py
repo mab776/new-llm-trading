@@ -25,6 +25,7 @@ from llm_trading_bot.scoring import (
     compute_composite_score,
 )
 from opt.fastbt import DEFAULT_STRAT, Precomputed, _check_exits
+from opt.drawdown import EquityPoint
 
 
 @dataclass
@@ -57,7 +58,21 @@ class MultiAssetResult:
     max_dd_pct: float
     sharpe: float
     per_symbol: dict[str, dict] = field(default_factory=dict)
+    equity_curve: list[EquityPoint] = field(default_factory=list)
     portfolio: Portfolio | None = None
+
+
+def _mark_to_market_equity(port: Portfolio,
+                           latest_prices: dict[str, float]) -> float:
+    """Return current equity without mutating portfolio risk state."""
+    unrealized = 0.0
+    for trade in port.open_trades:
+        price = latest_prices.get(trade.symbol, trade.entry_price)
+        if trade.direction == "LONG":
+            unrealized += (price - trade.entry_price) * trade.remaining_size
+        else:
+            unrealized += (trade.entry_price - price) * trade.remaining_size
+    return port.balance + unrealized
 
 
 def _loss_penalty(state: _AssetState) -> float:
@@ -157,6 +172,8 @@ def simulate_multi(
         events.update(mapping)
 
     latest_prices: dict[str, float] = {}
+    equity_curve: list[EquityPoint] = []
+    study_peak = port.initial_balance
     event_count = 0
     for ts in sorted(events):
         for symbol in sorted(states):
@@ -370,6 +387,13 @@ def simulate_multi(
                         trade._atr_entry = prim.atr_14
 
         event_count += 1
+        equity = _mark_to_market_equity(port, latest_prices)
+        study_peak = max(study_peak, equity)
+        equity_curve.append(EquityPoint(
+            timestamp=pd.Timestamp(ts), equity=equity,
+            drawdown_pct=(100 * (study_peak - equity) / study_peak
+                          if study_peak > 0 else 0.0),
+        ))
         if event_count % 10 == 0:
             port.record_snapshot(str(ts), latest_prices)
 
@@ -378,6 +402,15 @@ def simulate_multi(
         port.close_trade(trade, state.last_close, state.last_time, "end_of_backtest")
     if events:
         port.record_snapshot(str(max(events)), latest_prices)
+        # Reflect forced end-of-test liquidation and its exit fees at the final
+        # timestamp. The independent study peak deliberately remains read-only.
+        final_equity = port.balance
+        study_peak = max(study_peak, final_equity)
+        equity_curve[-1] = EquityPoint(
+            timestamp=pd.Timestamp(max(events)), equity=final_equity,
+            drawdown_pct=(100 * (study_peak - final_equity) / study_peak
+                          if study_peak > 0 else 0.0),
+        )
     stats = port.compute_stats()
     per_symbol = {}
     for symbol in states:
@@ -394,5 +427,6 @@ def simulate_multi(
         return_pct=stats.total_return_pct, final_balance=stats.final_balance,
         trades=stats.total_trades, win_rate=stats.win_rate,
         profit_factor=stats.profit_factor, max_dd_pct=stats.max_drawdown_pct,
-        sharpe=stats.sharpe_ratio, per_symbol=per_symbol, portfolio=port,
+        sharpe=stats.sharpe_ratio, per_symbol=per_symbol,
+        equity_curve=equity_curve, portfolio=port,
     )

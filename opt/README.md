@@ -449,6 +449,36 @@ exchange-wide exposure, but their check/place sequence is not atomic; shared dep
 through one orchestrator or equivalent cross-stack serialization to eliminate simultaneous-order
 races.
 
+## Round 17 — uncapped anti-martingale aggressive profile: SHIPPED SEPARATELY
+
+At the user's explicit risk/return preference, the highest-return Round 15 policy is now available
+as a separate aggressive profile; the Round 16 capped configs remain the defaults. The aggressive
+BTC/ETH/SOL files use config inheritance, retain maker entry, mandatory SL+TP, the bounded
+0.70×–1.10× anti-martingale, the 25% DD throttle, fees/funding/liquidation modeling, and disable
+only the portfolio margin/notional ceilings. Their high `max_position_usd` ceiling prevents the
+live sizing guard from silently turning off equity compounding; all three still inherit
+`bitget.testnet: true`.
+
+Honest maker + 1h sub exits + funding + liquidation + 2bps market slip:
+
+- TRAIN: 5,859.08× compound, worst +182.0%, maxDD 31.79%.
+- Held-out TEST: 205.97× compound, worst +117.8%, maxDD 35.95%.
+- Chronological 2024–25H1: 14.53×, maxDD 34.65%.
+- Annual-reset folds: 901,910.30×, every year green, maxDD 35.95%.
+- Continuous 2021–25H1: **920,165.82×**, maxDD **35.95%**, 8,388 trades.
+
+A new non-mutating 4h-close equity sampler confirmed 36.15% mark-to-market maxDD, close to the
+engine headline rather than hiding a much deeper collapse. It is not a weekly 36% event, but it is
+not one-off: the top three peak-to-trough episodes were 36.15%, 35.02%, and 33.72%. Drawdown was at
+least 33% for 2.09% of samples (11/231 weeks) and at least 30% for 9.79% (47/231 weeks). The top
+three complete peak-to-recovery episodes lasted about 112, 79, and 175 days. Full machine-readable
+results are in `opt/aggressive_profile_results.json`.
+
+These multiples are path-dependent backtest compounding, not forecasts. Touched maker limits do
+not model queue priority, and live slippage, outages, correlation, execution races, or a new regime
+can produce drawdown materially above 36%. Use the explicit aggressive filenames so the uncapped
+policy cannot be mistaken for the standard profile.
+
 ## Repro
 
 ```bash
@@ -462,6 +492,7 @@ PYTHONPATH=. python -m opt.walk_forward_retune --trials 300
 PYTHONPATH=. python -m opt.search_scoring_points --trials 500
 PYTHONPATH=. python -m opt.anti_martingale
 PYTHONPATH=. python -m opt.portfolio_exposure
+PYTHONPATH=. python -m opt.multi_portfolio --profile aggressive --entry-mode maker --exit-granularity sub
 PYTHONPATH=. python -m opt.validate_parity --entry-mode maker
 PYTHONPATH=. python opt/finalize.py 0        # validation battery on a candidate
 ```

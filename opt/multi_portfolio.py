@@ -13,11 +13,17 @@ ASSETS = {
     "ETH": ("ETH/USDT:USDT", "config-eth.json"),
     "SOL": ("SOL/USDT:USDT", "config-sol.json"),
 }
+AGGRESSIVE_ASSETS = {
+    "BTC": ("BTC/USDT:USDT", "config-aggressive.json"),
+    "ETH": ("ETH/USDT:USDT", "config-eth-aggressive.json"),
+    "SOL": ("SOL/USDT:USDT", "config-sol-aggressive.json"),
+}
 
 
-def load_assets(entry_mode: str = "maker") -> dict[str, AssetInput]:
+def load_assets(entry_mode: str = "maker", profile: str = "standard") -> dict[str, AssetInput]:
+    configs = AGGRESSIVE_ASSETS if profile == "aggressive" else ASSETS
     out = {}
-    for label, (symbol, config_path) in ASSETS.items():
+    for label, (symbol, config_path) in configs.items():
         ctx = load_context(symbol, config_path)
         ctx.config.trading.entry_mode = entry_mode
         out[label] = AssetInput(ctx.pre, ctx.config, ctx.funding)
@@ -67,10 +73,11 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--exit-granularity", choices=("primary", "sub"), default="primary")
     parser.add_argument("--entry-mode", choices=("both", "taker", "maker"), default="both")
+    parser.add_argument("--profile", choices=("standard", "aggressive"), default="standard")
     args = parser.parse_args()
     modes = ("taker", "maker") if args.entry_mode == "both" else (args.entry_mode,)
     for mode in modes:
-        assets = load_assets(mode)
+        assets = load_assets(mode, args.profile)
         _print(f"shared {mode}", evaluate_shared(
             assets, exit_granularity=args.exit_granularity
         ))

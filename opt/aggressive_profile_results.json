@@ -1,0 +1,37 @@
+{
+  "method": "maker entry, 2bps market-exit slip, funding, liquidation, honest 1h sub exits",
+  "period": "2021-01-01 through 2025-06-01",
+  "profile_configs": [
+    "config-aggressive.json",
+    "config-eth-aggressive.json",
+    "config-sol-aggressive.json"
+  ],
+  "policy": {
+    "anti_martingale_step": 0.05,
+    "anti_martingale_min": 0.7,
+    "anti_martingale_max": 1.1,
+    "global_max_positions": 0,
+    "global_max_margin_pct": 0.0,
+    "global_max_notional_pct": 0.0,
+    "max_position_usd": 1000000000
+  },
+  "validation": {
+    "train": {"compound_x": 5859.07808759654, "max_dd_pct": 31.79, "trades": 4758},
+    "held_out_test": {"compound_x": 205.96907323558673, "max_dd_pct": 35.95, "trades": 3907},
+    "chronological_2024_2025h1": {"compound_x": 14.5324, "max_dd_pct": 34.65, "trades": 2662},
+    "annual_reset": {"compound_x": 901910.304450195, "max_dd_pct": 35.95, "trades": 8466},
+    "continuous": {"compound_x": 920165.8193, "final_balance_from_100": 92016581.93, "max_dd_pct": 35.95, "trades": 8388}
+  },
+  "four_hour_close_mark_to_market_study": {
+    "samples": 9673,
+    "max_dd_pct": 36.15426264970563,
+    "top_episode_depths_pct": [36.15426264970563, 35.0217133799494, 33.718405591999534],
+    "thresholds": {
+      "10": {"episodes": 52, "time_pct": 65.50191254005996, "weeks": 200, "weeks_pct": 86.58008658008659, "longest_days": 157.5},
+      "20": {"episodes": 23, "time_pct": 43.130362865708676, "weeks": 129, "weeks_pct": 55.84415584415584, "longest_days": 150.33333333333334},
+      "30": {"episodes": 9, "time_pct": 9.79013749612323, "weeks": 47, "weeks_pct": 20.346320346320347, "longest_days": 26.5},
+      "33": {"episodes": 3, "time_pct": 2.088286984389538, "weeks": 11, "weeks_pct": 4.761904761904762, "longest_days": 12.333333333333334}
+    }
+  },
+  "warning": "Research result, not a forecast. The standard capped configs remain the defaults. Live drawdown can exceed the historical backtest materially."
+}

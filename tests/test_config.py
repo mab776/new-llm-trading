@@ -127,6 +127,45 @@ class TestLoadConfig:
         with pytest.raises(Exception):
             load_config(str(cfg_file))
 
+    def test_profile_inherits_and_deep_merges_base_config(self, tmp_path):
+        base = tmp_path / "base.json"
+        base.write_text(json.dumps({
+            "trading": {"symbol": "BTC-USDT", "primary_timeframe": "4h"},
+            "position_sizing": {
+                "risk_pct_per_trade": .02, "global_max_margin_pct": .044,
+            },
+        }))
+        profile = tmp_path / "profile.json"
+        profile.write_text(json.dumps({
+            "_extends": "base.json",
+            "position_sizing": {"global_max_margin_pct": 0},
+        }))
+
+        config = load_config(profile)
+        assert config.trading.symbol == "BTC-USDT"
+        assert config.position_sizing.risk_pct_per_trade == .02
+        assert config.position_sizing.global_max_margin_pct == 0
+
+    def test_profile_rejects_circular_inheritance(self, tmp_path):
+        one, two = tmp_path / "one.json", tmp_path / "two.json"
+        one.write_text(json.dumps({"_extends": "two.json"}))
+        two.write_text(json.dumps({"_extends": "one.json"}))
+        with pytest.raises(ValueError, match="Circular config inheritance"):
+            load_config(one)
+
+    @pytest.mark.parametrize("name", (
+        "config-aggressive.json", "config-eth-aggressive.json",
+        "config-sol-aggressive.json",
+    ))
+    def test_aggressive_profiles_disable_shared_exposure_caps(self, name):
+        root = Path(__file__).resolve().parents[1]
+        config = load_config(root / name)
+        assert config.bitget.testnet is True
+        assert config.position_sizing.anti_martingale_step == .05
+        assert config.position_sizing.global_max_margin_pct == 0
+        assert config.position_sizing.global_max_notional_pct == 0
+        assert config.position_sizing.max_position_usd == 1_000_000_000
+
 
 class TestFiltersConfig:
     def test_defaults(self):

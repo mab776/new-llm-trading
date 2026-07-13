@@ -1,0 +1,9 @@
+{
+    "_extends": "config-sol.json",
+    "position_sizing": {
+        "max_position_usd": 1000000000,
+        "global_max_positions": 0,
+        "global_max_margin_pct": 0.0,
+        "global_max_notional_pct": 0.0
+    }
+}

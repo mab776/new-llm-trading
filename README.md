@@ -75,6 +75,22 @@ pytest tests/ -v
 
 All settings live in `config.json`. See `AGENTS.md` for full documentation.
 
+Two shared-portfolio risk profiles are available:
+
+- **Standard (default):** `config.json`, `config-eth.json`, and `config-sol.json`; portfolio-wide
+  caps target approximately 25% historical shared max drawdown.
+- **Aggressive:** `config-aggressive.json`, `config-eth-aggressive.json`, and
+  `config-sol-aggressive.json`; these small profiles inherit their standard asset config and
+  disable the portfolio margin/notional caps. They remain on testnet by inheritance. The validated
+  historical result reached 920,165.82× with 35.95% reported maxDD (36.15% at 4h mark-to-market),
+  but this extreme compounding is a research result, not a live-return forecast.
+
+Reproduce the shared aggressive study with:
+
+```bash
+python -m opt.multi_portfolio --profile aggressive --entry-mode maker --exit-granularity sub
+```
+
 The current `config.json` is the output of an out-of-sample-validated optimization pass
 (2026-07) — see `opt/README.md` for the methodology, the intrabar trailing-stop bug it
 uncovered (backtests must assume the adverse extreme hits first), and full results.
@@ -82,7 +98,7 @@ The current configuration uses a post-only maker limit at the completed decision
 close, good for the following primary bar. Honest 1h sub-bar replay (2021-01→2025-06,
 2bps market-exit slippage, liquidation and perp funding modeled) remains profitable in
 every yearly fold on **BTC (30.08×), ETH (92.46×), and SOL (492.23×)** with the shipped
-portfolio exposure controls after a constrained
+standard portfolio exposure controls after a constrained
 scoring-point search selected on BTC TRAIN and validated on BTC TEST plus untouched ETH/SOL.
 These multiples
 are robustness signals, not forecasts; touched OHLC limits do not model real queue position.

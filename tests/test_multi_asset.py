@@ -11,6 +11,7 @@ from llm_trading_bot.scoring import (
     Direction, IndicatorSet, ScoringResult, SignalStrength, TradeTargets,
 )
 from opt.fastbt import Precomputed
+from opt.drawdown import EquityPoint, analyze_drawdowns
 from opt.multi_asset import (
     AssetInput, apply_exposure_caps, committed_exposure, simulate_multi,
 )
@@ -141,3 +142,33 @@ def test_global_slot_cap_includes_resting_maker_orders(monkeypatch):
         strat={"global_max_positions": 1},
     )
     assert result.trades == 1
+
+
+def test_equity_curve_is_sampled_without_mutating_strategy_stats(monkeypatch):
+    monkeypatch.setattr(multi, "compute_composite_score", lambda **kw: ScoringResult(
+        direction=Direction.NEUTRAL, confidence=50,
+        signal_strength=SignalStrength.WAIT, raw_score=0,
+        category_scores=[], indicators=kw["indicators_by_tf"], reasons=[],
+    ))
+    result = simulate_multi(
+        {"BTC": AssetInput(_pre(100), _cfg())},
+        "2024-01-01", "2024-01-02",
+    )
+    assert len(result.equity_curve) == 2
+    assert [point.equity for point in result.equity_curve] == [1000, 1000]
+    assert result.max_dd_pct == 0
+
+
+def test_drawdown_study_ranks_episodes_and_counts_threshold_frequency():
+    ts = pd.date_range("2024-01-01", periods=8, freq="4h")
+    dds = [0, 5, 12, 0, 2, 25, 20, 0]
+    points = [EquityPoint(t, 1000 * (1 - dd / 100), dd)
+              for t, dd in zip(ts, dds)]
+    study = analyze_drawdowns(points, thresholds=(10, 20))
+
+    assert [episode.depth_pct for episode in study.episodes] == [25, 12]
+    assert study.episodes[0].recovery_time == ts[-1]
+    assert study.thresholds[10].episodes == 2
+    assert study.thresholds[10].bars == 3
+    assert study.thresholds[20].episodes == 1
+    assert study.thresholds[20].longest_days == pytest.approx(8 / 24)

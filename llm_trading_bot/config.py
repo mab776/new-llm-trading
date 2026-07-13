@@ -6,6 +6,7 @@ Single source of truth for all configuration structures.
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 from typing import Literal
 
@@ -190,11 +191,37 @@ class AppConfig(BaseModel):
     data_source: DataSourceConfig = Field(default_factory=DataSourceConfig)
 
 
-def load_config(path: str | Path = "config.json") -> AppConfig:
-    """Load and validate configuration from JSON file."""
-    path = Path(path)
+def _deep_merge(base: dict, overrides: dict) -> dict:
+    """Recursively merge a small profile override into a base config."""
+    merged = deepcopy(base)
+    for key, value in overrides.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = deepcopy(value)
+    return merged
+
+
+def _load_config_dict(path: Path, seen: set[Path]) -> dict:
+    resolved = path.resolve()
+    if resolved in seen:
+        raise ValueError(f"Circular config inheritance detected at: {path}")
     if not path.exists():
         raise FileNotFoundError(f"Config file not found: {path}")
     with open(path, "r") as f:
         raw = json.load(f)
+    parent = raw.pop("_extends", None)
+    if parent is None:
+        return raw
+    if not isinstance(parent, str) or not parent:
+        raise ValueError("_extends must be a non-empty config path")
+    parent_path = (path.parent / parent).resolve()
+    base = _load_config_dict(parent_path, seen | {resolved})
+    return _deep_merge(base, raw)
+
+
+def load_config(path: str | Path = "config.json") -> AppConfig:
+    """Load and validate a JSON config, including optional profile inheritance."""
+    path = Path(path)
+    raw = _load_config_dict(path, set())
     return AppConfig(**raw)
