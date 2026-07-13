@@ -29,11 +29,14 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
 - **Scoring points shipped (Round 14):** after a 120-trial overfit warning, a 500-trial TRAIN
   winner improved BTC TEST + chrono and transferred strongly to untouched ETH/SOL. Nine point
   overrides are in all configs; canonical defaults/logic remain in `openwebui_filter.py`.
+- **Anti-martingale sizing rejected for DD control (Round 15):** 96 shared-portfolio TRAIN-only
+  variants found no candidate below 25% maxDD. The minimum-TRAIN-DD candidate reduced TRAIN DD
+  37.8%→31.8% but worsened held-out TEST DD 35.3%→36.0%; nothing was shipped.
 - Strategy: 4h primary, score→route→trade; trailing stops (act 0.94%/cb 0.33%),
   pyramiding (max_positions 3, same-direction), conviction sizing (exponent 1.0),
   opposite-signal exit (threshold 20), DD circuit-breaker (25%→1 slot, risk×0.5),
   lev 25 aggressive / 12 conservative tier, ATR stop 2.26×, TP RR 2.02/3.34 (70% @TP1).
-- Tests: 281 pass (`PYTHONPATH=. /tmp/tmlvenv/bin/python -m pytest tests/ -q`).
+- Tests: 290 pass (`PYTHONPATH=. /tmp/tmlvenv/bin/python -m pytest tests/ -q`).
   Venv `/tmp/tmlvenv` has everything (pandas/pydantic/ccxt/matplotlib/schedule/pytest);
   the system python has no pip. If the venv is gone, recreate:
   `python3 -m venv --without-pip /tmp/tmlvenv` then bootstrap pip from another venv or get-pip.
@@ -90,6 +93,9 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
 - ~~**Scoring internals constrained search**~~ — **DONE / SHIPPED (Round 14).** BTC TEST +
   chrono and ETH/SOL transfer validated nine overrides.
 - ~~**Walk-forward retuning pilot**~~ — **DONE / PROMISING (Round 13).** Expand before adoption.
+- ~~**Anti-martingale sizing**~~ — **DONE / REJECTED (Round 15).** A causal per-asset closed-trade
+  streak improved return but failed the ≤25% shared-DD constraint and worsened held-out TEST DD.
+  Harness/results retained; don't retry the same streak mechanism.
 
 ## Improvement backlog, ranked (2026-07-13)
 
@@ -103,11 +109,9 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
    and turnover/operational costs. Adopt only if the 1.36× pilot advantage remains robust.
 3. **Regime-switching params** — `detect_market_regime` exists; different thresholds/leverage per
    regime (e.g. wider trailing in VOLATILE). Medium odds, self-contained.
-4. **Anti-martingale sizing** — scale risk up after wins / down after losses (the DD throttle only
-   handles deep-DD; the win-streak side is untested). Small, quick to screen.
-5. **Queue/fill sensitivity** — haircut touched maker fills or probabilistically model queue
+4. **Queue/fill sensitivity** — haircut touched maker fills or probabilistically model queue
    position to bound the backtest's optimistic assumption that every touched limit fills.
-6. **Ship it — paper-trade (needs Marc's explicit go-ahead; externally visible).** Testnet keys are
+5. **Ship it — paper-trade (needs Marc's explicit go-ahead; externally visible).** Testnet keys are
    the default (`bitget.testnet: true`). Native Portainer stacks (BTC + ETH, optionally SOL) — see
    CLAUDE.md standing preference in ~/Documents/portainer — + Grafana from `logs/decisions.jsonl`.
    Live-vs-backtest drift is the ultimate validation. Maker lifecycle is ready. Do not start

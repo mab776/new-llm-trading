@@ -224,6 +224,13 @@ DEFAULT_STRAT = {
     "trail_act_atr": 0.5,          # activation distance in ATRs (trail_mode="atr")
     "trail_cb_atr": 0.6,           # callback distance in ATRs (trail_mode="atr")
     "conviction_sizing": None,    # e.g. 1.0 -> risk_pct scaled by (abs_score/strong)^1 capped [0.5, 1.5]
+    # Anti-martingale sizing: completed winning trades increase the next trade's
+    # margin risk; completed losing trades decrease it.  The signed consecutive
+    # outcome streak is causal and resets to the opposite sign when the outcome
+    # changes.  step=0 preserves the current strategy exactly.
+    "anti_martingale_step": 0.0,
+    "anti_martingale_min": 0.5,
+    "anti_martingale_max": 1.5,
     "opposite_exit": None,        # e.g. 25.0 -> close when opposite-direction |score| >= this
     "short_threshold_mult": 1.0,  # >1 = stricter shorts (asymmetry)
     "long_threshold_mult": 1.0,
@@ -253,6 +260,22 @@ DEFAULT_STRAT = {
     "funding_long_thr": 0.0,      # funding level that counts as "crowded shorts"
     "funding_long_trend_gate": False,
 }
+
+
+def update_outcome_streak(streak: int, won: bool) -> int:
+    """Return the signed consecutive closed-trade streak (wins +, losses -)."""
+    if won:
+        return streak + 1 if streak > 0 else 1
+    return streak - 1 if streak < 0 else -1
+
+
+def anti_martingale_multiplier(streak: int, step: float,
+                               minimum: float = 0.5,
+                               maximum: float = 1.5) -> float:
+    """Causal risk multiplier for the streak known before an entry is placed."""
+    if step <= 0:
+        return 1.0
+    return max(minimum, min(maximum, 1.0 + streak * step))
 
 
 def simulate(pre: Precomputed, config, start_date: str, end_date: str,
@@ -310,6 +333,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     test_mask = (idx >= sd) & (idx <= ed)
 
     consec_losses = 0
+    outcome_streak = 0
     candles_since_loss = 999
     cooldown = 0
     pending: PendingEntry | None = None
@@ -412,6 +436,10 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         upd = getattr(port, "_risk_events", None)
         if upd:
             for ev in upd:
+                if not ev.get("streak_applied", False):
+                    outcome_streak = update_outcome_streak(
+                        outcome_streak, not ev["loss"]
+                    )
                 if ev["loss"]:
                     consec_losses += 1
                     candles_since_loss = 0
@@ -481,9 +509,15 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     if trade.direction != want:
                         fill = bar_close * (1 - slip) if trade.direction == "LONG" else bar_close * (1 + slip)
                         port.close_trade(trade, fill, ts, "signal_flip")
+                        outcome_streak = update_outcome_streak(
+                            outcome_streak, trade.net_pnl > 0
+                        )
                         if not hasattr(port, "_risk_events"):
                             port._risk_events = []
-                        port._risk_events.append({"loss": trade.net_pnl <= 0, "sl": False})
+                        port._risk_events.append({
+                            "loss": trade.net_pnl <= 0, "sl": False,
+                            "streak_applied": True,
+                        })
 
         if signal in (SignalStrength.STRONG, SignalStrength.MARGINAL) and targets:
             if cooldown > 0:
@@ -560,6 +594,10 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                             risk_eff *= st["marginal_size_frac"]
                         if throttled:
                             risk_eff *= st["dd_throttle_risk"]
+                        risk_eff *= anti_martingale_multiplier(
+                            outcome_streak, st["anti_martingale_step"],
+                            st["anti_martingale_min"], st["anti_martingale_max"],
+                        )
                         if st["entry_mode"] == "maker":
                             # Rest a limit at this bar's close; it fills next bar only if
                             # price trades back to it (checked at the top of the next bar).

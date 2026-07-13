@@ -402,6 +402,23 @@ Current honest maker/sub BTC is **70.28×**, worst +38.0%, maxDD 25.1% (vs 26.13
 Final 2024 full-engine↔fastbt parity with maker + point overrides is digit-equal: +532.52%,
 $632.52 final balance, 660 trades, 80.4545% win rate, PF 1.69, maxDD 24.3%, Sharpe 2.77.
 
+## Round 15 — anti-martingale sizing: rejected as portfolio-DD control
+
+Added an experimental causal, per-asset signed outcome streak to `fastbt` and the shared-portfolio
+harness. Completed wins raise the next trade's risk and completed losses lower it, with configurable
+step/min/max bounds; a zero step is exactly the previous behavior. Searched 96 bounded variants on
+the interleaved shared BTC+ETH+SOL TRAIN half-years only, using maker entry, honest 1h sub exits,
+funding, liquidation, and 2bps market slippage.
+
+No candidate met the required 25% TRAIN maxDD. The minimum-DD TRAIN candidate (step 0.05, bounds
+0.70-1.10) improved TRAIN geo return +394.6%→+467.0% and maxDD 37.8%→31.8%, but held-out TEST
+maxDD worsened 35.3%→36.0% (despite geo return improving +251.6%→+278.8%). Continuous full-period
+maxDD improved only 37.8%→36.0%; chronological 2024-25H1 improved 36.3%→34.6%. It therefore fails
+both the hard ≤25% acceptance rule and the cross-split drawdown robustness test. Nothing was ported
+to production config, the full engine, or scheduler. The harness and
+`opt/anti_martingale_results.json` are retained for audit; do not retry simple closed-trade streak
+sizing as the solution to shared exposure without a materially different mechanism.
+
 ## Repro
 
 ```bash
@@ -413,6 +430,7 @@ PYTHONPATH=. python -m opt.maker_entry --exit-granularity sub --include-sol
 PYTHONPATH=. python -m opt.multi_portfolio --exit-granularity sub
 PYTHONPATH=. python -m opt.walk_forward_retune --trials 300
 PYTHONPATH=. python -m opt.search_scoring_points --trials 500
+PYTHONPATH=. python -m opt.anti_martingale
 PYTHONPATH=. python -m opt.validate_parity --entry-mode maker
 PYTHONPATH=. python opt/finalize.py 0        # validation battery on a candidate
 ```

@@ -25,12 +25,14 @@ def load_assets(entry_mode: str = "maker") -> dict[str, AssetInput]:
 
 
 def evaluate_shared(assets: dict[str, AssetInput], *, slip: float = .0002,
-                    exit_granularity: str = "primary") -> dict:
+                    exit_granularity: str = "primary", folds=FOLDS,
+                    strat: dict | None = None) -> dict:
     per, factors, max_dd, total_trades = {}, [], 0.0, 0
-    for name, start, end in FOLDS:
+    for name, start, end in folds:
         result = simulate_multi(
             assets, start, end, slip=slip,
             exit_granularity=exit_granularity,
+            strat=strat,
         )
         factor = max(.01, 1 + result.return_pct / 100)
         factors.append(factor)

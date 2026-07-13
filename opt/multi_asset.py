@@ -21,7 +21,10 @@ from llm_trading_bot.scoring import (
     Direction, SignalStrength, apply_pre_trade_filters, calculate_targets,
     compute_composite_score,
 )
-from opt.fastbt import Precomputed, _check_exits
+from opt.fastbt import (
+    DEFAULT_STRAT, Precomputed, _check_exits, anti_martingale_multiplier,
+    update_outcome_streak,
+)
 
 
 @dataclass
@@ -37,6 +40,7 @@ class _AssetState:
     index_by_ts: dict[pd.Timestamp, int]
     pending: PendingEntry | None = None
     consecutive_losses: int = 0
+    outcome_streak: int = 0
     candles_since_loss: int = 999
     cooldown: int = 0
     last_close: float | None = None
@@ -73,10 +77,14 @@ def simulate_multi(
     assets: dict[str, AssetInput], start_date: str, end_date: str,
     *, slip: float = 0.0, model_liquidation: bool = True,
     maintenance_margin: float = 0.005, exit_granularity: str = "primary",
+    strat: dict | None = None,
 ) -> MultiAssetResult:
     """Replay multiple symbols against one compounding balance."""
     if not assets:
         raise ValueError("At least one asset is required")
+    strategy = dict(DEFAULT_STRAT)
+    if strat:
+        strategy.update(strat)
     first = next(iter(assets.values())).config
     for symbol, item in assets.items():
         cfg = item.config
@@ -194,6 +202,10 @@ def simulate_multi(
             mine = [ev for ev in queued if ev.get("symbol", "") == symbol]
             port._risk_events = [ev for ev in queued if ev not in mine]
             for ev in mine:
+                if not ev.get("streak_applied", False):
+                    state.outcome_streak = update_outcome_streak(
+                        state.outcome_streak, not ev["loss"]
+                    )
                 if ev["loss"]:
                     state.consecutive_losses += 1
                     state.candles_since_loss = 0
@@ -236,6 +248,9 @@ def simulate_multi(
                         fill = (bar_close * (1 - slip) if trade.direction == "LONG"
                                 else bar_close * (1 + slip))
                         port.close_trade(trade, fill, bar_time, "signal_flip")
+                        state.outcome_streak = update_outcome_streak(
+                            state.outcome_streak, trade.net_pnl > 0
+                        )
                         if trade.net_pnl <= 0:
                             state.consecutive_losses += 1
                             state.candles_since_loss = 0
@@ -273,6 +288,12 @@ def simulate_multi(
                         risk_eff *= max(.5, min(1.5, mult))
                     if throttled:
                         risk_eff *= risk.dd_throttle_risk
+                    risk_eff *= anti_martingale_multiplier(
+                        state.outcome_streak,
+                        strategy["anti_martingale_step"],
+                        strategy["anti_martingale_min"],
+                        strategy["anti_martingale_max"],
+                    )
                     if tr.entry_mode == "maker":
                         state.pending = PendingEntry(
                             direction, bar_close, targets.stop_loss,

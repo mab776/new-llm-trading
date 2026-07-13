@@ -66,6 +66,11 @@ placed with mandatory preset SL+TP. `"taker"` remains available for comparison/f
 All other point awards come from `openwebui_filter.DEFAULT_SCORING_POINTS`. Never copy these
 values into `scoring.py`; the filter remains the source of truth.
 
+Round 15 tested causal per-asset anti-martingale sizing in the fast/shared harness. It failed the
+≤25% shared-portfolio maxDD requirement and worsened held-out TEST DD, so it is intentionally not
+present in production config, the engine, or scheduler. See `opt/README.md`; do not add the simple
+closed-trade streak mechanism without materially new evidence.
+
 These are implemented in both `backtesting.py` (full engine) and `grid_search.py` (fast backtest).
 
 ### Key Design Principle: Single Source of Truth
