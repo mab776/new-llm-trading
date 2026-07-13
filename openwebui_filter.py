@@ -183,14 +183,48 @@ def compute_pivot_points(
 # scoring.py imports these; keep self-contained for OpenWebUI copy-paste.
 # ──────────────────────────────────────────────────────────────────────
 
+# Every hand-tuned point award/penalty lives here.  Callers may supply a partial
+# override dict for optimization; omitted keys reproduce the historical strategy
+# exactly.  Keeping the values beside the canonical functions preserves the
+# standalone OpenWebUI copy/paste contract.
+DEFAULT_SCORING_POINTS = {
+    "trend.ema_stack": 30, "trend.ema_mixed": 10, "trend.ema200": 15,
+    "trend.di": 20, "trend.macd": 15, "trend.macd_cross": 5,
+    "momentum.rsi_extreme": 20, "momentum.rsi_trend": 15,
+    "momentum.stoch": 10, "momentum.cci": 10, "momentum.williams": 10,
+    "momentum.roc_strong": 15, "momentum.roc_weak": 5,
+    "volume.ratio_extreme": 30, "volume.ratio_high": 20,
+    "volume.ratio_above": 5, "volume.ratio_below": 10,
+    "volume.ratio_low": 25, "volume.confirmation": 20,
+    "volume.obv": 15, "volume.vwap": 10,
+    "sr.proximity": 25, "sr.excellent": 25, "sr.good": 15,
+    "sr.fair": 5, "sr.poor": 15, "sr.bb_extreme": 15,
+    "risk.atr_extreme": 40, "risk.atr_high": 20,
+    "risk.atr_healthy": 10, "risk.atr_moderate": 5, "risk.atr_low": 30,
+    "risk.adx_range": 30, "risk.adx_weak": 15, "risk.adx_trend": 10,
+    "risk.bb_squeeze": 10,
+}
+
+
+def _scoring_points(overrides=None) -> dict:
+    if not overrides:
+        return DEFAULT_SCORING_POINTS
+    points = dict(DEFAULT_SCORING_POINTS)
+    unknown = set(overrides) - set(points)
+    if unknown:
+        raise ValueError(f"Unknown scoring point keys: {sorted(unknown)}")
+    points.update(overrides)
+    return points
+
 def calc_trend_score(
     *, price=None, ema_9=None, ema_21=None, ema_50=None, ema_200=None,
     adx=None, plus_di=None, minus_di=None,
-    macd_hist=None, macd_line=None, macd_signal=None,
+    macd_hist=None, macd_line=None, macd_signal=None, points=None,
 ) -> tuple[float, dict]:
     """Core trend scoring. Returns (score, details)."""
     details: dict = {}
     score = 0.0
+    p = _scoring_points(points)
 
     if not price:
         return 0.0, details
@@ -198,25 +232,25 @@ def calc_trend_score(
     # EMA alignment (9 > 21 > 50 = bullish, reverse = bearish)
     if ema_9 is not None and ema_21 is not None and ema_50 is not None:
         if ema_9 > ema_21 > ema_50:
-            score += 30
+            score += p["trend.ema_stack"]
             details["ema_alignment"] = "bullish_stack"
         elif ema_9 < ema_21 < ema_50:
-            score -= 30
+            score -= p["trend.ema_stack"]
             details["ema_alignment"] = "bearish_stack"
         else:
             if ema_9 > ema_21:
-                score += 10
+                score += p["trend.ema_mixed"]
             else:
-                score -= 10
+                score -= p["trend.ema_mixed"]
             details["ema_alignment"] = "mixed"
 
     # Price vs EMA-200 (long-term trend)
     if ema_200 is not None:
         if price > ema_200:
-            score += 15
+            score += p["trend.ema200"]
             details["vs_ema200"] = "above"
         else:
-            score -= 15
+            score -= p["trend.ema200"]
             details["vs_ema200"] = "below"
 
     # ADX (trend strength)
@@ -237,26 +271,26 @@ def calc_trend_score(
         # DI direction
         if plus_di and minus_di:
             if plus_di > minus_di:
-                score += 20 * strength_mult
+                score += p["trend.di"] * strength_mult
                 details["di_direction"] = "bullish"
             else:
-                score -= 20 * strength_mult
+                score -= p["trend.di"] * strength_mult
                 details["di_direction"] = "bearish"
 
     # MACD
     if macd_hist is not None:
         if macd_hist > 0:
-            score += 15
+            score += p["trend.macd"]
             details["macd"] = "bullish"
         else:
-            score -= 15
+            score -= p["trend.macd"]
             details["macd"] = "bearish"
         # MACD crossover signal
         if macd_line is not None and macd_signal is not None:
             if macd_line > macd_signal:
-                score += 5
+                score += p["trend.macd_cross"]
             else:
-                score -= 5
+                score -= p["trend.macd_cross"]
 
     score = max(-100, min(100, score))
     details["raw_score"] = score
@@ -265,76 +299,77 @@ def calc_trend_score(
 
 def calc_momentum_score(
     *, rsi_14=None, stoch_k=None, stoch_d=None,
-    cci_20=None, williams_r=None, roc_10=None,
+    cci_20=None, williams_r=None, roc_10=None, points=None,
 ) -> tuple[float, dict]:
     """Core momentum scoring. Returns (score, details)."""
     details: dict = {}
     score = 0.0
+    p = _scoring_points(points)
 
     # RSI (14)
     if rsi_14 is not None:
         if rsi_14 > 70:
-            score -= 20
+            score -= p["momentum.rsi_extreme"]
             details["rsi"] = f"overbought ({rsi_14:.1f})"
         elif rsi_14 > 60:
-            score += 15
+            score += p["momentum.rsi_trend"]
             details["rsi"] = f"bullish ({rsi_14:.1f})"
         elif rsi_14 > 40:
             score += 0
             details["rsi"] = f"neutral ({rsi_14:.1f})"
         elif rsi_14 > 30:
-            score -= 15
+            score -= p["momentum.rsi_trend"]
             details["rsi"] = f"bearish ({rsi_14:.1f})"
         else:
-            score += 20
+            score += p["momentum.rsi_extreme"]
             details["rsi"] = f"oversold ({rsi_14:.1f})"
 
     # Stochastic
     if stoch_k is not None and stoch_d is not None:
         if stoch_k > 80:
-            score -= 10
+            score -= p["momentum.stoch"]
             details["stoch"] = "overbought"
         elif stoch_k < 20:
-            score += 10
+            score += p["momentum.stoch"]
             details["stoch"] = "oversold"
         elif stoch_k > stoch_d:
-            score += 10
+            score += p["momentum.stoch"]
             details["stoch"] = "bullish_cross"
         else:
-            score -= 10
+            score -= p["momentum.stoch"]
             details["stoch"] = "bearish_cross"
 
     # CCI
     if cci_20 is not None:
         if cci_20 > 100:
-            score += 10
+            score += p["momentum.cci"]
             details["cci"] = "strong_bullish"
         elif cci_20 < -100:
-            score -= 10
+            score -= p["momentum.cci"]
             details["cci"] = "strong_bearish"
 
     # Williams %R
     if williams_r is not None:
         if williams_r > -20:
-            score -= 10
+            score -= p["momentum.williams"]
             details["williams_r"] = "overbought"
         elif williams_r < -80:
-            score += 10
+            score += p["momentum.williams"]
             details["williams_r"] = "oversold"
 
     # ROC
     if roc_10 is not None:
         if roc_10 > 5:
-            score += 15
+            score += p["momentum.roc_strong"]
             details["roc"] = f"strong_positive ({roc_10:.1f}%)"
         elif roc_10 > 0:
-            score += 5
+            score += p["momentum.roc_weak"]
             details["roc"] = f"positive ({roc_10:.1f}%)"
         elif roc_10 > -5:
-            score -= 5
+            score -= p["momentum.roc_weak"]
             details["roc"] = f"negative ({roc_10:.1f}%)"
         else:
-            score -= 15
+            score -= p["momentum.roc_strong"]
             details["roc"] = f"strong_negative ({roc_10:.1f}%)"
 
     score = max(-100, min(100, score))
@@ -344,35 +379,36 @@ def calc_momentum_score(
 
 def calc_volume_score(
     *, volume_ratio=None, change_pct=None,
-    obv=None, obv_sma_20=None, vwap=None, price=None,
+    obv=None, obv_sma_20=None, vwap=None, price=None, points=None,
 ) -> tuple[float, dict]:
     """Core volume scoring. Returns (score, details)."""
     details: dict = {}
     score = 0.0
+    p = _scoring_points(points)
 
     # Volume ratio
     if volume_ratio is not None:
         details["volume_ratio"] = round(volume_ratio, 2)
         if volume_ratio > 2.0:
-            score += 30
+            score += p["volume.ratio_extreme"]
         elif volume_ratio > 1.5:
-            score += 20
+            score += p["volume.ratio_high"]
         elif volume_ratio > 1.0:
-            score += 5
+            score += p["volume.ratio_above"]
         elif volume_ratio > 0.5:
-            score -= 10
+            score -= p["volume.ratio_below"]
         else:
-            score -= 25
+            score -= p["volume.ratio_low"]
 
     # Direction: is price move supported by volume?
     if change_pct is not None and volume_ratio is not None:
         price_up = change_pct > 0
         high_vol = volume_ratio > 1.0
         if price_up and high_vol:
-            score += 20
+            score += p["volume.confirmation"]
             details["vol_confirmation"] = "bullish_confirmed"
         elif not price_up and high_vol:
-            score -= 20
+            score -= p["volume.confirmation"]
             details["vol_confirmation"] = "bearish_confirmed"
         elif price_up and not high_vol:
             score += 0
@@ -384,19 +420,19 @@ def calc_volume_score(
     # OBV trend
     if obv is not None and obv_sma_20 is not None:
         if obv > obv_sma_20:
-            score += 15
+            score += p["volume.obv"]
             details["obv_trend"] = "accumulation"
         else:
-            score -= 15
+            score -= p["volume.obv"]
             details["obv_trend"] = "distribution"
 
     # VWAP position
     if vwap is not None and price:
         if price > vwap:
-            score += 10
+            score += p["volume.vwap"]
             details["vwap_position"] = "above"
         else:
-            score -= 10
+            score -= p["volume.vwap"]
             details["vwap_position"] = "below"
 
     score = max(-100, min(100, score))
@@ -406,11 +442,12 @@ def calc_volume_score(
 
 def calc_sr_score(
     *, price=None, nearest_support=None, nearest_resistance=None,
-    bb_position=None,
+    bb_position=None, points=None,
 ) -> tuple[float, dict]:
     """Core support/resistance scoring. Returns (score, details)."""
     details: dict = {}
     score = 0.0
+    p = _scoring_points(points)
 
     if not price or not nearest_support or not nearest_resistance:
         return 0.0, {"status": "insufficient_data"}
@@ -430,33 +467,33 @@ def calc_sr_score(
 
     # Near support (potential bounce) — bullish bias if trend is up
     if dist_support < 1.0:
-        score += 25
+        score += p["sr.proximity"]
         details["proximity"] = "near_support"
     elif dist_resistance < 1.0:
-        score -= 25
+        score -= p["sr.proximity"]
         details["proximity"] = "near_resistance"
 
     # Good R:R from S/R standpoint
     if sr_ratio > 3:
-        score += 25
+        score += p["sr.excellent"]
         details["sr_quality"] = "excellent"
     elif sr_ratio > 2:
-        score += 15
+        score += p["sr.good"]
         details["sr_quality"] = "good"
     elif sr_ratio > 1:
-        score += 5
+        score += p["sr.fair"]
         details["sr_quality"] = "fair"
     else:
-        score -= 15
+        score -= p["sr.poor"]
         details["sr_quality"] = "poor"
 
     # Bollinger Band position
     if bb_position is not None:
         if bb_position > 0.95:
-            score -= 15
+            score -= p["sr.bb_extreme"]
             details["bb"] = "upper_extreme"
         elif bb_position < 0.05:
-            score += 15
+            score += p["sr.bb_extreme"]
             details["bb"] = "lower_extreme"
         elif 0.4 < bb_position < 0.6:
             details["bb"] = "middle"
@@ -467,46 +504,47 @@ def calc_sr_score(
 
 
 def calc_risk_score(
-    *, atr_pct=None, adx=None, bb_width=None,
+    *, atr_pct=None, adx=None, bb_width=None, points=None,
 ) -> tuple[float, dict]:
     """Core risk scoring. Returns (score, details)."""
     details: dict = {}
     score = 0.0
+    p = _scoring_points(points)
 
     # ATR-based volatility assessment
     if atr_pct is not None:
         if atr_pct > 8:
-            score -= 40
+            score -= p["risk.atr_extreme"]
             details["volatility"] = f"extreme ({atr_pct:.1f}%)"
         elif atr_pct > 5:
-            score -= 20
+            score -= p["risk.atr_high"]
             details["volatility"] = f"high ({atr_pct:.1f}%)"
         elif atr_pct > 2:
-            score += 10
+            score += p["risk.atr_healthy"]
             details["volatility"] = f"healthy ({atr_pct:.1f}%)"
         elif atr_pct > 0.5:
-            score += 5
+            score += p["risk.atr_moderate"]
             details["volatility"] = f"moderate ({atr_pct:.1f}%)"
         else:
-            score -= 30
+            score -= p["risk.atr_low"]
             details["volatility"] = f"too_low ({atr_pct:.1f}%)"
 
     # ADX ranging check
     if adx is not None:
         if adx < 15:
-            score -= 30
+            score -= p["risk.adx_range"]
             details["ranging"] = "strongly_ranging"
         elif adx < 20:
-            score -= 15
+            score -= p["risk.adx_weak"]
             details["ranging"] = "possibly_ranging"
         else:
-            score += 10
+            score += p["risk.adx_trend"]
             details["ranging"] = "trending"
 
     # BB width (squeeze detection)
     if bb_width is not None:
         if bb_width < 2:
-            score -= 10
+            score -= p["risk.bb_squeeze"]
             details["bb_squeeze"] = True
         else:
             details["bb_squeeze"] = False

@@ -143,6 +143,7 @@ def route_signal(
         primary_timeframe=config.trading.primary_timeframe,
         confidence_min=scoring_cfg.confidence_min,
         confidence_max=scoring_cfg.confidence_max,
+        scoring_points=scoring_cfg.points,
     )
 
     # 2. Calculate targets (use tier R:R ratios)

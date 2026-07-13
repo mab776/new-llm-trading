@@ -30,6 +30,7 @@ Market Data → Scoring Engine → Signal Router
 | **Config** | `llm_trading_bot/config.py` | Pydantic models, config loading |
 | **OpenWebUI Filter** | `openwebui_filter.py` | **SOURCE OF TRUTH** — indicator computations + scoring logic |
 | **Scoring** | `llm_trading_bot/scoring.py` | Typed API layer (IndicatorSet, CategoryScore, etc.) — imports from filter |
+| **Entry lifecycle** | `llm_trading_bot/entry.py` | Shared maker-limit fill rule + pending-entry structure |
 | **Data** | `llm_trading_bot/data.py` | OHLCV fetching, caching, 4H aggregation, source routing |
 | **Bitget history** | `llm_trading_bot/bitget_csv.py` | Windowed (END-anchored) Bitget fetch + monthly disk cache |
 | **Binance history** | `llm_trading_bot/binance_csv.py` | Binance public CSV archive downloader |
@@ -54,6 +55,16 @@ The `RiskManagementConfig` in `config.py` controls four features ported from the
 | **Post-SL cooldown** | `cooldown_candles_after_sl` | 3 | Skip N candles after SL hit |
 | **Consecutive loss penalty** | `consecutive_loss_penalty` | 5.0 | Raise entry threshold per loss |
 | **Maker/taker fees** | `use_maker_fee_for_tp` | true | TP→maker fee, SL→taker fee |
+
+Entries default to `trading.entry_mode: "maker"`: place a post-only limit at the
+completed decision bar's close, keep it for the following primary bar, fill only if that
+bar trades back to the limit, otherwise cancel. A fill is immediately exposed to the
+fill bar's adverse-first SL/TP checks. The pending order counts as a position slot and is
+placed with mandatory preset SL+TP. `"taker"` remains available for comparison/fallback.
+
+`scoring.points` contains the nine OOS/cross-asset-validated overrides selected in Round 14.
+All other point awards come from `openwebui_filter.DEFAULT_SCORING_POINTS`. Never copy these
+values into `scoring.py`; the filter remains the source of truth.
 
 These are implemented in both `backtesting.py` (full engine) and `grid_search.py` (fast backtest).
 
@@ -237,6 +248,8 @@ exists for a reason — it's the last line of defense.
 - **yfinance doesn't support 4H candles** — we fetch 1H and aggregate in `data.py`
 - **yfinance caps hourly data at ~730 days** — prefer `bitget` for deep backtests
 - **Fees compound significantly at high leverage** — a 0.06% fee at 20x = 2.4% per round trip
+- **Maker entry is not guaranteed** — post-only limits can miss or lose queue priority; live
+  reconciliation cancels unfilled orders after one completed primary bar
 - **ATR adapts to volatility** — all targets (SL, TP1, TP2) scale with market conditions
 - **Partial exits** — TP1 closes a fraction (default 50%), TP2 closes the rest
 - **The OpenWebUI filter file is self-contained** — it contains the canonical indicator and scoring functions that `scoring.py` imports

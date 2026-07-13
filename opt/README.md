@@ -333,6 +333,75 @@ the finding. Maker beats taker on SOL too, consistent with Round 9. Config/engin
 config is additive). Repro: `PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.driver` after
 `setup(symbol="SOL/USDT:USDT")`, or point any run script at `config-sol.json`.
 
+## Round 11 — maker entry shipped with honest fill-bar exits
+
+Finished Round 9's release gate. `trading.entry_mode` now drives the same good-for-one-primary-
+bar lifecycle in fastbt, `BacktestEngine`, and live scheduling. A pending limit counts as a slot;
+on the next bar it fills only if touched, and the new position is checked for SL before TP on the
+**same fill bar**. Live uses a post-only order with preset SL+TP, persists pending context, queries
+order state, handles fill/cancel races, and cancels at the next UTC-aligned primary close. The
+exchange client gained order-detail/cancel operations. `config.json`, `config-eth.json`, and
+`config-sol.json` now select `entry_mode: "maker"`.
+
+Strict 1h sub-bar replay, 2bps slip + funding + liquidation:
+
+| asset | taker FULL / TEST geo | honest maker FULL / TEST geo | maker worst fold · maxDD |
+|---|---:|---:|---:|
+| BTC | 12.25× / +16.4% | **26.13× / +27.8%** | +27.3% · 25.6% |
+| ETH | 22.46× / +13.4% | **56.35× / +27.3%** | +11.5% · 29.9% |
+| SOL | 56.79× / +94.3% | **138.76× / +119.1%** | +68.6% · 22.4% |
+
+Maker still wins on all three assets, TRAIN, held-out TEST, and every chronological fold after
+removing the delay optimism. Full-engine↔fastbt 2024 maker parity matched return (438.48%), final
+balance, 607 trades, win rate, PF, DD, and Sharpe. Queue-position/non-fill realism remains a paper-
+trading concern; a touched OHLC limit is not proof of a real exchange fill.
+
+## Round 12 — shared BTC+ETH+SOL portfolio harness
+
+Added `opt/multi_asset.py` and `opt/multi_portfolio.py`. Primary streams are timestamp-interleaved
+into one `Portfolio`; balance, peak equity, and DD throttle are shared, while entry slots, pending
+orders, cooldowns, loss penalties, targets, funding, and trailing state remain per symbol. Trades
+carry a symbol and snapshots mark each open position using its own current price. Same-timestamp
+capital allocation is deterministic (sorted symbol order).
+
+Honest sub-bar yearly folds, 2bps + funding + liquidation:
+
+With the Round 14 scoring points, the current maker configuration compounds **235,389×** across
+the independently-reset yearly folds, with worst fold +218%, maxDD 37.8%, and 8,380 trades.
+(Before Round 14, the same shared maker harness produced 20,879×, worst +158%, maxDD 35.9%.)
+
+The multiple is not a forecast: three symbols × three slots × 25× creates much more aggregate
+exposure than one instance. The useful result is green-every-year shared compounding **and** the
+warning that shared maxDD (~38%) exceeds the single-asset runs. Add a global exposure/risk cap
+before considering this layout for live trading.
+
+## Round 13 — annual walk-forward retuning: promising, not shipped
+
+Added `opt/walk_forward_retune.py`: for target year N, search only N-2..N-1 and trade N. A first
+60-candidate/window run used maker entry, honest sub exits, funding, and 2bps slip. After applying
+Round 14's static scoring points, chained unseen 2023→2025H1 growth was **13.08× retuned vs 9.63×
+static** (1.36 ratio): 2023 +381% vs +220%, 2024 +151% vs +118%, but 2025H1 +8% vs +38%.
+This is encouraging but unstable and only three deployment windows;
+no production parameters changed. Expand seeds/search counts and include parameter-turnover costs
+before adopting a cadence.
+
+## Round 14 — scoring internals parameterized; constrained winner SHIPPED
+
+All canonical hand-tuned awards/penalties now live in
+`openwebui_filter.DEFAULT_SCORING_POINTS`; partial `scoring.points` overrides flow through the
+typed scorer, routing/live analysis, full engine, fastbt, and shared portfolio without duplicating
+logic. Added `opt/search_scoring_points.py`, constrained to nine interpretable values and selecting
+on TRAIN only. The 120-candidate pilot overfit, so the search was expanded to 500 before a verdict.
+
+The 500-candidate TRAIN winner improved BTC TRAIN geo +57.6%→+89.8%, held-out TEST
+**+27.8%→+29.5%**, and chronological 2024-25 **2.80×→3.01×**. More importantly, without any
+asset-specific selection it transferred to ETH (TEST +27.3%→+31.1%, FULL 56.4×→157.5×, worst
++11.5%→+19.1%) and SOL (TEST +119.1%→+184.6%, FULL 138.8×→777.0×, worst +68.6%→+103.5%).
+That cross-asset falsification pass clears the bar; the nine overrides are now in all three configs.
+Current honest maker/sub BTC is **70.28×**, worst +38.0%, maxDD 25.1% (vs 26.13× before points).
+Final 2024 full-engine↔fastbt parity with maker + point overrides is digit-equal: +532.52%,
+$632.52 final balance, 660 trades, 80.4545% win rate, PF 1.69, maxDD 24.3%, Sharpe 2.77.
+
 ## Repro
 
 ```bash
@@ -340,6 +409,11 @@ PYTHONPATH=. python opt/driver.py            # baseline eval over folds
 PYTHONPATH=. python opt/eda_funding.py       # funding predictive-edge EDA (Round 7)
 PYTHONPATH=. python opt/probe_funding.py     # funding-signal walk-forward probe (Round 7)
 PYTHONPATH=. python opt/search_wf.py 5000 7  # walk-forward search
+PYTHONPATH=. python -m opt.maker_entry --exit-granularity sub --include-sol
+PYTHONPATH=. python -m opt.multi_portfolio --exit-granularity sub
+PYTHONPATH=. python -m opt.walk_forward_retune --trials 300
+PYTHONPATH=. python -m opt.search_scoring_points --trials 500
+PYTHONPATH=. python -m opt.validate_parity --entry-mode maker
 PYTHONPATH=. python opt/finalize.py 0        # validation battery on a candidate
 ```
 

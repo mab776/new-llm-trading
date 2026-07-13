@@ -41,7 +41,8 @@ and `yfinance` remain available.)
 
 | Module | Purpose |
 |--------|---------|
-| `scoring` | Core scoring engine, indicators, targets |
+| `scoring` | Typed scoring API, targets, configurable canonical point values |
+| `entry` | Shared maker pending-entry fill rule and lifecycle data |
 | `data` | OHLCV fetching, caching, 4H aggregation, source routing |
 | `bitget_csv` | Bitget windowed history getter + monthly disk cache |
 | `binance_csv` | Binance public CSV archive downloader |
@@ -77,14 +78,19 @@ All settings live in `config.json`. See `AGENTS.md` for full documentation.
 The current `config.json` is the output of an out-of-sample-validated optimization pass
 (2026-07) — see `opt/README.md` for the methodology, the intrabar trailing-stop bug it
 uncovered (backtests must assume the adverse extreme hits first), and full results.
-Headline (2021-01→2025-06, compounding, 2 bps slippage/side, liquidation AND perp
-funding modeled): **BTC ≈228× with every year profitable (incl. the 2022 bear),
-max DD ~22%** (84× at 5 bps); the same unchanged config on **ETH: ≈1015×**
-(`config-eth.json`) — strong evidence the edge is structural, not curve-fit.
+The current configuration uses a post-only maker limit at the completed decision bar's
+close, good for the following primary bar. Honest 1h sub-bar replay (2021-01→2025-06,
+2bps market-exit slippage, liquidation and perp funding modeled) remains profitable in
+every yearly fold on **BTC (70.28×), ETH (157.45×), and SOL (777.00×)** after a constrained
+scoring-point search selected on BTC TRAIN and validated on BTC TEST plus untouched ETH/SOL.
+These multiples
+are robustness signals, not forecasts; touched OHLC limits do not model real queue position.
 Structural changes vs the original design:
 **trailing stops ON** (activation 0.94%, callback 0.33%), **pyramiding** (up to 3
 same-direction positions), **conviction sizing** (risk scales with |score|), and an
-**opposite-signal exit** (close on a hard composite flip, threshold 20).
+**opposite-signal exit** (close on a hard composite flip, threshold 20). A shared
+BTC+ETH+SOL portfolio harness and leakage-free annual retuning/scoring-point experiments
+live under `opt/`; see `opt/README.md` for validation results and caveats.
 
 ## License
 

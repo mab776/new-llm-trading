@@ -10,6 +10,7 @@ the geomean even if another fold is +900%). We also track worst fold and max dra
 from __future__ import annotations
 
 import sys, json, time
+from dataclasses import dataclass
 import numpy as np
 
 from llm_trading_bot.config import load_config, AppConfig
@@ -43,13 +44,17 @@ _FUND = None  # per-bar funding rate sums aligned to _PRE.timestamps
 _FMETRIC = None  # causal funding SIGNAL metric: EWM(span=30) of _FUND (all events <= bar i)
 
 
-def setup(symbol: str | None = None):
-    """Load data + funding and precompute indicators. symbol overrides the config's
-    exchange_symbol (e.g. "ETH/USDT:USDT" to evaluate the same strategy on ETH)."""
-    global _PRE, _BASE, _FUND, _FMETRIC
-    if _PRE is not None:
-        return
-    cfg = load_config("config.json")
+@dataclass
+class EvaluationContext:
+    pre: fb.Precomputed
+    config: AppConfig
+    funding: list[float] | None
+    funding_metric: list[float] | None
+
+
+def load_context(symbol: str | None = None, config_path: str = "config.json") -> EvaluationContext:
+    """Load one independent symbol context (safe for multi-asset callers)."""
+    cfg = load_config(config_path)
     configure_cache(cfg.data_cache.ttl_seconds)
     ds = cfg.data_source
     if symbol:
@@ -60,26 +65,36 @@ def setup(symbol: str | None = None):
         warmup_periods=0, source=ds.source, market=ds.market,
     )
     for tf, df in data.items():
-        print(f"  {tf}: {len(df)} rows {df.index[0].date()} -> {df.index[-1].date()}", file=sys.stderr)
-    _PRE = fb.precompute(data, cfg.trading.primary_timeframe, 200)
-    _BASE = cfg
-
-    # Funding series (Binance proxy — Bitget only serves ~3 months), bucketed per 4h bar
+        print(f"  {ds.exchange_symbol} {tf}: {len(df)} rows "
+              f"{df.index[0].date()} -> {df.index[-1].date()}", file=sys.stderr)
+    pre = fb.precompute(data, cfg.trading.primary_timeframe, 200)
+    funding = metric = None
     try:
         from llm_trading_bot.funding import fetch_funding_history, aggregate_funding_to_bars
         import pandas as pd
         fund = fetch_funding_history(ds.exchange_symbol,
                                      start_date="2020-08-01", end_date="2025-06-02")
         tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(cfg.trading.primary_timeframe, 4)
-        _FUND = aggregate_funding_to_bars(fund, pd.DatetimeIndex(_PRE.timestamps), tf_hours)
-        # Causal signal metric: EWM of the per-bar funding sum (span 30 bars ≈ 5d @4h).
-        # Uses only events up to & including bar i, so it's leakage-free at the bar close.
-        _FMETRIC = pd.Series(_FUND).ewm(span=30, adjust=False).mean().tolist()
-        print(f"  funding: {len(fund)} settlements loaded", file=sys.stderr)
+        funding = aggregate_funding_to_bars(
+            fund, pd.DatetimeIndex(pre.timestamps), tf_hours
+        )
+        metric = pd.Series(funding).ewm(span=30, adjust=False).mean().tolist()
+        print(f"  {ds.exchange_symbol} funding: {len(fund)} settlements loaded", file=sys.stderr)
     except Exception as e:
-        print(f"  funding unavailable: {e}", file=sys.stderr)
-        _FUND = None
-        _FMETRIC = None
+        print(f"  {ds.exchange_symbol} funding unavailable: {e}", file=sys.stderr)
+    return EvaluationContext(pre, cfg, funding, metric)
+
+
+def setup(symbol: str | None = None):
+    """Load data + funding and precompute indicators. symbol overrides the config's
+    exchange_symbol (e.g. "ETH/USDT:USDT" to evaluate the same strategy on ETH)."""
+    global _PRE, _BASE, _FUND, _FMETRIC
+    if _PRE is not None:
+        return
+    ctx = load_context(symbol)
+    _PRE, _BASE, _FUND, _FMETRIC = (
+        ctx.pre, ctx.config, ctx.funding, ctx.funding_metric
+    )
 
 
 def build_config(overrides: dict) -> AppConfig:

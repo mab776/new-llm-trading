@@ -6,26 +6,32 @@ Copy-paste everything below the line into a fresh Claude Code session started in
 ---
 
 Continue the profit-maximization loop on this trading bot. Read `AGENTS.md` and
-`opt/README.md` first — they document the architecture and all eight completed
+`opt/README.md` first — they document the architecture and all fourteen completed
 optimization rounds. This file is the handoff; trust it over stale prose elsewhere.
 
 ## Current state (2026-07-13, git log has the full story)
 
-- **Headline (funding + liquidation + 2bps slip, 2021-01→2025-06, compounding):
-  BTC 228× (84× @5bps), ETH 1015× (296×) with the SAME unchanged config — every year
-  green on both, maxDD ~22-30%.** Configs: `config.json` (BTC), `config-eth.json`.
-- **Now green on a THIRD asset too (Round 10):** unchanged config on SOL is positive every
-  yearly fold — honest sub-bar exits give 56.8× (taker) / 244× (maker), worst fold +45%/+59%.
-  `config-sol.json` added. The green-everywhere robustness is the finding, not the multiple.
-- **Maker-entry is an EV-positive edge NOT yet shipped (Round 9):** limit-at-close instead of
-  market/taker beats taker on all three assets + held-out TEST + both exit modes, but only as a
-  *fastbt screen* (opt-in `strat["entry_mode"]`). It carries a one-bar exit-delay optimism →
-  must be ported to the engine with an honest pending-order lifecycle before it's trusted/live.
+- **Headline (honest sub exits + funding + liquidation + 2bps market slip,
+  2021-01→2025-06, compounding): BTC 70.28×, ETH 157.45×, SOL 777.00× with the SAME
+  maker-entry/scoring config — every yearly fold green, maxDD ~22-30%.** The green-everywhere
+  robustness is the finding, not the multiple. Configs: `config.json`, `config-eth.json`,
+  `config-sol.json`.
+- **Maker entry is shipped (Round 11):** honest same-fill-bar exits, engine/fastbt parity,
+  post-only live lifecycle, persisted reconciliation, and one-primary-bar expiry. Strict sub-bar
+  maker results remain better on BTC/ETH/SOL; all three configs now use `entry_mode: "maker"`.
+- **Shared portfolio exists (Round 12):** BTC+ETH+SOL interleaved against one balance. Honest
+  maker sub replay stays green every year, but maxDD rises to ~38%; global exposure cap is next.
+- **Walk-forward retuning is promising but unstable (Round 13):** with Round 14 points, the
+  60-trial cadence produced 13.08× unseen vs 9.63× static across 2023-2025H1, but badly lagged
+  static in 2025H1 and has only three deployment windows.
+- **Scoring points shipped (Round 14):** after a 120-trial overfit warning, a 500-trial TRAIN
+  winner improved BTC TEST + chrono and transferred strongly to untouched ETH/SOL. Nine point
+  overrides are in all configs; canonical defaults/logic remain in `openwebui_filter.py`.
 - Strategy: 4h primary, score→route→trade; trailing stops (act 0.94%/cb 0.33%),
   pyramiding (max_positions 3, same-direction), conviction sizing (exponent 1.0),
   opposite-signal exit (threshold 20), DD circuit-breaker (25%→1 slot, risk×0.5),
   lev 25 aggressive / 12 conservative tier, ATR stop 2.26×, TP RR 2.02/3.34 (70% @TP1).
-- Tests: 263 pass (`PYTHONPATH=. /tmp/tmlvenv/bin/python -m pytest tests/ -q`).
+- Tests: 281 pass (`PYTHONPATH=. /tmp/tmlvenv/bin/python -m pytest tests/ -q`).
   Venv `/tmp/tmlvenv` has everything (pandas/pydantic/ccxt/matplotlib/schedule/pytest);
   the system python has no pip. If the venv is gone, recreate:
   `python3 -m venv --without-pip /tmp/tmlvenv` then bootstrap pip from another venv or get-pip.
@@ -70,39 +76,31 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
   (229.51×→144.50×); a mixed n=36 thinking pilot was then EXPANDED and came back worse across all
   splits. Signal-only trading wins outright (the model mostly turns entries into WAIT). Do not retry
   as a per-entry accept/reject gate. `opt/llm_gate_pilot.py` + caches kept for reference only.
-- ~~**Maker-entry (fastbt screen)**~~ — **DONE, EV-positive (Round 9).** Opt-in
-  `strat["entry_mode"]="maker"`. NOT shipped — needs the engine port below (#1).
+- ~~**Maker-entry**~~ — **DONE / SHIPPED (Round 11).** Honest pending lifecycle and parity.
 - ~~**More assets**~~ — **DONE (Round 10).** SOL green every fold with the unchanged config;
   `config-sol.json` added. The config is now green on 3 assets (BTC/ETH/SOL).
+- ~~**Multi-asset shared portfolio**~~ — **DONE AS HARNESS (Round 12).** Needs global exposure cap.
+- ~~**Scoring internals constrained search**~~ — **DONE / SHIPPED (Round 14).** BTC TEST +
+  chrono and ETH/SOL transfer validated nine overrides.
+- ~~**Walk-forward retuning pilot**~~ — **DONE / PROMISING (Round 13).** Expand before adoption.
 
 ## Improvement backlog, ranked (2026-07-13)
 
-1. **Ship maker-entry to the engine (finish Round 9) — TOP PRIORITY.** The fastbt screen is
-   EV-positive on all 3 assets + held-out TEST but books the fill once per 4h bar *after* that
-   bar's exit step → a one-bar exit-delay optimism. Port `entry_mode: maker` into
-   `backtesting.py` + `openwebui_filter.py`/scheduler with a real pending-order lifecycle (place
-   limit at close → fill iff next bar trades back to it, else cancel → honest same-bar exit after
-   fill), add parity + fill-lifecycle tests, re-verify engine==fastbt digit-equal. Only then is
-   the magnitude trustworthy or shippable. Live also adds non-fill/queue-position risk not modelled.
-2. **Multi-asset shared portfolio** — BTC+ETH(+SOL) compounding one balance (fastbt is currently
-   single-symbol per sim). Interleave Precomputed streams by timestamp with a shared Portfolio +
-   per-symbol slots. Measures the real diversification benefit vs isolated instances (their DDs
-   partially overlap — quantify it). Biggest structural lift.
-3. **Scoring internals evolution** — the hand-tuned point values inside
-   `openwebui_filter.calc_*_score` (EMA-stack ±30, RSI bands ±15/20, MACD ±15, etc.) have never
-   been searched. Parametrize in fastbt (pure functions), CMA-ES/random-search on TRAIN halves
-   only, strict TEST + chrono validation — LARGEST overfit surface in the backlog, be brutal.
-4. **Regime-switching params** — `detect_market_regime` exists; different thresholds/leverage per
+1. **Portfolio-wide exposure cap** — shared BTC+ETH+SOL is profitable but permits nine 25× slots
+   and raises maxDD to ~38%. Search global margin/notional/slot caps on TRAIN, validate TEST +
+   chrono, then mirror the winner in live orchestration before any shared deployment.
+2. **Expand walk-forward retuning** — multiple seeds/search sizes, stability of selected params,
+   and turnover/operational costs. Adopt only if the 1.36× pilot advantage remains robust.
+3. **Regime-switching params** — `detect_market_regime` exists; different thresholds/leverage per
    regime (e.g. wider trailing in VOLATILE). Medium odds, self-contained.
-5. **Anti-martingale sizing** — scale risk up after wins / down after losses (the DD throttle only
+4. **Anti-martingale sizing** — scale risk up after wins / down after losses (the DD throttle only
    handles deep-DD; the win-streak side is untested). Small, quick to screen.
-6. **Walk-forward re-tuning cadence** — does yearly re-optimization on a trailing window beat the
-   static config? (Tune on year N-2..N-1, trade year N.) Pure harness experiment, zero engine risk;
-   also a fragility sanity-check on the static config.
-7. **Ship it — paper-trade (needs Marc's explicit go-ahead; externally visible).** Testnet keys are
+5. **Queue/fill sensitivity** — haircut touched maker fills or probabilistically model queue
+   position to bound the backtest's optimistic assumption that every touched limit fills.
+6. **Ship it — paper-trade (needs Marc's explicit go-ahead; externally visible).** Testnet keys are
    the default (`bitget.testnet: true`). Native Portainer stacks (BTC + ETH, optionally SOL) — see
    CLAUDE.md standing preference in ~/Documents/portainer — + Grafana from `logs/decisions.jsonl`.
-   Live-vs-backtest drift is the ultimate validation. Best done AFTER #1 lands. Do not start
+   Live-vs-backtest drift is the ultimate validation. Maker lifecycle is ready. Do not start
    unprompted.
 
 Work the loop: pick the top item, implement in fastbt first, validate walk-forward,

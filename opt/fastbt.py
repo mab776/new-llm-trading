@@ -30,6 +30,7 @@ from llm_trading_bot.scoring import (
     calculate_targets, apply_pre_trade_filters, compute_composite_score,
 )
 from llm_trading_bot.portfolio import Portfolio
+from llm_trading_bot.entry import PendingEntry, maker_limit_touched
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -281,6 +282,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     st["dd_throttle"] = ddt if ddt > 0 else None
     st["dd_throttle_slots"] = getattr(config.risk_management, "dd_throttle_slots", 1)
     st["dd_throttle_risk"] = getattr(config.risk_management, "dd_throttle_risk", 0.5)
+    st["entry_mode"] = getattr(config.trading, "entry_mode", "taker")
     if strat:
         st.update(strat)
     tr = config.trading
@@ -297,11 +299,6 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         default_order_type=config.fees.default_order_type,
         use_maker_fee_for_tp=risk.use_maker_fee_for_tp,
     )
-    # Maker-entry: entries become limit fills → maker fee. Exit fees are unchanged
-    # (SL=taker, TP=maker via _fee_rate_for_exit when use_maker_fee_for_tp, which the
-    # config enables), so flipping the entry default here only affects entry fees.
-    if st["entry_mode"] == "maker":
-        port.default_order_type = "maker"
     weights = sc.weights
     primary_tf = tr.primary_timeframe
     tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(primary_tf, 4)
@@ -315,7 +312,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     consec_losses = 0
     candles_since_loss = 999
     cooldown = 0
-    pending = None  # maker-entry: resting limit order awaiting a next-bar fill
+    pending: PendingEntry | None = None
     last_close = None; last_time = None
     ti = -1  # test-bar counter (mirrors engine's enumerate over test_indices)
     marginal_candidates = 0
@@ -345,16 +342,48 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         bar_high = prim.high; bar_low = prim.low; bar_close = prim.close
         last_close = bar_close; last_time = ts
 
+        # 0.75 Resolve a maker order from the previous bar.  The fresh fill is
+        # checked for exits on THIS bar (or from its first touched sub-bar onward),
+        # removing the original screen's one-bar exit-delay optimism.
+        fresh_trade = None
+        fresh_sub_start = 0
+        subs = pre.subbars[i] if (exit_granularity == "sub" and pre.subbars) else None
+        if pending is not None:
+            touched = False
+            if subs:
+                for sub_i, (s_high, s_low, _s_close) in enumerate(subs):
+                    if maker_limit_touched(
+                        pending.direction, pending.limit_price, s_high, s_low
+                    ):
+                        touched = True
+                        fresh_sub_start = sub_i
+                        break
+            else:
+                touched = maker_limit_touched(
+                    pending.direction, pending.limit_price, bar_high, bar_low
+                )
+            if touched:
+                fresh_trade = port.open_trade(
+                    direction=pending.direction, entry_price=pending.limit_price,
+                    entry_time=ts, stop_loss=pending.stop_loss,
+                    take_profit_1=pending.take_profit_1,
+                    take_profit_2=pending.take_profit_2,
+                    leverage=pending.leverage, risk_pct=pending.risk_pct,
+                    tp1_exit_pct=pending.tp1_exit_pct, order_type="maker",
+                )
+                fresh_trade._atr_entry = pending.atr_at_entry
+            pending = None
+
         # 1. exits first (records risk events on the portfolio as trades close).
         # exit_granularity="sub": replay the 4h bar's 1h sub-bars in time order —
         # real intrabar sequencing (trailing ratchets between sub-bars) instead of
         # the worst-case single-bar assumption. Falls back to the 4h bar when the
         # 1h series has a hole.
-        subs = pre.subbars[i] if (exit_granularity == "sub" and pre.subbars) else None
         for trade in list(port.open_trades):
             if subs:
+                start = fresh_sub_start if trade is fresh_trade else 0
                 first = True
-                for (s_high, s_low, s_close) in subs:
+                for (s_high, s_low, s_close) in subs[start:]:
                     if not trade.is_open:
                         break
                     _check_exits(port, trade, s_high, s_low, s_close, ts, risk,
@@ -398,29 +427,13 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         if cooldown > 0:
             cooldown -= 1
 
-        # 1.75 maker-entry fill: a limit placed at the PREVIOUS bar's close fills iff
-        # this bar trades back to it (good-for-one-bar; else the price ran away and the
-        # order is cancelled). Filled AFTER this bar's exits+funding, so the new trade's
-        # first exit check is next bar — same one-bar delay as a taker enter-at-close.
-        if pending is not None:
-            filled = (bar_low <= pending["limit"]) if pending["dir"] == "LONG" \
-                else (bar_high >= pending["limit"])
-            if filled:
-                trade = port.open_trade(
-                    direction=pending["dir"], entry_price=pending["limit"], entry_time=ts,
-                    stop_loss=pending["sl"], take_profit_1=pending["tp1"],
-                    take_profit_2=pending["tp2"], leverage=pending["lev"],
-                    risk_pct=pending["risk"], tp1_exit_pct=pending["tp1_exit"],
-                )
-                trade._atr_entry = pending["atr"]
-            pending = None
-
         # 2. score (reuse real composite scorer with secondary-tf alignment)
         inds_by_tf = {primary_tf: prim}
         inds_by_tf.update(pre.sec_by_bar[i])
         result = compute_composite_score(
             indicators_by_tf=inds_by_tf, weights=weights, primary_timeframe=primary_tf,
             confidence_min=sc.confidence_min, confidence_max=sc.confidence_max,
+            scoring_points=getattr(sc, "points", None),
         )
 
         targets = calculate_targets(
@@ -519,7 +532,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                 # Entry slot: default single position; pyramiding allows same-direction adds.
                 # A resting maker limit counts as a committed slot and must agree in direction.
                 committed = len(port.open_trades) + (1 if pending is not None else 0)
-                pend_ok = pending is None or pending["dir"] == direction_str
+                pend_ok = pending is None or pending.direction == direction_str
                 can_enter = (committed < slots
                              and all(t.direction == direction_str for t in port.open_trades)
                              and pend_ok)
@@ -550,13 +563,15 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                         if st["entry_mode"] == "maker":
                             # Rest a limit at this bar's close; it fills next bar only if
                             # price trades back to it (checked at the top of the next bar).
-                            pending = {
-                                "dir": direction_str, "limit": bar_close,
-                                "sl": targets.stop_loss, "tp1": targets.take_profit_1,
-                                "tp2": targets.take_profit_2, "lev": lev_eff,
-                                "risk": risk_eff, "tp1_exit": tier.tp1_exit_pct,
-                                "atr": prim.atr_14,
-                            }
+                            pending = PendingEntry(
+                                direction=direction_str, limit_price=bar_close,
+                                stop_loss=targets.stop_loss,
+                                take_profit_1=targets.take_profit_1,
+                                take_profit_2=targets.take_profit_2,
+                                leverage=lev_eff, risk_pct=risk_eff,
+                                tp1_exit_pct=tier.tp1_exit_pct,
+                                atr_at_entry=prim.atr_14, decision_time=ts,
+                            )
                         else:
                             entry_eff = bar_close * (1 + slip) if direction_str == "LONG" else bar_close * (1 - slip)
                             trade = port.open_trade(
@@ -564,6 +579,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                                 stop_loss=targets.stop_loss, take_profit_1=targets.take_profit_1,
                                 take_profit_2=targets.take_profit_2, leverage=lev_eff,
                                 risk_pct=risk_eff, tp1_exit_pct=tier.tp1_exit_pct,
+                                order_type="taker",
                             )
                             trade._atr_entry = prim.atr_14  # for ATR-based trailing
 
@@ -608,7 +624,11 @@ def _check_exits(port, trade, bar_high, bar_low, bar_close, bar_time, risk, tf_h
     def record_risk(t):
         if not hasattr(port, "_risk_events"):
             port._risk_events = []
-        port._risk_events.append({"loss": t.net_pnl <= 0, "sl": t.exit_reason in ("sl", "trailing_stop")})
+        port._risk_events.append({
+            "loss": t.net_pnl <= 0,
+            "sl": t.exit_reason in ("sl", "trailing_stop"),
+            "symbol": getattr(t, "symbol", ""),
+        })
 
     max_hours = risk.max_holding_hours
     if max_hours > 0:

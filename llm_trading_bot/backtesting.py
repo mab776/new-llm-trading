@@ -19,6 +19,7 @@ from typing import Optional
 import pandas as pd
 
 from llm_trading_bot.config import AppConfig
+from llm_trading_bot.entry import PendingEntry, maker_limit_touched
 from llm_trading_bot.portfolio import Portfolio, PortfolioStats, Trade
 from llm_trading_bot.trailing import compute_trailing_stop
 from llm_trading_bot.scoring import (
@@ -93,6 +94,7 @@ class BacktestEngine:
         self.consecutive_losses = 0
         self.candles_since_last_loss = 999  # large initial = no penalty
         self.cooldown_remaining = 0  # candles to skip after SL
+        self.pending_entry: Optional[PendingEntry] = None
 
     def _check_exits(self, trade: Trade, bar_high: float, bar_low: float,
                      bar_close: float, bar_time: str) -> None:
@@ -309,6 +311,41 @@ class BacktestEngine:
             bar_low = float(bar["Low"])
             bar_close = float(bar["Close"])
 
+            # 0.75 Resolve the maker limit placed at the previous bar's close.
+            # It is live for exactly this bar.  A fill participates in the normal
+            # adverse-first exit pass immediately, preventing the old one-bar
+            # exit-delay optimism.
+            if self.pending_entry is not None:
+                pending = self.pending_entry
+                self.pending_entry = None
+                if maker_limit_touched(
+                    pending.direction, pending.limit_price, bar_high, bar_low
+                ):
+                    trade = self.portfolio.open_trade(
+                        direction=pending.direction,
+                        entry_price=pending.limit_price,
+                        entry_time=bar_time,
+                        stop_loss=pending.stop_loss,
+                        take_profit_1=pending.take_profit_1,
+                        take_profit_2=pending.take_profit_2,
+                        leverage=pending.leverage,
+                        risk_pct=pending.risk_pct,
+                        tp1_exit_pct=pending.tp1_exit_pct,
+                        order_type="maker",
+                    )
+                    trade._atr_entry = pending.atr_at_entry
+                    self.decision_log.append({
+                        "time": bar_time, "action": f"FILL_{pending.direction}_MAKER",
+                        "price": pending.limit_price, "trade_id": trade.trade_id,
+                        "decision_time": pending.decision_time,
+                    })
+                else:
+                    self.decision_log.append({
+                        "time": bar_time, "action": "CANCEL_MAKER_UNFILLED",
+                        "price": pending.limit_price,
+                        "decision_time": pending.decision_time,
+                    })
+
             # 1. Check exits on existing positions FIRST (on this bar's high/low).
             #    Intrabar path is unknown, so we assume the ADVERSE extreme is hit before the
             #    favorable one (worst case): exits are checked against the stop as it stands at
@@ -365,6 +402,7 @@ class BacktestEngine:
                 primary_timeframe=primary_timeframe,
                 confidence_min=scoring_cfg.confidence_min,
                 confidence_max=scoring_cfg.confidence_max,
+                scoring_points=scoring_cfg.points,
             )
 
             # 4. Calculate targets (use tier R:R ratios)
@@ -445,8 +483,12 @@ class BacktestEngine:
                             slots = min(slots, self.risk_cfg.dd_throttle_slots)
                             throttled = True
 
-                    can_enter = (len(open_now) < slots
-                                 and all(t.direction == direction_str for t in open_now))
+                    committed = len(open_now) + (1 if self.pending_entry else 0)
+                    pending_ok = (self.pending_entry is None
+                                  or self.pending_entry.direction == direction_str)
+                    can_enter = (committed < slots
+                                 and all(t.direction == direction_str for t in open_now)
+                                 and pending_ok)
 
                     if not filter_failures and can_enter:
                         # For backtesting, MARGINAL signals are treated as trades too
@@ -458,18 +500,32 @@ class BacktestEngine:
                             risk_eff *= max(0.5, min(1.5, m))
                         if throttled:
                             risk_eff *= self.risk_cfg.dd_throttle_risk
-                        trade = self.portfolio.open_trade(
-                            direction=direction_str,
-                            entry_price=bar_close,
-                            entry_time=bar_time,
-                            stop_loss=targets.stop_loss,
-                            take_profit_1=targets.take_profit_1,
-                            take_profit_2=targets.take_profit_2,
-                            leverage=self.tier.leverage,
-                            risk_pct=risk_eff,
-                            tp1_exit_pct=self.tier.tp1_exit_pct,
-                        )
-                        trade_action = f"OPEN_{direction_str}"
+                        if self.config.trading.entry_mode == "maker":
+                            self.pending_entry = PendingEntry(
+                                direction=direction_str, limit_price=bar_close,
+                                stop_loss=targets.stop_loss,
+                                take_profit_1=targets.take_profit_1,
+                                take_profit_2=targets.take_profit_2,
+                                leverage=self.tier.leverage, risk_pct=risk_eff,
+                                tp1_exit_pct=self.tier.tp1_exit_pct,
+                                atr_at_entry=primary_ind.atr_14,
+                                decision_time=bar_time,
+                            )
+                            trade_action = f"PLACE_{direction_str}_MAKER"
+                        else:
+                            trade = self.portfolio.open_trade(
+                                direction=direction_str,
+                                entry_price=bar_close,
+                                entry_time=bar_time,
+                                stop_loss=targets.stop_loss,
+                                take_profit_1=targets.take_profit_1,
+                                take_profit_2=targets.take_profit_2,
+                                leverage=self.tier.leverage,
+                                risk_pct=risk_eff,
+                                tp1_exit_pct=self.tier.tp1_exit_pct,
+                                order_type="taker",
+                            )
+                            trade_action = f"OPEN_{direction_str}"
                         print(f"    >> {trade_action} @ ${bar_close:,.2f} | Score: {result.raw_score:+.1f} | SL: ${targets.stop_loss:,.2f} | TP1: ${targets.take_profit_1:,.2f} | TP2: ${targets.take_profit_2:,.2f}")
 
                         self.decision_log.append({

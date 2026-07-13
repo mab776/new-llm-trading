@@ -228,6 +228,8 @@ class BitgetClient:
 
         if order_type == "limit" and price is not None:
             body["price"] = str(price)
+            # A maker strategy must never silently cross the spread and pay taker.
+            body["force"] = "post_only"
 
         result = self._request("POST", path, body=body)
 
@@ -246,6 +248,26 @@ class BitgetClient:
             timestamp=datetime.now().isoformat(),
             raw_response=result,
         )
+
+    def get_order_detail(self, symbol: str, order_id: str) -> dict:
+        """Return one futures order's current exchange state."""
+        path = "/api/v2/mix/order/detail"
+        result = self._request("GET", path, params={
+            "symbol": symbol,
+            "productType": self.config.product_type,
+            "orderId": order_id,
+        })
+        return result.get("data", {})
+
+    def cancel_order(self, symbol: str, order_id: str) -> dict:
+        """Cancel one still-resting futures order."""
+        path = "/api/v2/mix/order/cancel-order"
+        return self._request("POST", path, body={
+            "symbol": symbol,
+            "productType": self.config.product_type,
+            "marginCoin": "USDT",
+            "orderId": order_id,
+        })
 
     def place_trailing_stop(
         self,

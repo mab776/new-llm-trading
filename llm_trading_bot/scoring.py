@@ -280,7 +280,7 @@ def calculate_indicators(df: pd.DataFrame, timeframe: str) -> IndicatorSet:
 # Scoring Categories
 # ──────────────────────────────────────────────────────────────────────
 
-def score_trend(indicators: IndicatorSet) -> CategoryScore:
+def score_trend(indicators: IndicatorSet, points: dict | None = None) -> CategoryScore:
     """Score trend from -100 (strong bearish) to +100 (strong bullish)."""
     score, details = calc_trend_score(
         price=indicators.close,
@@ -288,50 +288,50 @@ def score_trend(indicators: IndicatorSet) -> CategoryScore:
         ema_200=indicators.ema_200,
         adx=indicators.adx, plus_di=indicators.plus_di, minus_di=indicators.minus_di,
         macd_hist=indicators.macd_histogram, macd_line=indicators.macd_line,
-        macd_signal=indicators.macd_signal,
+        macd_signal=indicators.macd_signal, points=points,
     )
     return CategoryScore("trend", score, 0, 0, details)
 
 
-def score_momentum(indicators: IndicatorSet) -> CategoryScore:
+def score_momentum(indicators: IndicatorSet, points: dict | None = None) -> CategoryScore:
     """Score momentum from -100 to +100."""
     score, details = calc_momentum_score(
         rsi_14=indicators.rsi_14,
         stoch_k=indicators.stoch_k, stoch_d=indicators.stoch_d,
         cci_20=indicators.cci_20, williams_r=indicators.williams_r,
-        roc_10=indicators.roc_10,
+        roc_10=indicators.roc_10, points=points,
     )
     return CategoryScore("momentum", score, 0, 0, details)
 
 
-def score_volume(indicators: IndicatorSet) -> CategoryScore:
+def score_volume(indicators: IndicatorSet, points: dict | None = None) -> CategoryScore:
     """Score volume confirmation from -100 to +100."""
     score, details = calc_volume_score(
         volume_ratio=indicators.volume_ratio,
         change_pct=indicators.change_pct,
         obv=indicators.obv, obv_sma_20=indicators.obv_sma_20,
-        vwap=indicators.vwap, price=indicators.close,
+        vwap=indicators.vwap, price=indicators.close, points=points,
     )
     return CategoryScore("volume", score, 0, 0, details)
 
 
-def score_support_resistance(indicators: IndicatorSet) -> CategoryScore:
+def score_support_resistance(indicators: IndicatorSet, points: dict | None = None) -> CategoryScore:
     """Score S/R proximity from -100 to +100."""
     score, details = calc_sr_score(
         price=indicators.close,
         nearest_support=indicators.nearest_support,
         nearest_resistance=indicators.nearest_resistance,
-        bb_position=indicators.bb_position,
+        bb_position=indicators.bb_position, points=points,
     )
     return CategoryScore("support_resistance", score, 0, 0, details)
 
 
-def score_risk(indicators: IndicatorSet) -> CategoryScore:
+def score_risk(indicators: IndicatorSet, points: dict | None = None) -> CategoryScore:
     """Risk assessment from -100 (high risk) to +100 (low risk)."""
     score, details = calc_risk_score(
         atr_pct=indicators.atr_pct,
         adx=indicators.adx,
-        bb_width=indicators.bb_width,
+        bb_width=indicators.bb_width, points=points,
     )
     return CategoryScore("risk", score, 0, 0, details)
 
@@ -380,6 +380,7 @@ def compute_composite_score(
     primary_timeframe: str = "4h",
     confidence_min: float = 5,
     confidence_max: float = 95,
+    scoring_points: dict[str, float] | None = None,
 ) -> ScoringResult:
     """
     Compute a composite score across multiple timeframes.
@@ -405,7 +406,7 @@ def compute_composite_score(
 
     for name, func in cat_funcs.items():
         w = weights.get(name, 0.0)
-        cat = func(primary)
+        cat = func(primary, scoring_points)
         cat.weight = w
         cat.weighted_score = cat.raw_score * w
         weighted_total += cat.weighted_score
@@ -421,7 +422,7 @@ def compute_composite_score(
     for tf, ind in indicators_by_tf.items():
         if tf == primary_timeframe:
             continue
-        tf_trend = score_trend(ind)
+        tf_trend = score_trend(ind, scoring_points)
         # If secondary timeframe agrees with primary, small bonus
         if (tf_trend.raw_score > 0 and weighted_total > 0) or (
             tf_trend.raw_score < 0 and weighted_total < 0

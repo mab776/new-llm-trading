@@ -43,6 +43,9 @@ class TradingConfig(BaseModel):
     leverage_tiers: dict[str, LeverageTier] = Field(default_factory=dict)
     active_tier: str = "conservative"
     stop_loss_strategy: Literal["atr", "structure", "hybrid"] = "hybrid"
+    # taker = market at decision close; maker = post-only limit at that close,
+    # good for the following primary bar only.
+    entry_mode: Literal["taker", "maker"] = "taker"
     trailing_stop: TrailingStopConfig = Field(default_factory=TrailingStopConfig)
 
     @property
@@ -63,6 +66,8 @@ class ScoringConfig(BaseModel):
     min_volatility_pct: float = 0.3
     confidence_min: float = 5
     confidence_max: float = 95
+    # Partial overrides of openwebui_filter.DEFAULT_SCORING_POINTS.
+    points: dict[str, float] = Field(default_factory=dict)
 
     @field_validator("weights")
     @classmethod

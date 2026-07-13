@@ -45,6 +45,7 @@ class Trade:
     partial_exits: list[dict] = field(default_factory=list)
     remaining_size: float = 0.0
     bars_held: int = 0  # Number of bars since entry
+    symbol: str = ""  # populated by shared multi-asset simulations
 
     @property
     def is_open(self) -> bool:
@@ -139,7 +140,7 @@ class Portfolio:
         return self.taker_fee
 
     def _calculate_fee(self, size: float, price: float, leverage: int,
-                       exit_reason: str = "") -> float:
+                       exit_reason: str = "", order_type: str | None = None) -> float:
         """
         Calculate fee on leveraged notional.
         Fee = size * price * fee_rate (the notional IS the leveraged amount).
@@ -149,7 +150,10 @@ class Portfolio:
         if exit_reason:
             rate = self._fee_rate_for_exit(exit_reason)
         else:
-            rate = self.fee_rate  # Entry fee uses default
+            if order_type not in (None, "maker", "taker"):
+                raise ValueError(f"Unknown order type: {order_type}")
+            rate = (self.maker_fee if order_type == "maker" else self.taker_fee) \
+                if order_type else self.fee_rate
         return notional * rate
 
     def _calculate_position_size(
@@ -176,12 +180,16 @@ class Portfolio:
         leverage: int = 5,
         risk_pct: float = 0.02,
         tp1_exit_pct: float = 0.5,
+        order_type: str | None = None,
+        symbol: str = "",
     ) -> Trade:
         """Open a new trade."""
         self._trade_counter += 1
 
         size = self._calculate_position_size(entry_price, leverage, risk_pct)
-        entry_fee = self._calculate_fee(size, entry_price, leverage)
+        entry_fee = self._calculate_fee(
+            size, entry_price, leverage, order_type=order_type
+        )
 
         trade = Trade(
             trade_id=self._trade_counter,
@@ -196,6 +204,7 @@ class Portfolio:
             take_profit_2=take_profit_2,
             tp1_exit_pct=tp1_exit_pct,
             entry_fee=entry_fee,
+            symbol=symbol,
         )
 
         self.balance -= entry_fee
@@ -301,15 +310,19 @@ class Portfolio:
 
         return net_pnl
 
-    def record_snapshot(self, timestamp: str, current_price: float = 0) -> PortfolioSnapshot:
+    def record_snapshot(
+        self, timestamp: str, current_price: float | dict[str, float] = 0
+    ) -> PortfolioSnapshot:
         """Record a point-in-time snapshot."""
         unrealized = 0.0
         for trade in self.open_trades:
+            price = (current_price.get(trade.symbol, trade.entry_price)
+                     if isinstance(current_price, dict) else current_price)
             # Size already includes leverage, so no extra leverage multiplier
             if trade.direction == "LONG":
-                unrealized += (current_price - trade.entry_price) * trade.remaining_size
+                unrealized += (price - trade.entry_price) * trade.remaining_size
             else:
-                unrealized += (trade.entry_price - current_price) * trade.remaining_size
+                unrealized += (trade.entry_price - price) * trade.remaining_size
 
         equity = self.balance + unrealized
         if equity > self.peak_balance:

@@ -49,8 +49,92 @@ class TradingScheduler:
         # Per-symbol trade context for live trailing stops:
         # {symbol: {"direction": "LONG"|"SHORT", "entry": float, "current_sl": float}}
         self._tracked_trades: dict[str, dict] = {}
+        # Resting maker entries survive scheduler cycles (and process restarts).
+        self._pending_state_file = self._log_dir / "pending_orders.json"
+        self._pending_orders: dict[str, dict] = self._load_pending_orders()
 
         configure_cache(config.data_cache.ttl_seconds)
+
+    def _load_pending_orders(self) -> dict[str, dict]:
+        try:
+            if self._pending_state_file.exists():
+                data = json.loads(self._pending_state_file.read_text())
+                return data if isinstance(data, dict) else {}
+        except (OSError, ValueError, TypeError):
+            pass
+        return {}
+
+    def _save_pending_orders(self) -> None:
+        try:
+            self._pending_state_file.write_text(
+                json.dumps(self._pending_orders, indent=2, sort_keys=True)
+            )
+        except OSError as e:
+            self._log(f"Warning: could not persist pending orders: {e}")
+
+    @staticmethod
+    def _timeframe_seconds(timeframe: str) -> int:
+        return {"1h": 3600, "4h": 4 * 3600, "1d": 24 * 3600}.get(timeframe, 4 * 3600)
+
+    def _activate_filled_pending(self, order_id: str, detail: dict) -> None:
+        pending = self._pending_orders.pop(order_id)
+        avg = float(detail.get("priceAvg") or pending["entry"])
+        self._tracked_trades[pending["symbol"]] = {
+            "direction": pending["direction"],
+            "entry": avg,
+            "current_sl": pending["stop_loss"],
+        }
+        self._save_pending_orders()
+        self._log(f"Maker order {order_id} filled @ ${avg:,.2f}")
+        self._log_decision({
+            "action": "MAKER_FILL", "order_id": order_id,
+            "entry": avg, "side": pending["direction"],
+        })
+
+    def _reconcile_pending_orders(self) -> None:
+        """Promote filled maker orders and cancel orders after one primary bar.
+
+        Cancellation is followed by a detail query to handle the fill/cancel race.
+        A partially-filled order has its remainder cancelled at expiry and the filled
+        position remains protected by the preset TP/SL attached at placement.
+        """
+        now = time.time()
+        for order_id, pending in list(self._pending_orders.items()):
+            try:
+                detail = self.exchange.get_order_detail(pending["symbol"], order_id)
+                state = str(detail.get("state") or detail.get("status") or "").lower()
+                if state == "filled":
+                    self._activate_filled_pending(order_id, detail)
+                    continue
+                if state == "canceled":
+                    filled_size = float(detail.get("baseVolume") or 0)
+                    if filled_size > 0:
+                        self._activate_filled_pending(order_id, detail)
+                    else:
+                        self._pending_orders.pop(order_id, None)
+                        self._save_pending_orders()
+                    continue
+                if now < float(pending["expires_at"]):
+                    continue
+
+                self.exchange.cancel_order(pending["symbol"], order_id)
+                # Query after cancellation: the order may have filled as cancel arrived.
+                final = self.exchange.get_order_detail(pending["symbol"], order_id)
+                final_state = str(final.get("state") or final.get("status") or "").lower()
+                filled_size = float(final.get("baseVolume") or detail.get("baseVolume") or 0)
+                if final_state == "filled" or filled_size > 0:
+                    self._activate_filled_pending(order_id, final or detail)
+                else:
+                    self._pending_orders.pop(order_id, None)
+                    self._save_pending_orders()
+                    self._log(f"Maker order {order_id} expired unfilled and was cancelled")
+                    self._log_decision({
+                        "action": "MAKER_CANCEL_UNFILLED", "order_id": order_id,
+                    })
+            except Exception as e:
+                # Keep the order tracked: losing lifecycle state is less safe than
+                # retrying reconciliation on the next scheduler tick.
+                self._log(f"Warning: maker order {order_id} reconciliation failed: {e}")
 
     def _log(self, msg: str) -> None:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -126,6 +210,17 @@ class TradingScheduler:
         if abs(decision.scoring_result.raw_score) < threshold:
             return
         want_side = "long" if direction == Direction.BULLISH else "short"
+        # A resting opposite entry has no position to close yet; cancel it instead.
+        for order_id, pending in list(self._pending_orders.items()):
+            pending_side = "long" if pending["direction"] == "LONG" else "short"
+            if pending_side != want_side:
+                try:
+                    self.exchange.cancel_order(pending["symbol"], order_id)
+                    self._pending_orders.pop(order_id, None)
+                    self._save_pending_orders()
+                    self._log(f"Cancelled opposite resting maker order {order_id}")
+                except Exception as e:
+                    self._log(f"Warning: could not cancel opposite maker order: {e}")
         try:
             positions = self.exchange.get_positions(self.config.trading.symbol)
         except Exception as e:
@@ -231,11 +326,18 @@ class TradingScheduler:
         # (pyramiding); never stack against an opposite-direction position.
         try:
             positions = self.exchange.get_positions(self.config.trading.symbol)
-            if len(positions) >= slots:
-                self._log(f"Already have {len(positions)}/{slots} position slot(s) — skipping")
+            pending_for_symbol = [p for p in self._pending_orders.values()
+                                  if p["symbol"] == self.config.trading.symbol]
+            committed = len(positions) + len(pending_for_symbol)
+            if committed >= slots:
+                self._log(f"Already have {committed}/{slots} committed slot(s) — skipping")
                 return
             if any(p.side.lower() != want_side for p in positions):
                 self._log("Open position in the opposite direction — not stacking, skipping")
+                return
+            if any(("long" if p["direction"] == "LONG" else "short") != want_side
+                   for p in pending_for_symbol):
+                self._log("Resting order in the opposite direction — not stacking, skipping")
                 return
         except Exception as e:
             self._log(f"Warning: Could not check positions: {e}")
@@ -264,24 +366,52 @@ class TradingScheduler:
         )
 
         try:
-            result = self.exchange.place_order(
-                symbol=self.config.trading.symbol,
-                side=side,
-                size=size,
-                targets=targets,
-                leverage=tier.leverage,
-            )
+            if self.config.trading.entry_mode == "maker":
+                result = self.exchange.place_order(
+                    symbol=self.config.trading.symbol, side=side, size=size,
+                    targets=targets, leverage=tier.leverage,
+                    order_type="limit", price=targets.entry,
+                )
+            else:
+                result = self.exchange.place_order(
+                    symbol=self.config.trading.symbol, side=side, size=size,
+                    targets=targets, leverage=tier.leverage,
+                )
             self._log(f"Order placed: {result.order_id}")
 
-            # Track the trade so check_positions can trail its stop.
-            self._tracked_trades[self.config.trading.symbol] = {
-                "direction": "LONG" if targets.direction == Direction.BULLISH else "SHORT",
-                "entry": targets.entry,
-                "current_sl": targets.stop_loss,
-            }
+            direction = "LONG" if targets.direction == Direction.BULLISH else "SHORT"
+            if self.config.trading.entry_mode == "maker":
+                placed_at = time.time()
+                tf_seconds = self._timeframe_seconds(
+                    self.config.trading.primary_timeframe
+                )
+                # Expire on the next UTC-aligned primary-bar close, not an
+                # arbitrary wall-clock duration after a delayed scheduler tick.
+                expires_at = (int(placed_at // tf_seconds) + 1) * tf_seconds
+                self._pending_orders[result.order_id] = {
+                    "symbol": self.config.trading.symbol,
+                    "direction": direction,
+                    "entry": targets.entry,
+                    "stop_loss": targets.stop_loss,
+                    "take_profit_1": targets.take_profit_1,
+                    "take_profit_2": targets.take_profit_2,
+                    "size": size,
+                    "placed_at": placed_at,
+                    "expires_at": expires_at,
+                }
+                self._save_pending_orders()
+            else:
+                # Market orders are immediately eligible for trailing management.
+                self._tracked_trades[self.config.trading.symbol] = {
+                    "direction": direction,
+                    "entry": targets.entry,
+                    "current_sl": targets.stop_loss,
+                }
 
             self._log_decision({
-                "action": f"TRADE_{side.upper()}",
+                "action": (f"PLACE_{side.upper()}_MAKER"
+                           if self.config.trading.entry_mode == "maker"
+                           else f"TRADE_{side.upper()}"),
                 "order_id": result.order_id,
                 "entry": targets.entry,
                 "sl": targets.stop_loss,
@@ -299,6 +429,7 @@ class TradingScheduler:
 
     def check_positions(self) -> None:
         """Check and manage existing positions."""
+        self._reconcile_pending_orders()
         try:
             positions = self.exchange.get_positions(self.config.trading.symbol)
             if not positions:
@@ -388,6 +519,8 @@ class TradingScheduler:
         """Run one full analysis + execution cycle."""
         self._log("=" * 50)
         self._log("Starting analysis cycle")
+
+        self._reconcile_pending_orders()
 
         decision = self.analyze_market()
         if decision:

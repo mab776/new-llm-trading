@@ -40,6 +40,7 @@
     },
     "active_tier": "aggressive",
     "stop_loss_strategy": "atr",
+    "entry_mode": "maker",
     "trailing_stop": {
       "enabled": true,
       "activation_pct": 0.94,
@@ -47,6 +48,17 @@
     }
   },
   "scoring": {
+    "points": {
+      "trend.ema_stack": 34.8,
+      "trend.ema200": 16.1,
+      "trend.di": 22.3,
+      "trend.macd": 13.5,
+      "momentum.rsi_trend": 22.0,
+      "momentum.roc_strong": 21.7,
+      "volume.confirmation": 27.6,
+      "volume.obv": 20.5,
+      "sr.proximity": 24.9
+    },
     "weights": {
       "trend": 0.210839,
       "momentum": 0.31798,

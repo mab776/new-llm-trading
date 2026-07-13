@@ -16,22 +16,25 @@ import opt.driver as drv
 SLIP = 0.0002  # 2bps — applies to market fills (taker entries + all SL/EOB exits)
 
 
-def row(tag, symbol_label, strat):
-    tr = drv.evaluate({}, folds=drv.TRAIN_FOLDS, slip=SLIP, strat=strat, funding=True)
-    te = drv.evaluate({}, folds=drv.TEST_FOLDS, slip=SLIP, strat=strat, funding=True)
-    fu = drv.evaluate({}, folds=drv.FOLDS, slip=SLIP, strat=strat, funding=True)
+def row(tag, symbol_label, strat, exit_granularity="primary"):
+    kwargs = dict(slip=SLIP, strat=strat, funding=True,
+                  exit_granularity=exit_granularity)
+    tr = drv.evaluate({}, folds=drv.TRAIN_FOLDS, **kwargs)
+    te = drv.evaluate({}, folds=drv.TEST_FOLDS, **kwargs)
+    fu = drv.evaluate({}, folds=drv.FOLDS, **kwargs)
     print(f"  {tag:14s} | TRAIN {tr['geo_pct']:+7.1f}%/f  TEST {te['geo_pct']:+7.1f}%/f  "
           f"| FULL {fu['compound_x']:9.2f}x  worst {fu['worst_fold']:+6.1f}%  "
           f"DD {fu['max_dd']:4.1f}%  fills {fu['total_trades']}")
     return fu
 
 
-def bench(symbol_label, symbol):
+def bench(symbol_label, symbol, exit_granularity="primary"):
     drv._PRE = None  # force reload for the new symbol
     drv.setup(symbol=symbol)
-    print(f"\n=== {symbol_label} ({symbol}) — 2bps slip + funding + liquidation ===")
-    taker = row("taker (base)", symbol_label, {"entry_mode": "taker"})
-    maker = row("maker limit", symbol_label, {"entry_mode": "maker"})
+    print(f"\n=== {symbol_label} ({symbol}) — {exit_granularity} exits, "
+          "2bps slip + funding + liquidation ===")
+    taker = row("taker (base)", symbol_label, {"entry_mode": "taker"}, exit_granularity)
+    maker = row("maker limit", symbol_label, {"entry_mode": "maker"}, exit_granularity)
     miss = taker["total_trades"] - maker["total_trades"]
     pct = 100.0 * miss / taker["total_trades"] if taker["total_trades"] else 0.0
     print(f"  -> maker missed {miss}/{taker['total_trades']} taker fills ({pct:.1f}%); "
@@ -39,8 +42,15 @@ def bench(symbol_label, symbol):
 
 
 def main():
-    bench("BTC", "BTC/USDT:USDT")
-    bench("ETH", "ETH/USDT:USDT")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exit-granularity", choices=("primary", "sub"), default="primary")
+    parser.add_argument("--include-sol", action="store_true")
+    args = parser.parse_args()
+    bench("BTC", "BTC/USDT:USDT", args.exit_granularity)
+    bench("ETH", "ETH/USDT:USDT", args.exit_granularity)
+    if args.include_sol:
+        bench("SOL", "SOL/USDT:USDT", args.exit_granularity)
 
 
 if __name__ == "__main__":
