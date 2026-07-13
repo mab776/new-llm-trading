@@ -18,11 +18,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import pandas as pd
 import schedule
 
 from llm_trading_bot.config import AppConfig
-from llm_trading_bot.data import configure_cache, fetch_multi_timeframe
+from llm_trading_bot.data import clear_cache, configure_cache, fetch_multi_timeframe
 from llm_trading_bot.exchange import BitgetClient, SafetyViolation
 from llm_trading_bot.exposure import (
     anti_martingale_multiplier, cap_risk_pct, outcome_streak,
@@ -32,6 +31,9 @@ from llm_trading_bot.openwebui_client import run_consensus
 from llm_trading_bot.routing import RoutingDecision, route_signal
 from llm_trading_bot.scoring import Direction, SignalStrength, calculate_indicators
 from llm_trading_bot.trailing import compute_trailing_stop
+from llm_trading_bot.timeframes import (
+    completed_market_snapshot, latest_completed_bar_open, timeframe_delta,
+)
 
 
 class TradingScheduler:
@@ -64,6 +66,7 @@ class TradingScheduler:
         # {symbol: {"direction": "LONG"|"SHORT", "entry": float, "current_sl": float}}
         self._tracked_trades = self._live_state.tracked_trades
         self._pending_orders = self._live_state.pending_orders
+        self._candidate_analysis_bar: str | None = None
         # One-time compatibility migration from the pre-shared-state maker file.
         legacy = self._log_dir / "pending_orders.json"
         if migrate_legacy and not self._pending_orders and legacy.exists():
@@ -100,7 +103,7 @@ class TradingScheduler:
 
     @staticmethod
     def _timeframe_seconds(timeframe: str) -> int:
-        return {"1h": 3600, "4h": 4 * 3600, "1d": 24 * 3600}.get(timeframe, 4 * 3600)
+        return int(timeframe_delta(timeframe).total_seconds())
 
     @staticmethod
     def _same_symbol(left: str, right: str) -> bool:
@@ -187,11 +190,21 @@ class TradingScheduler:
 
     def analyze_market(self) -> Optional[RoutingDecision]:
         """Fetch data, score, and route the signal."""
+        self._candidate_analysis_bar = None
+
+        expected_bar = str(latest_completed_bar_open(
+            self.config.trading.primary_timeframe
+        ))
+        symbol_key = self.config.trading.symbol
+        if self._live_state.last_analysis_bars.get(symbol_key) == expected_bar:
+            self._log(f"Primary candle {expected_bar} already analyzed")
+            return None
         self._log("Fetching market data...")
 
         try:
             ds = self.config.data_source
             symbol = ds.exchange_symbol if ds.source != "yfinance" else self.config.trading.yfinance_symbol
+            clear_cache()  # never promote a cached forming row after it closes
             data_by_tf = fetch_multi_timeframe(
                 symbol=symbol,
                 timeframes=self.config.trading.timeframes,
@@ -205,6 +218,17 @@ class TradingScheduler:
 
         if not data_by_tf:
             self._log("No data available")
+            return None
+
+        data_by_tf, primary_bar = completed_market_snapshot(
+            data_by_tf, self.config.trading.primary_timeframe
+        )
+        if primary_bar is None:
+            self._log("No completed primary candle available")
+            return None
+        analysis_bar = str(primary_bar)
+        if self._live_state.last_analysis_bars.get(symbol_key) == analysis_bar:
+            self._log(f"Primary candle {analysis_bar} already analyzed")
             return None
 
         # Calculate indicators for each timeframe
@@ -221,6 +245,7 @@ class TradingScheduler:
 
         # Route signal
         decision = route_signal(indicators_by_tf, self.config)
+        self._candidate_analysis_bar = analysis_bar
 
         self._log(
             f"Signal: {decision.signal_strength.value} | "
@@ -230,6 +255,16 @@ class TradingScheduler:
         )
 
         return decision
+
+    def _claim_analysis_bar(self, analysis_bar: str) -> bool:
+        """Persist an at-most-once live decision gate before order execution."""
+        symbol = self.config.trading.symbol
+        with self._live_state.lock:
+            if self._live_state.last_analysis_bars.get(symbol) == analysis_bar:
+                return False
+            self._live_state.last_analysis_bars[symbol] = analysis_bar
+            self._live_state.save()
+            return True
 
     def _maybe_opposite_exit(self, decision: RoutingDecision) -> None:
         """Close open positions when the composite score flips hard against them
@@ -591,29 +626,31 @@ class TradingScheduler:
         if pos.size <= 0:
             return
 
+        expected_bar = str(latest_completed_bar_open(
+            self.config.trading.primary_timeframe
+        ))
+        if tracked.get("last_trail_bar") == expected_bar:
+            return
+
         # Fetch the last COMPLETED primary-timeframe candle; only ratchet when a new
         # one has closed since the last update (bar-close cadence, like the backtest).
         tf = self.config.trading.primary_timeframe
         try:
             ds = self.config.data_source
+            clear_cache()  # obtain the final OHLC of the completed trail bar
             data_by_tf = fetch_multi_timeframe(
                 symbol=ds.exchange_symbol, timeframes=[tf],
                 source=ds.source, market=ds.market,
             )
-            df = data_by_tf[tf]
+            frozen, _primary_bar = completed_market_snapshot(data_by_tf, tf)
+            df = frozen.get(tf)
         except Exception as e:
             self._log(f"Trailing: could not fetch {tf} candles: {e}")
             return
-        if df is None or len(df) < 2:
+        if df is None or df.empty:
             return
-        # Last row may be the still-forming candle — use the last COMPLETED one.
-        tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(tf, 4)
-        now = pd.Timestamp.now(tz=df.index.tz) if df.index.tz is not None else pd.Timestamp.now()
         last = df.iloc[-1]
         last_ts = df.index[-1]
-        if last_ts + pd.Timedelta(hours=tf_hours) > now:
-            last = df.iloc[-2]
-            last_ts = df.index[-2]
 
         if tracked.get("last_trail_bar") == str(last_ts):
             return  # already ratcheted on this bar
@@ -650,7 +687,11 @@ class TradingScheduler:
 
         decision = self.analyze_market()
         if decision:
-            self.execute_decision(decision)
+            analysis_bar = self._candidate_analysis_bar
+            if analysis_bar is None or self._claim_analysis_bar(analysis_bar):
+                self.execute_decision(decision)
+            else:
+                self._log(f"Primary candle {analysis_bar} was already claimed")
 
         self._log("Cycle complete")
         self._log("")
@@ -660,13 +701,17 @@ class TradingScheduler:
         interval = self.config.scheduling.interval_minutes
         pos_interval = self.config.scheduling.check_positions_interval_minutes
 
-        self._log(f"Starting scheduler — analysis every {interval}min, position checks every {pos_interval}min")
+        poll_interval = 1
+        self._log(
+            f"Starting scheduler — completed-bar analysis poll every {poll_interval}min "
+            f"(configured cadence {interval}min), position checks every {pos_interval}min"
+        )
 
         # Run immediately
         self.run_cycle()
 
         # Schedule recurring
-        schedule.every(interval).minutes.do(self.run_cycle)
+        schedule.every(poll_interval).minutes.do(self.run_cycle)
         schedule.every(pos_interval).minutes.do(self.check_positions)
 
         try:

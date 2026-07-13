@@ -177,8 +177,10 @@ def _load_csv(csv_path: Path) -> pd.DataFrame:
         cols = BINANCE_OHLCV_COLUMNS[:len(sample.columns)]
         df = pd.read_csv(csv_path, names=cols, header=None)
 
-    # Detect timestamp unit: Binance uses ms in some months, us in others
-    ts_col = "time_close" if "time_close" in df.columns else "time_open"
+    # Canonical project indexes are candle OPEN timestamps. Availability is
+    # determined separately from index + timeframe duration; indexing Binance by
+    # time_close while Bitget uses time_open makes cross-source causality ambiguous.
+    ts_col = "time_open"
     sample_ts = float(df[ts_col].iloc[0])
     if sample_ts > 1e16:
         ts_unit = "ns"

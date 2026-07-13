@@ -149,8 +149,9 @@ def run(seeds: list[int]) -> dict:
                     and row["fill_probability"] == 1)
     baseline_x = baseline["continuous"]["compound_x"]
     return {
-        "method": ("aggressive BTC+ETH+SOL shared portfolio; maker entry; honest 1h "
-                   "sub-bar exits; funding; liquidation; 2bps market-exit slippage"),
+        "method": ("aggressive BTC+ETH+SOL shared portfolio; completed-candle "
+                   "alignment; maker entry; honest 1h sub-bar exits; funding; "
+                   "liquidation; 2bps market-exit slippage"),
         "canonical_baseline": baseline,
         "aggregates": aggregate(rows, baseline_x),
         "runs": rows,

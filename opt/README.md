@@ -593,6 +593,51 @@ PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.lower_timeframes
 
 Full results: `opt/lower_timeframe_results.json`.
 
+## Round 23 — completed-candle and live bar-close parity: FIXED
+
+Round 22's blocker is resolved. The shared `llm_trading_bot.timeframes` rules now treat every
+OHLCV index as bar open and expose a row only after its close. Binance archives were normalized
+from close timestamps to open timestamps. Full engine and fastbt select secondary inputs at the
+primary decision close, while one-shot/live analysis removes forming rows and freezes every
+timeframe at that same close.
+
+Live state version 2 persists the last analyzed primary bar per symbol. The scheduler claims that
+bar before execution, so restart or repeated polling cannot duplicate it. Analysis polls once per
+minute to detect UTC 4h closes promptly, but the persisted gate prevents repeated data fetches,
+scoring, or execution. This avoids the old process-start-relative hourly delay that could shorten
+a maker order's modeled next-bar lifetime by almost an hour.
+
+Exact full-engine↔fastbt 2024 maker parity after the fix: **+223.04%, 571 trades, 20.97% maxDD**, no
+mismatches. Corrected BTC+ETH+SOL validation (maker, funding, liquidation, 2bps market exits,
+honest 1h exit replay):
+
+| profile | continuous | reported DD | 4h MTM DD | held-out TEST | worst annual fold |
+|---|---:|---:|---:|---:|---:|
+| standard capped | **445,508.49×** | 17.94% | 18.03% | 149.98× | +166.42% |
+| aggressive uncapped | **4.976 trillion×** | 38.47% | 38.67% | 1,311,792.13× | +1,196.40% |
+
+Standard standalone BTC/ETH/SOL are 204.21× / 1,680.87× / 143,881.86×. Aggressive standalone
+BTC/ETH/SOL are 1,729.98× / 18,414.17× / 3,923,246.77×. Every annual fold remains green. The
+aggressive profile is now an approximately 39% historical-DD profile—not ~34%—and live DD can be
+materially worse.
+
+Five-seed maker sensitivity was rerun. The harsh 5bps penetration + 70% fill case retains 62.8%
+median log growth, produces 93.44 million× median continuous historical growth, keeps every annual
+fold green, and reaches 39.2% worst reported / 38.61% mark-to-market DD. This is robustness
+evidence, not a forecast or substitute for paper fill measurements.
+
+Reproduce:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.validate_parity --entry-mode maker
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.completed_candle_validation
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.queue_fill_sensitivity \
+  --output opt/completed_candle_queue_results.json
+```
+
+Artifacts: `opt/completed_candle_results.json` and
+`opt/completed_candle_queue_results.json`. These supersede Round 18's headline and queue results.
+
 ## Repro
 
 ```bash

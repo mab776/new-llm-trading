@@ -29,6 +29,7 @@ class SharedTradingOrchestrator:
             for config in configs
         ]
         self.interval_minutes = configs[0].scheduling.interval_minutes
+        self.analysis_poll_minutes = 1
         self.position_interval_minutes = (
             configs[0].scheduling.check_positions_interval_minutes
         )
@@ -89,7 +90,7 @@ class SharedTradingOrchestrator:
         symbols = ", ".join(config.trading.symbol for config in self.configs)
         print(f"Shared live orchestrator: {symbols}")
         self.run_cycle()
-        schedule.every(self.interval_minutes).minutes.do(self.run_cycle)
+        schedule.every(self.analysis_poll_minutes).minutes.do(self.run_cycle)
         schedule.every(self.position_interval_minutes).minutes.do(self.check_positions)
         try:
             while True:

@@ -5,7 +5,49 @@ Copy-paste everything below the line into a fresh Claude Code session started in
 
 ---
 
-## LATEST handoff — Round 22 lower-timeframe audit (2026-07-13)
+## LATEST handoff — Round 23 completed-candle/live parity fixed (2026-07-13)
+
+Round 22's pre-paper blocker is resolved. No paper/testnet/live process has been started.
+
+- OHLCV indexes now consistently mean candle open (including Binance archives), and shared
+  timeframe utilities expose a row only when `bar_open + duration <= decision_time`.
+- Full engine and fastbt use identical close-aware primary/secondary snapshots. Corrected 2024
+  maker parity is exact: **+223.04%, 571 trades, 20.97% maxDD, zero mismatches**.
+- Live analysis drops forming rows, freezes every timeframe at the completed primary close, and
+  persists an at-most-once bar key across restarts. It polls once per minute for prompt UTC 4h
+  close execution but fetches/scores/executes only when the completed primary bar advances.
+- Corrected standard BTC+ETH+SOL shared continuous: **445,508.49×**, 17.94% reported / 18.03%
+  mark-to-market maxDD; held-out TEST **149.98×**; every annual fold green. Standalone standard
+  BTC/ETH/SOL: **204.21× / 1,680.87× / 143,881.86×**.
+- Corrected aggressive shared continuous: **4,976,346,702,419.55×**, 38.47% reported / 38.67%
+  mark-to-market maxDD; held-out TEST **1,311,792.13×**; every annual fold green. This is a
+  path-dependent robustness result, not a forecast; the aggressive profile must now be described
+  as approximately 39% historical DD, with live DD potentially much worse.
+- Corrected five-seed maker stress remains strong. The harsh 5bps penetration + 70% eligible-fill
+  case retains 62.8% median log growth, reaches 93.44 million× median historical growth, keeps
+  every annual fold green, and reaches 39.2% worst reported / 38.61% MTM DD.
+- Verification: **339 tests pass**. Production 4h strategy parameters and risk caps are unchanged.
+  The rejected 1h/5m experiment remains research-only.
+
+### Only next externally visible task: paper trading (requires explicit start approval)
+
+Use one shared testnet process, not independent symbol stacks:
+
+```bash
+python -m llm_trading_bot.main --mode live --shared-configs \
+  config-aggressive.json config-eth-aggressive.json config-sol-aggressive.json
+```
+
+The command trades immediately. Supply testnet credentials and get explicit approval before
+starting it. Then deploy the single orchestrator through Portainer/Grafana and measure actual maker
+fill rate, bar-close latency, and live-vs-backtest drift.
+
+Artifacts: `opt/completed_candle_results.json`, `opt/completed_candle_queue_results.json`, and
+`opt/lower_timeframe_results.json`.
+
+---
+
+## Prior handoff — Round 22 lower-timeframe audit (blocker now resolved)
 
 This section supersedes the earlier "pre-paper backlog complete" / "paper is the only next task"
 statement below. No paper/testnet/live process has been started.

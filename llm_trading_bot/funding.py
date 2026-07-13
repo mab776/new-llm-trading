@@ -114,7 +114,7 @@ def fetch_funding_history(
 
 
 def aggregate_funding_to_bars(funding: pd.Series, bar_index: pd.DatetimeIndex,
-                              bar_hours: int) -> list[float]:
+                              bar_hours: float) -> list[float]:
     """Sum funding rates into per-bar buckets: bar i (stamped at its OPEN) collects
     events with bar_open <= t < bar_open + bar_hours. Pure and testable."""
     sums = [0.0] * len(bar_index)

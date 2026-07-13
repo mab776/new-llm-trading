@@ -18,7 +18,6 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import re
 import sys
 import time
 from dataclasses import asdict
@@ -32,8 +31,9 @@ from llm_trading_bot.funding import (
     aggregate_funding_to_bars,
     fetch_funding_history,
 )
+from llm_trading_bot.timeframes import timeframe_delta
 from opt.driver import FOLDS, TEST_FOLDS, TRAIN_FOLDS
-from opt.fastbt import Precomputed, build_indicatorsets, precompute, simulate
+from opt.fastbt import Precomputed, precompute, simulate
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,19 +50,6 @@ CADENCES: dict[str, tuple[str, ...]] = {
     "1h": ("1h", "4h", "1d"),
     "5m": ("5m", "1h", "4h"),
 }
-
-_TF_RE = re.compile(r"^(\d+)([mhdw])$")
-
-
-def timeframe_delta(timeframe: str) -> pd.Timedelta:
-    """Return the wall-clock duration of a simple exchange timeframe."""
-    match = _TF_RE.fullmatch(timeframe)
-    if not match:
-        raise ValueError(f"Unsupported timeframe: {timeframe}")
-    count, unit = int(match.group(1)), match.group(2)
-    keyword = {"m": "minutes", "h": "hours", "d": "days", "w": "weeks"}[unit]
-    return pd.Timedelta(**{keyword: count})
-
 
 def normalize_to_bar_open(df: pd.DataFrame, timeframe: str) -> pd.DataFrame:
     """Normalize either open- or close-stamped archive rows to bar-open stamps.
@@ -85,31 +72,11 @@ def causal_precompute(
     """Precompute indicators with close-aware, leakage-free TF alignment."""
     from opt.fastbt import precompute
 
-    # Reuse the canonical precompute for the primary indicators and the special
-    # 4h -> 1h exit sub-bars, then replace its open-stamp secondary alignment.
+    # Canonical precompute now owns completed-candle alignment. This wrapper adds
+    # optional research-only sub-bars for 1h -> 5m exit replay.
     pre = precompute(data_by_tf, primary_tf, warmup)
     primary_index = pd.DatetimeIndex(pre.timestamps)
     primary_delta = timeframe_delta(primary_tf)
-
-    secondary: dict[str, tuple[pd.DatetimeIndex, list]] = {}
-    for tf, frame in data_by_tf.items():
-        if tf != primary_tf:
-            secondary[tf] = (
-                pd.DatetimeIndex(frame.index), build_indicatorsets(frame, tf)
-            )
-
-    aligned: list[dict] = []
-    for primary_open in primary_index:
-        decision_close = primary_open + primary_delta
-        row: dict = {}
-        for tf, (index, indicators) in secondary.items():
-            # A secondary bar is usable iff secondary_open + duration <=
-            # primary_close.  Search for the last open satisfying that rule.
-            last_open = decision_close - timeframe_delta(tf)
-            pos = index.searchsorted(last_open, side="right") - 1
-            if pos >= 0 and indicators[pos] is not None and pos + 1 >= 50:
-                row[tf] = indicators[pos]
-        aligned.append(row)
 
     subbars = pre.subbars
     if exit_subframe is not None:
@@ -138,7 +105,7 @@ def causal_precompute(
     return Precomputed(
         timestamps=pre.timestamps,
         primary=pre.primary,
-        sec_by_bar=aligned,
+        sec_by_bar=pre.sec_by_bar,
         warmup=pre.warmup,
         subbars=subbars,
     )

@@ -42,6 +42,64 @@ def _decision(direction=Direction.BULLISH) -> RoutingDecision:
 
 
 class TestLiveSizing:
+    def test_run_cycle_uses_completed_snapshot_and_persists_once_gate(
+        self, monkeypatch, tmp_path,
+    ):
+        import pandas as pd
+        import llm_trading_bot.scheduler as module
+        from llm_trading_bot.live_state import SharedLiveState
+        from llm_trading_bot.scoring import IndicatorSet
+
+        cfg = _config()
+        cfg.trading.primary_timeframe = "4h"
+        cfg.trading.timeframes = ["1h", "4h", "1d"]
+        state_path = tmp_path / "state.json"
+        state = SharedLiveState(state_path)
+        scheduler = TradingScheduler(cfg, shared_state=state, log_dir=tmp_path)
+        now = pd.Timestamp.now(tz="UTC").floor("4h")
+
+        def frame(index):
+            n = len(index)
+            return pd.DataFrame(
+                {"Open": range(n), "High": range(n), "Low": range(n),
+                 "Close": range(n), "Volume": [1.0] * n}, index=index,
+            )
+
+        data = {
+            "1h": frame(pd.date_range(end=now, periods=240, freq="1h", tz="UTC")),
+            "4h": frame(pd.date_range(end=now, periods=60, freq="4h", tz="UTC")),
+            "1d": frame(pd.date_range(end=now.floor("D"), periods=60, freq="1D", tz="UTC")),
+        }
+        seen = {}
+
+        def fake_indicators(df, timeframe):
+            seen[timeframe] = df.index[-1]
+            return IndicatorSet(timeframe=timeframe, close=float(df["Close"].iloc[-1]))
+
+        fetches = []
+        monkeypatch.setattr(
+            module, "fetch_multi_timeframe",
+            lambda **kwargs: fetches.append(kwargs) or data,
+        )
+        monkeypatch.setattr(module, "calculate_indicators", fake_indicators)
+        monkeypatch.setattr(module, "route_signal", lambda indicators, config: _decision())
+        monkeypatch.setattr(scheduler, "_reconcile_pending_orders", lambda: None)
+        executed = []
+        monkeypatch.setattr(scheduler, "execute_decision", lambda decision: executed.append(decision))
+
+        scheduler.run_cycle()
+        scheduler.run_cycle()
+        assert len(executed) == 1
+        assert len(fetches) == 1
+        completed_primary = now - pd.Timedelta(hours=4)
+        assert seen["4h"] == completed_primary
+        assert seen["1h"] == now - pd.Timedelta(hours=1)
+        expected_daily = now - pd.Timedelta(days=1)
+        assert seen["1d"] == expected_daily.floor("D")
+
+        restored = SharedLiveState(state_path)
+        assert restored.last_analysis_bars[cfg.trading.symbol] == str(completed_primary)
+
     def test_deterministic_marginal_mode_matches_backtest_without_llm(self, monkeypatch,
                                                                      tmp_path):
         monkeypatch.chdir(tmp_path)

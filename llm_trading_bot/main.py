@@ -38,6 +38,7 @@ def run_analyze(config_path: str) -> None:
     from llm_trading_bot.data import configure_cache, fetch_multi_timeframe
     from llm_trading_bot.routing import route_signal
     from llm_trading_bot.scoring import calculate_indicators, format_scoring_report
+    from llm_trading_bot.timeframes import completed_market_snapshot
 
     config = load_config(config_path)
     configure_cache(config.data_cache.ttl_seconds)
@@ -51,6 +52,13 @@ def run_analyze(config_path: str) -> None:
         source=ds.source,
         market=ds.market,
     )
+
+    data_by_tf, primary_bar = completed_market_snapshot(
+        data_by_tf, config.trading.primary_timeframe
+    )
+    if primary_bar is None:
+        print("No completed primary candle available")
+        return
 
     indicators_by_tf = {}
     for tf, df in data_by_tf.items():

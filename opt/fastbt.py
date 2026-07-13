@@ -36,6 +36,7 @@ from llm_trading_bot.entry import PendingEntry, maker_limit_touched
 from llm_trading_bot.exposure import (
     anti_martingale_multiplier, cap_risk_pct, update_outcome_streak,
 )
+from llm_trading_bot.timeframes import decision_close, last_usable_open, timeframe_hours
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -155,7 +156,8 @@ def precompute(data_by_tf: dict[str, pd.DataFrame], primary_tf: str, warmup: int
     primary_df = data_by_tf[primary_tf]
     prim = build_indicatorsets(primary_df, primary_tf)
 
-    # Secondary timeframes: build their IndicatorSets, then asof-map to each 4h bar.
+    # Secondary timeframes: build their IndicatorSets, then map only COMPLETED
+    # rows to each primary decision close. All indexes are candle opens.
     sec_inds = {}
     for tf, df in data_by_tf.items():
         if tf == primary_tf:
@@ -165,8 +167,10 @@ def precompute(data_by_tf: dict[str, pd.DataFrame], primary_tf: str, warmup: int
     sec_by_bar = []
     for ts in primary_df.index:
         d = {}
+        close_time = decision_close(ts, primary_tf)
         for tf, (idx, inds) in sec_inds.items():
-            pos = idx.searchsorted(ts, side="right") - 1  # latest secondary bar <= ts
+            cutoff = last_usable_open(close_time, tf)
+            pos = idx.searchsorted(cutoff, side="right") - 1
             if pos >= 0 and inds[pos] is not None and (pos + 1) >= 50:
                 d[tf] = inds[pos]
         sec_by_bar.append(d)
@@ -378,7 +382,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     )
     weights = sc.weights
     primary_tf = tr.primary_timeframe
-    tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(primary_tf, 4)
+    tf_hours = timeframe_hours(primary_tf)
 
     idx = pd.DatetimeIndex(pre.timestamps)
     sd = pd.to_datetime(start_date); ed = pd.to_datetime(end_date)

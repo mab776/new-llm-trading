@@ -9,6 +9,7 @@ import pytest
 
 from llm_trading_bot.backtesting import BacktestEngine, BacktestResult
 from llm_trading_bot.config import AppConfig, LeverageTier
+from llm_trading_bot.scoring import Direction, IndicatorSet, ScoringResult, SignalStrength
 
 
 @pytest.fixture
@@ -65,6 +66,42 @@ def sample_data() -> dict[str, pd.DataFrame]:
 
 
 class TestBacktestEngine:
+    def test_secondary_indicators_stop_at_completed_candle(
+        self, backtest_config, monkeypatch,
+    ):
+        import llm_trading_bot.backtesting as module
+
+        backtest_config.backtesting.start_date = "2024-01-02 08:00"
+        backtest_config.backtesting.end_date = "2024-01-02 08:00"
+        backtest_config.backtesting.warmup_periods = 0
+        primary_idx = pd.DatetimeIndex(["2024-01-02 08:00"])
+        daily_idx = pd.date_range("2023-11-01", periods=64, freq="1D")
+        primary = pd.DataFrame(
+            {"Open": [100], "High": [101], "Low": [99], "Close": [100], "Volume": [1]},
+            index=primary_idx,
+        )
+        daily = pd.DataFrame(
+            {"Open": range(64), "High": range(64), "Low": range(64),
+             "Close": range(64), "Volume": [1] * 64},
+            index=daily_idx,
+        )
+        seen = {}
+
+        def fake_indicators(frame, timeframe):
+            seen[timeframe] = frame.index[-1]
+            return IndicatorSet(timeframe=timeframe, close=float(frame["Close"].iloc[-1]))
+
+        monkeypatch.setattr(module, "calculate_indicators", fake_indicators)
+        monkeypatch.setattr(module, "compute_composite_score", lambda **kwargs: ScoringResult(
+            direction=Direction.NEUTRAL, confidence=5,
+            signal_strength=SignalStrength.WAIT, raw_score=0,
+            category_scores=[], indicators=None, reasons=[], filter_failures=[],
+        ))
+        monkeypatch.setattr(module, "calculate_targets", lambda **kwargs: None)
+
+        BacktestEngine(backtest_config).run({"4h": primary, "1d": daily}, "4h")
+        assert seen["1d"] == pd.Timestamp("2024-01-01")
+
     def test_basic_run(self, backtest_config, sample_data):
         engine = BacktestEngine(backtest_config)
         result = engine.run(sample_data, "4h")

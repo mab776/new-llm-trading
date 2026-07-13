@@ -7,6 +7,7 @@ from opt.lower_timeframes import (
     normalize_to_bar_open,
     timeframe_delta,
 )
+from opt.fastbt import precompute
 
 
 def _frame(index, closes):
@@ -48,7 +49,7 @@ def test_secondary_bar_is_invisible_until_its_close():
     closes = [100.0] * len(secondary_index)
     special = secondary_index.get_loc(pd.Timestamp("2024-01-01 08:00", tz="UTC"))
     closes[special] = 999.0
-    pre = causal_precompute(
+    pre = precompute(
         {
             "1h": _frame(primary_index, [100.0] * len(primary_index)),
             "4h": _frame(secondary_index, closes),
