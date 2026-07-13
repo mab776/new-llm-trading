@@ -115,7 +115,7 @@ def build_config(overrides: dict) -> AppConfig:
 def evaluate(overrides: dict, folds=FOLDS, slip: float = 0.0,
              model_liquidation: bool = True, strat: dict | None = None,
              funding: bool = False, exit_granularity: str = "primary",
-             fund_signal: bool = False) -> dict:
+             fund_signal: bool = False, marginal_gate=None) -> dict:
     cfg = build_config(overrides)
     per = {}
     rets = []
@@ -125,9 +125,12 @@ def evaluate(overrides: dict, folds=FOLDS, slip: float = 0.0,
         r = fb.simulate(_PRE, cfg, sd, ed, slip=slip, model_liquidation=model_liquidation,
                         strat=strat, funding_by_pos=_FUND if funding else None,
                         exit_granularity=exit_granularity,
-                        fund_metric=_FMETRIC if fund_signal else None)
+                        fund_metric=_FMETRIC if fund_signal else None,
+                        marginal_gate=marginal_gate)
         per[name] = {"ret": r.return_pct, "dd": r.max_dd_pct, "tr": r.trades,
-                     "wr": round(r.win_rate, 1), "pf": r.profit_factor}
+                     "wr": round(r.win_rate, 1), "pf": r.profit_factor,
+                     "marginal": r.marginal_candidates,
+                     "marginal_accepted": r.marginal_accepted}
         rets.append(r.return_pct)
         dds.append(r.max_dd_pct)
         trades += r.trades

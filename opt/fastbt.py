@@ -203,6 +203,8 @@ class Result:
     profit_factor: float
     max_dd_pct: float
     sharpe: float
+    marginal_candidates: int = 0
+    marginal_accepted: int = 0
 
 
 DEFAULT_STRAT = {
@@ -248,11 +250,16 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
              maintenance_margin: float = 0.005, strat: dict | None = None,
              funding_by_pos: "list[float] | None" = None,
              exit_granularity: str = "primary",
-             fund_metric: "list[float] | None" = None) -> Result:
+             fund_metric: "list[float] | None" = None,
+             marginal_gate=None) -> Result:
     """slip: per-side price slippage fraction applied to market fills (entry, SL, time/EOB).
     model_liquidation: if True, a stop placed beyond the isolated-margin liquidation
     distance is capped at the liquidation price (position wipes ~full margin first).
-    strat: strategy-variant flags (see DEFAULT_STRAT); defaults reproduce the engine."""
+    strat: strategy-variant flags (see DEFAULT_STRAT); defaults reproduce the engine.
+    marginal_gate: optional ``(timestamp, scoring_result, targets) -> bool`` callback,
+    invoked only when a MARGINAL signal has passed filters and has an available entry
+    slot.  ``None`` preserves the engine's current auto-trade behavior.
+    """
     st = dict(DEFAULT_STRAT)
     # Config-backed strategy features (engine parity): explicit strat overrides win.
     ps_cfg = config.position_sizing
@@ -296,6 +303,8 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     cooldown = 0
     last_close = None; last_time = None
     ti = -1  # test-bar counter (mirrors engine's enumerate over test_indices)
+    marginal_candidates = 0
+    marginal_accepted = 0
 
     def loss_penalty():
         if consec_losses == 0:
@@ -417,6 +426,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
             signal = SignalStrength.MARGINAL
         else:
             signal = SignalStrength.WAIT
+        result.signal_strength = signal
 
         # Opposite-signal exit: composite flipped hard against an open position
         if st["opposite_exit"] is not None and port.open_trades and result.direction != Direction.NEUTRAL:
@@ -445,6 +455,8 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     skip_choppy_regime=ft.skip_choppy_regime,
                     skip_volatile_regime=ft.skip_volatile_regime,
                 )
+                result.filter_failures = fails
+                result.passed_filters = not fails
                 direction_str = "LONG" if result.direction == Direction.BULLISH else "SHORT"
                 # Funding-as-signal gate: skip entries into a crowded side. Trend-conditioned
                 # by default (high funding only fades longs in a downtrend; low funding only
@@ -476,27 +488,37 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                 can_enter = (len(port.open_trades) < slots
                              and all(t.direction == direction_str for t in port.open_trades))
                 if not fails and can_enter and not fund_block:
-                    # Vol-targeted leverage: normalize per-trade risk across vol regimes
-                    lev_eff = tier.leverage
-                    if st["vol_target_lev"] is not None and prim.atr_pct:
-                        lev_eff = max(1, min(tier.leverage, int(round(st["vol_target_lev"] / prim.atr_pct))))
-                    # Conviction sizing: scale margin with signal strength
-                    risk_eff = ps.risk_pct_per_trade
-                    if st["conviction_sizing"] is not None and eff_strong > 0:
-                        m = (abs_score / eff_strong) ** st["conviction_sizing"]
-                        risk_eff *= max(0.5, min(1.5, m))
+                    gate_accept = True
                     if signal == SignalStrength.MARGINAL:
-                        risk_eff *= st["marginal_size_frac"]
-                    if throttled:
-                        risk_eff *= st["dd_throttle_risk"]
-                    entry_eff = bar_close * (1 + slip) if direction_str == "LONG" else bar_close * (1 - slip)
-                    trade = port.open_trade(
-                        direction=direction_str, entry_price=entry_eff, entry_time=ts,
-                        stop_loss=targets.stop_loss, take_profit_1=targets.take_profit_1,
-                        take_profit_2=targets.take_profit_2, leverage=lev_eff,
-                        risk_pct=risk_eff, tp1_exit_pct=tier.tp1_exit_pct,
-                    )
-                    trade._atr_entry = prim.atr_14  # for ATR-based trailing
+                        marginal_candidates += 1
+                        if marginal_gate is not None:
+                            gate_accept = bool(marginal_gate(ts, result, targets))
+                        if gate_accept:
+                            marginal_accepted += 1
+                    # Vol-targeted leverage: normalize per-trade risk across vol regimes
+                    # A rejected setup remains a normal no-entry bar; snapshot cadence below
+                    # is unchanged.
+                    if gate_accept:
+                        lev_eff = tier.leverage
+                        if st["vol_target_lev"] is not None and prim.atr_pct:
+                            lev_eff = max(1, min(tier.leverage, int(round(st["vol_target_lev"] / prim.atr_pct))))
+                        # Conviction sizing: scale margin with signal strength
+                        risk_eff = ps.risk_pct_per_trade
+                        if st["conviction_sizing"] is not None and eff_strong > 0:
+                            m = (abs_score / eff_strong) ** st["conviction_sizing"]
+                            risk_eff *= max(0.5, min(1.5, m))
+                        if signal == SignalStrength.MARGINAL:
+                            risk_eff *= st["marginal_size_frac"]
+                        if throttled:
+                            risk_eff *= st["dd_throttle_risk"]
+                        entry_eff = bar_close * (1 + slip) if direction_str == "LONG" else bar_close * (1 - slip)
+                        trade = port.open_trade(
+                            direction=direction_str, entry_price=entry_eff, entry_time=ts,
+                            stop_loss=targets.stop_loss, take_profit_1=targets.take_profit_1,
+                            take_profit_2=targets.take_profit_2, leverage=lev_eff,
+                            risk_pct=risk_eff, tp1_exit_pct=tier.tp1_exit_pct,
+                        )
+                        trade._atr_entry = prim.atr_14  # for ATR-based trailing
 
         if ti % 10 == 0:
             port.record_snapshot(ts, bar_close)
@@ -511,7 +533,8 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     return Result(
         return_pct=s.total_return_pct, final_balance=s.final_balance, trades=s.total_trades,
         win_rate=s.win_rate, profit_factor=s.profit_factor, max_dd_pct=s.max_drawdown_pct,
-        sharpe=s.sharpe_ratio,
+        sharpe=s.sharpe_ratio, marginal_candidates=marginal_candidates,
+        marginal_accepted=marginal_accepted,
     )
 
 

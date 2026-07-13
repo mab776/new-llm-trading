@@ -198,6 +198,44 @@ stays modeled as a realistic **cost** (Round 4), not a signal. Don't re-pitch fu
 signal without a materially different mechanism (e.g. a positioning feature inside the
 composite score searched under strict held-out discipline — high overfit surface).
 
+## Round 8 — single local LLM gate: measured, REJECTED
+
+Added an optional `marginal_gate` callback to `fastbt.simulate` and a resumable runner in
+`opt/llm_gate_pilot.py`. Default/accept-all behavior is digit-identical to the existing
+auto-trade backtest. Unlike the old three-model consensus plan, the test queries exactly
+one local model: **`qwen3.6:35b-a3b-q8_0`** through Ollama. Prompts use the canonical
+scoring/indicator report frozen at the bar, but omit symbol/date and independently rebase
+each timeframe to close=100. This reduces the risk that a post-period model recognizes an
+exact historical BTC price and recalls the future. Responses are cached per case under
+`reports/` so slow batches resume safely.
+
+Method: 2 bps slippage + funding + liquidation, interleaved TRAIN/TEST half-years. The
+runner first queried all 967 actual baseline marginal-entry opportunities. Because rejected
+entries change slot/cooldown state and expose opportunities absent from the baseline path,
+it then replayed and queried to **fixed-point closure** (77 new cases on pass 1, 5 on pass 2,
+none on pass 3): **1,049 total responses, 0 failures**, mean latency 1.8s. The model never
+flipped direction: it echoed the deterministic side 748 times (71.3%) and returned WAIT 301
+times (28.7%). The converged path actually encountered 1,008 of those queried setups: 719
+accepted and 289 rejected (the other 41 were superseded as earlier decisions changed state).
+
+| Split | Auto-trade baseline | Full LLM gate | Growth ratio | MaxDD baseline→gate |
+|---|---:|---:|---:|---:|
+| TRAIN | 30.57× | 21.48× | 0.7029 | 21.4%→20.9% |
+| held-out TEST | 7.51× | 6.72× | 0.8957 | 21.7%→23.6% |
+| ALL half-years | **229.51×** | **144.50×** | **0.6296** | **21.7%→23.6%** |
+
+The gate hurts both TRAIN and held-out TEST, loses 37% of full-period compound growth,
+worsens overall drawdown, and cuts the worst fold from +17.4% to +7.2%. A few folds improve
+(notably 2022H1), but the effect is inconsistent and overwhelmed elsewhere. **Reject the LLM
+gate; keep auto-trading MARGINAL signals.** No engine, scheduler, live config, or strategy
+defaults changed. Reproduce entirely from the response cache (or resume an interrupted run)
+with:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python opt/llm_gate_pilot.py --sample-size 967 \
+  --model qwen3.6:35b-a3b-q8_0
+```
+
 ## Repro
 
 ```bash

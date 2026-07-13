@@ -6,7 +6,7 @@ Copy-paste everything below the line into a fresh Claude Code session started in
 ---
 
 Continue the profit-maximization loop on this trading bot. Read `AGENTS.md` and
-`opt/README.md` first — they document the architecture and all six completed
+`opt/README.md` first — they document the architecture and all eight completed
 optimization rounds. This file is the handoff; trust it over stale prose elsewhere.
 
 ## Current state (2026-07-12, git log has the full story)
@@ -18,7 +18,7 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
   pyramiding (max_positions 3, same-direction), conviction sizing (exponent 1.0),
   opposite-signal exit (threshold 20), DD circuit-breaker (25%→1 slot, risk×0.5),
   lev 25 aggressive / 12 conservative tier, ATR stop 2.26×, TP RR 2.02/3.34 (70% @TP1).
-- Tests: 261 pass (`PYTHONPATH=. /tmp/tmlvenv/bin/python -m pytest tests/ -q`).
+- Tests: 263 pass (`PYTHONPATH=. /tmp/tmlvenv/bin/python -m pytest tests/ -q`).
   Venv `/tmp/tmlvenv` has everything (pandas/pydantic/ccxt/matplotlib/schedule/pytest);
   the system python has no pip. If the venv is gone, recreate:
   `python3 -m venv --without-pip /tmp/tmlvenv` then bootstrap pip from another venv or get-pip.
@@ -61,13 +61,14 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
    held-out TEST. Config unchanged. Opt-in machinery + EDA kept in `fastbt`/`opt/eda_funding*.py`/
    `opt/probe_funding.py`; full write-up in `opt/README.md` Round 7. Don't retry without a
    materially different mechanism.
-2. **LLM consensus layer backtest** — the project's namesake, never measured! Backtest
-   treats MARGINAL signals as auto-trades. Replay historical MARGINAL entries through
-   Marc's ollama (192.168.0.70:11435, e.g. qwen3.5-122b / gpt-oss:120b — read the
-   `mab776-portainer` + `ollama-bench` skills first) using
-   `openwebui_client`-style prompts with `format_indicator_report` context frozen at the
-   bar. Measure: does the LLM gate beat taking every marginal trade? Even n≈200 sampled
-   marginal signals gives a signal. (LLM must only see data up to the bar — no leakage.)
+2. ~~**Single-LLM gate backtest**~~ — **DONE / REJECTED (Round 8, 2026-07-12).** Dropped the stale
+   three-model consensus plan in favor of exactly `qwen3.6:35b-a3b-q8_0` on Marc's Ollama
+   (`192.168.0.70:11435`). Leakage-blinded prompts, 2bps+funding+liquidation, and iterative
+   fixed-point replay produced 1,049 valid decisions (0 failures): the model accepted 748
+   and WAITed on 301. Full gate: 229.51×→144.50×, maxDD 21.7%→23.6%; held-out TEST
+   7.51×→6.72×. Auto-trading MARGINAL wins decisively; production config unchanged. Full
+   methodology/results in `opt/README.md` Round 8. Don't retry without a materially different
+   information source—the model only saw the same indicators already encoded by the score.
 3. **Multi-asset shared portfolio** — BTC+ETH compounding one balance (fastbt currently
    single-symbol per sim). Interleave two Precomputed streams by timestamp with shared
    Portfolio + per-symbol position slots. Measures the real diversification benefit vs
