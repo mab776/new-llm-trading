@@ -264,6 +264,22 @@ PYTHONPATH=. /tmp/tmlvenv/bin/python opt/llm_gate_pilot.py --sample-size 36 \
   --cache reports/llm_gate_qwen36_35b_q8_think8k.jsonl
 ```
 
+### Round 8c — thinking gate expanded: REJECTED, item CLOSED
+
+The Round 8b thinking pilot was expanded (operator-run) to settle the mixed n=36 result under
+the same frozen prompt/settings (`think:true`, `num_predict 8192`, temp 0, blinded rebased
+prompts). **Outcome: the LLM gate was worse than the deterministic auto-trade baseline across
+all splits** — the small held-out TEST bump from the sparse pilot did not survive a larger
+sample. Signal-only trading wins outright: adding the model as a MARGINAL-entry gate throws
+away edge (it mostly turns LONG/SHORT into WAIT, skipping profitable entries) and buys nothing
+robust in return, in either thinking or non-thinking mode.
+
+**Verdict: backlog item #2 (LLM gate) is DONE / REJECTED — do not retry** without a materially
+different mechanism (e.g. not a per-entry accept/reject gate). Production config is unchanged;
+no engine/scheduler/strategy defaults touched. The opt-in `marginal_gate` machinery and the
+`opt/llm_gate_pilot.py` runner + response caches (`reports/llm_gate_qwen36_35b_q8*.jsonl`) are
+kept for reference only. This supersedes the "continue before verdict" note in Round 8b.
+
 ## Round 9 — maker-entry modeling: EV-positive SCREEN (fastbt only, not yet shipped)
 
 Backlog #4. Entries are currently market/taker (0.06% + slip). Alternative: rest a **limit at
