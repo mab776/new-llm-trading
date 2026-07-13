@@ -144,6 +144,65 @@ def test_global_slot_cap_includes_resting_maker_orders(monkeypatch):
     assert result.trades == 1
 
 
+def test_regime_overlay_changes_threshold_and_leverage_causally(monkeypatch):
+    monkeypatch.setattr(multi, "compute_composite_score", lambda **kw: ScoringResult(
+        direction=Direction.BULLISH, confidence=80,
+        signal_strength=SignalStrength.STRONG, raw_score=50,
+        category_scores=[], indicators=kw["indicators_by_tf"], reasons=[],
+    ))
+    monkeypatch.setattr(multi, "calculate_targets", lambda ind, *a, **k: TradeTargets(
+        ind.close, ind.close - 50, ind.close + 50, ind.close + 100,
+        50, 50, 100, Direction.BULLISH,
+    ))
+    monkeypatch.setattr(multi, "apply_pre_trade_filters", lambda **kw: [])
+    cfg = _cfg()
+    cfg.trading.leverage_tiers["x"].leverage = 10
+
+    result = simulate_multi(
+        {"BTC": AssetInput(_pre(100), cfg)}, "2024-01-01", "2024-01-02",
+        strat={"regime_leverage_mults": {"trending": .5}},
+    )
+    assert result.portfolio.trades[0].leverage == 5
+
+    blocked = simulate_multi(
+        {"BTC": AssetInput(_pre(100), cfg)}, "2024-01-01", "2024-01-02",
+        strat={"regime_threshold_mults": {"trending": 6.0}},
+    )
+    assert blocked.trades == 0
+
+
+def test_multi_subbar_replay_ratchets_once_per_primary_bar(monkeypatch):
+    monkeypatch.setattr(multi, "compute_composite_score", lambda **kw: ScoringResult(
+        direction=Direction.BULLISH, confidence=80,
+        signal_strength=SignalStrength.STRONG, raw_score=50,
+        category_scores=[], indicators=kw["indicators_by_tf"], reasons=[],
+    ))
+    monkeypatch.setattr(multi, "calculate_targets", lambda ind, *a, **k: TradeTargets(
+        ind.close, ind.close - 50, ind.close + 50, ind.close + 100,
+        50, 50, 100, Direction.BULLISH,
+    ))
+    monkeypatch.setattr(multi, "apply_pre_trade_filters", lambda **kw: [])
+    ratchets = []
+    monkeypatch.setattr(
+        multi, "_ratchet_trailing_stop",
+        lambda trade, favorable, trailing, strat: ratchets.append(favorable),
+    )
+    cfg = _cfg()
+    cfg.backtesting.enable_trailing_stops = True
+    cfg.trading.trailing_stop.enabled = True
+    pre = _pre(100)
+    pre.subbars = [
+        [(101, 99, 100)] * 4,
+        [(102, 98, 100), (103, 99, 101), (104, 100, 102), (105, 101, 103)],
+    ]
+
+    simulate_multi(
+        {"BTC": AssetInput(pre, cfg)}, "2024-01-01", "2024-01-02",
+        exit_granularity="sub",
+    )
+    assert ratchets == [105]
+
+
 def test_equity_curve_is_sampled_without_mutating_strategy_stats(monkeypatch):
     monkeypatch.setattr(multi, "compute_composite_score", lambda **kw: ScoringResult(
         direction=Direction.NEUTRAL, confidence=50,

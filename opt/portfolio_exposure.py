@@ -33,7 +33,7 @@ MARGIN_CAPS = (0.05, 0.055, 0.06, 0.065, 0.07, 0.075,
 TRAIN_DD_BUFFER = 22.0
 ACCEPTANCE_DD = 25.1  # approximately 25%; permits normal reporting-rounding noise
 LEVERAGE = 25
-FINAL_STRATEGY = ANTI_MARTINGALE | {
+SHIPPED_STRATEGY = ANTI_MARTINGALE | {
     "global_max_margin_pct": 0.044,
     "global_max_notional_pct": 1.10,
 }
@@ -103,10 +103,16 @@ def main() -> None:
 
     selected = select_on_train(rows)
     initial_validation = validation_sets(assets, selected["strat"], common)
-    final_train = evaluate_shared(
-        assets, folds=TRAIN_FOLDS, strat=FINAL_STRATEGY, **common
+    selected_accepted = (
+        selected["train"]["max_dd"] <= ACCEPTANCE_DD
+        and all(result["max_dd"] <= ACCEPTANCE_DD
+                for result in initial_validation.values())
     )
-    validation = validation_sets(assets, FINAL_STRATEGY, common)
+    recommended_strategy = selected["strat"] if selected_accepted else SHIPPED_STRATEGY
+    final_train = evaluate_shared(
+        assets, folds=TRAIN_FOLDS, strat=recommended_strategy, **common
+    )
+    validation = validation_sets(assets, recommended_strategy, common)
     baseline_validation = validation_sets(assets, ANTI_MARTINGALE, common)
     accepted = (
         final_train["max_dd"] <= ACCEPTANCE_DD
@@ -118,7 +124,8 @@ def main() -> None:
     print(f"\nInitial return-max winner with {TRAIN_DD_BUFFER:.0f}% TRAIN buffer: "
           f"{selected['strat']}")
     _print("selected", selected["train"])
-    print(f"\nFinal sensitivity policy: {FINAL_STRATEGY}")
+    print(f"\nRecommended policy: {recommended_strategy}")
+    print(f"TRAIN winner passed held-out DD acceptance: {selected_accepted}")
     _print("final TRAIN", final_train)
     for label in ("test", "chronological_oos", "annual", "full_continuous"):
         print(f"\n{label}:")
@@ -136,7 +143,9 @@ def main() -> None:
         "baseline_train": baseline_train,
         "selected": selected,
         "initial_validation": initial_validation,
-        "final_strategy": FINAL_STRATEGY,
+        "selected_accepted": selected_accepted,
+        "shipped_strategy_before_study": SHIPPED_STRATEGY,
+        "final_strategy": recommended_strategy,
         "final_train": final_train,
         "accepted": accepted,
         "baseline_validation": baseline_validation,

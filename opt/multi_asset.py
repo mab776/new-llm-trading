@@ -22,9 +22,12 @@ from llm_trading_bot.funding import funding_cost
 from llm_trading_bot.portfolio import Portfolio
 from llm_trading_bot.scoring import (
     Direction, SignalStrength, apply_pre_trade_filters, calculate_targets,
-    compute_composite_score,
+    compute_composite_score, detect_market_regime,
 )
-from opt.fastbt import DEFAULT_STRAT, Precomputed, _check_exits
+from opt.fastbt import (
+    DEFAULT_STRAT, Precomputed, _check_exits, _ratchet_trailing_stop,
+    deterministic_maker_fill, maker_queue_eligible,
+)
 from opt.drawdown import EquityPoint
 
 
@@ -60,6 +63,10 @@ class MultiAssetResult:
     per_symbol: dict[str, dict] = field(default_factory=dict)
     equity_curve: list[EquityPoint] = field(default_factory=list)
     portfolio: Portfolio | None = None
+    maker_orders: int = 0
+    maker_touches: int = 0
+    maker_queue_eligible: int = 0
+    maker_fills: int = 0
 
 
 def _mark_to_market_equity(port: Portfolio,
@@ -144,6 +151,10 @@ def simulate_multi(
     })
     if strat:
         strategy.update(strat)
+    if strategy["maker_queue_penetration_bps"] < 0:
+        raise ValueError("maker_queue_penetration_bps must be non-negative")
+    if not 0 <= strategy["maker_fill_probability"] <= 1:
+        raise ValueError("maker_fill_probability must be between 0 and 1")
     for symbol, item in assets.items():
         cfg = item.config
         if cfg.backtesting.initial_balance != first.backtesting.initial_balance:
@@ -175,6 +186,10 @@ def simulate_multi(
     equity_curve: list[EquityPoint] = []
     study_peak = port.initial_balance
     event_count = 0
+    maker_orders = 0
+    maker_touches = 0
+    maker_queue_eligible_count = 0
+    maker_fills = 0
     for ts in sorted(events):
         for symbol in sorted(states):
             state = states[symbol]
@@ -189,6 +204,7 @@ def simulate_multi(
             risk, bt, ps, ft, sc = (cfg.risk_management, cfg.backtesting,
                                      cfg.position_sizing, cfg.filters, cfg.scoring)
             bar_high, bar_low, bar_close = prim.high, prim.low, prim.close
+            regime = detect_market_regime(prim).value
             bar_time = str(ts)
             state.last_close, state.last_time = bar_close, bar_time
             latest_prices[symbol] = bar_close
@@ -202,16 +218,34 @@ def simulate_multi(
             if state.pending is not None:
                 p = state.pending
                 touched = False
+                queue_eligible = False
                 if subs:
                     for sub_i, (hi, lo, _cl) in enumerate(subs):
                         if maker_limit_touched(p.direction, p.limit_price, hi, lo):
-                            touched, fresh_sub_start = True, sub_i
+                            touched = True
+                        if maker_queue_eligible(
+                            p.direction, p.limit_price, hi, lo,
+                            strategy["maker_queue_penetration_bps"],
+                        ):
+                            queue_eligible, fresh_sub_start = True, sub_i
                             break
                 else:
                     touched = maker_limit_touched(
                         p.direction, p.limit_price, bar_high, bar_low
                     )
-                if touched:
+                    queue_eligible = maker_queue_eligible(
+                        p.direction, p.limit_price, bar_high, bar_low,
+                        strategy["maker_queue_penetration_bps"],
+                    )
+                maker_touches += int(touched)
+                maker_queue_eligible_count += int(queue_eligible)
+                fill_key = (f"{symbol}|{p.decision_time}|{p.direction}|"
+                            f"{p.limit_price:.12g}")
+                fills_queue = queue_eligible and deterministic_maker_fill(
+                    strategy["maker_fill_probability"],
+                    strategy["maker_fill_seed"], fill_key,
+                )
+                if fills_queue:
                     fresh = port.open_trade(
                         p.direction, p.limit_price, bar_time, p.stop_loss,
                         p.take_profit_1, p.take_profit_2, leverage=p.leverage,
@@ -220,10 +254,17 @@ def simulate_multi(
                     )
                     fresh._atr_entry = p.atr_at_entry
                     symbol_trades.append(fresh)
+                    maker_fills += 1
                 state.pending = None
 
-            strat = {
+            bar_strat = {
                 "trail_mode": "pct", "trail_act_atr": .5, "trail_cb_atr": .6,
+                "_trail_activation_multiplier": strategy[
+                    "regime_trailing_activation_mults"
+                ].get(regime, 1.0),
+                "_trail_callback_multiplier": strategy[
+                    "regime_trailing_callback_mults"
+                ].get(regime, 1.0),
             }
             for trade in list(symbol_trades):
                 if subs:
@@ -236,15 +277,25 @@ def simulate_multi(
                             port, trade, hi, lo, close, bar_time, risk, tf_hours,
                             bt.enable_partial_exits, bt.enable_trailing_stops,
                             tr.trailing_stop, slip, model_liquidation,
-                            maintenance_margin, strat, count_bar=first_sub,
+                            maintenance_margin, bar_strat, count_bar=first_sub,
+                            ratchet_trailing=False,
                         )
                         first_sub = False
+                    if (trade.is_open and bt.enable_trailing_stops
+                            and tr.trailing_stop.enabled):
+                        active_subs = subs[start:]
+                        favorable = (max(row[0] for row in active_subs)
+                                     if trade.direction == "LONG"
+                                     else min(row[1] for row in active_subs))
+                        _ratchet_trailing_stop(
+                            trade, favorable, tr.trailing_stop, bar_strat
+                        )
                 else:
                     _check_exits(
                         port, trade, bar_high, bar_low, bar_close, bar_time,
                         risk, tf_hours, bt.enable_partial_exits,
                         bt.enable_trailing_stops, tr.trailing_stop, slip,
-                        model_liquidation, maintenance_margin, strat,
+                        model_liquidation, maintenance_margin, bar_strat,
                     )
 
             # Funding belongs only to this symbol's surviving positions.
@@ -292,8 +343,11 @@ def simulate_multi(
             )
             abs_score = abs(result.raw_score)
             penalty = _loss_penalty(state)
-            strong, marginal = (tier.strong_threshold + penalty,
-                                tier.marginal_threshold_low + penalty)
+            threshold_mult = strategy["regime_threshold_mults"].get(regime, 1.0)
+            strong, marginal = (
+                tier.strong_threshold * threshold_mult + penalty,
+                tier.marginal_threshold_low * threshold_mult + penalty,
+            )
             signal = (SignalStrength.STRONG if abs_score >= strong else
                       SignalStrength.MARGINAL if abs_score >= marginal else
                       SignalStrength.WAIT)
@@ -361,8 +415,12 @@ def simulate_multi(
                         strategy["anti_martingale_min"],
                         strategy["anti_martingale_max"],
                     )
+                    leverage = max(1, int(round(
+                        tier.leverage
+                        * strategy["regime_leverage_mults"].get(regime, 1.0)
+                    )))
                     risk_eff = apply_exposure_caps(
-                        risk_eff, tier.leverage, port.balance,
+                        risk_eff, leverage, port.balance,
                         committed_margin, committed_notional, strategy,
                     )
                     if risk_eff <= 0:
@@ -371,16 +429,17 @@ def simulate_multi(
                         state.pending = PendingEntry(
                             direction, bar_close, targets.stop_loss,
                             targets.take_profit_1, targets.take_profit_2,
-                            tier.leverage, risk_eff, tier.tp1_exit_pct,
+                            leverage, risk_eff, tier.tp1_exit_pct,
                             prim.atr_14, bar_time,
                         )
+                        maker_orders += 1
                     else:
                         entry = (bar_close * (1 + slip) if direction == "LONG"
                                  else bar_close * (1 - slip))
                         trade = port.open_trade(
                             direction, entry, bar_time, targets.stop_loss,
                             targets.take_profit_1, targets.take_profit_2,
-                            leverage=tier.leverage, risk_pct=risk_eff,
+                            leverage=leverage, risk_pct=risk_eff,
                             tp1_exit_pct=tier.tp1_exit_pct, order_type="taker",
                             symbol=symbol,
                         )
@@ -428,5 +487,8 @@ def simulate_multi(
         trades=stats.total_trades, win_rate=stats.win_rate,
         profit_factor=stats.profit_factor, max_dd_pct=stats.max_drawdown_pct,
         sharpe=stats.sharpe_ratio, per_symbol=per_symbol,
-        equity_curve=equity_curve, portfolio=port,
+        equity_curve=equity_curve, portfolio=port, maker_orders=maker_orders,
+        maker_touches=maker_touches,
+        maker_queue_eligible=maker_queue_eligible_count,
+        maker_fills=maker_fills,
     )

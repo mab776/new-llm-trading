@@ -145,7 +145,11 @@ def evaluate(overrides: dict, folds=FOLDS, slip: float = 0.0,
         per[name] = {"ret": r.return_pct, "dd": r.max_dd_pct, "tr": r.trades,
                      "wr": round(r.win_rate, 1), "pf": r.profit_factor,
                      "marginal": r.marginal_candidates,
-                     "marginal_accepted": r.marginal_accepted}
+                     "marginal_accepted": r.marginal_accepted,
+                     "maker_orders": r.maker_orders,
+                     "maker_touches": r.maker_touches,
+                     "maker_queue_eligible": r.maker_queue_eligible,
+                     "maker_fills": r.maker_fills}
         rets.append(r.return_pct)
         dds.append(r.max_dd_pct)
         trades += r.trades

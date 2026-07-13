@@ -1,0 +1,6233 @@
+{
+  "method": "annual trailing-two-year selection, next-year unseen trade; maker entry; honest sub-bar exits with 4h-close trailing; funding; liquidation; 2bps market slippage",
+  "summaries": [
+    {
+      "trials_per_window": 60,
+      "turnover_penalty": 0.0,
+      "seeds": [
+        17,
+        73,
+        211,
+        419,
+        887
+      ],
+      "growth_ratio_median": 1.6442643221602848,
+      "growth_ratio_min": 1.6084123107894053,
+      "growth_ratio_max": 1.96588119403179,
+      "fraction_beating_static": 1.0,
+      "walk_forward_x_median": 17.93359057168,
+      "parameter_turnover_median": 0.7110043786568448,
+      "unseen_window_wins_median": 3,
+      "recent_2025h1_win_fraction": 0.8,
+      "winner_stability": {
+        "2023": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        },
+        "2024": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        },
+        "2025H1": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        }
+      }
+    },
+    {
+      "trials_per_window": 300,
+      "turnover_penalty": 0.0,
+      "seeds": [
+        17,
+        73,
+        211,
+        419,
+        887
+      ],
+      "growth_ratio_median": 1.8891785193413286,
+      "growth_ratio_min": 1.3108382085818198,
+      "growth_ratio_max": 2.2870902090729057,
+      "fraction_beating_static": 1.0,
+      "walk_forward_x_median": 20.604810081975003,
+      "parameter_turnover_median": 0.7035250509844543,
+      "unseen_window_wins_median": 3,
+      "recent_2025h1_win_fraction": 0.6,
+      "winner_stability": {
+        "2023": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        },
+        "2024": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        },
+        "2025H1": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        }
+      }
+    },
+    {
+      "trials_per_window": 300,
+      "turnover_penalty": 15.0,
+      "seeds": [
+        17,
+        73,
+        211,
+        419,
+        887
+      ],
+      "growth_ratio_median": 1.8891785193413286,
+      "growth_ratio_min": 1.3108382085818198,
+      "growth_ratio_max": 2.2870902090729057,
+      "fraction_beating_static": 1.0,
+      "walk_forward_x_median": 20.604810081975003,
+      "parameter_turnover_median": 0.7035250509844543,
+      "unseen_window_wins_median": 3,
+      "recent_2025h1_win_fraction": 0.6,
+      "winner_stability": {
+        "2023": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        },
+        "2024": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        },
+        "2025H1": {
+          "unique_winners": 5,
+          "most_common_fraction": 0.2,
+          "static_fraction": 0.0
+        }
+      }
+    },
+    {
+      "trials_per_window": 1000,
+      "turnover_penalty": 0.0,
+      "seeds": [
+        17,
+        73,
+        211
+      ],
+      "growth_ratio_median": 2.020013967804007,
+      "growth_ratio_min": 1.9497166234952048,
+      "growth_ratio_max": 2.3575948871151127,
+      "fraction_beating_static": 1.0,
+      "walk_forward_x_median": 22.031800458990002,
+      "parameter_turnover_median": 0.5984212543503824,
+      "unseen_window_wins_median": 3,
+      "recent_2025h1_win_fraction": 1.0,
+      "winner_stability": {
+        "2023": {
+          "unique_winners": 3,
+          "most_common_fraction": 0.3333333333333333,
+          "static_fraction": 0.0
+        },
+        "2024": {
+          "unique_winners": 3,
+          "most_common_fraction": 0.3333333333333333,
+          "static_fraction": 0.0
+        },
+        "2025H1": {
+          "unique_winners": 3,
+          "most_common_fraction": 0.3333333333333333,
+          "static_fraction": 0.0
+        }
+      }
+    }
+  ],
+  "runs": [
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 60,
+      "seed": 17,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.9789958741275104,
+      "walk_forward_compound_x": 17.914238485185,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.6424900012145764,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 24.83,
+            "tier.marginal_threshold_low": 13.45,
+            "tier.tp1_rr": 1.77,
+            "tier.tp2_rr": 3.24,
+            "tier.tp1_exit_pct": 0.7,
+            "scoring.atr_sl_multiplier": 2.76,
+            "filters.min_adx": 17.3,
+            "trailing.activation_pct": 0.92,
+            "trailing.callback_pct": 0.28,
+            "weights": {
+              "trend": 0.2869968377855504,
+              "momentum": 0.2411737856279201,
+              "volume": 0.24502766283932437,
+              "support_resistance": 0.12362974198012232,
+              "risk": 0.10667250469993075
+            }
+          },
+          "train": {
+            "geo_factor": 6.8982,
+            "geo_pct": 589.82,
+            "compound_x": 47.585,
+            "worst_fold": 276.63,
+            "mean_ret": 720.04,
+            "max_dd": 17.26,
+            "total_trades": 1394,
+            "per": {
+              "2021": {
+                "ret": 1163.44,
+                "dd": 17.26,
+                "tr": 806,
+                "wr": 77.2,
+                "pf": 1.67,
+                "marginal": 321,
+                "marginal_accepted": 321,
+                "maker_orders": 809,
+                "maker_touches": 806,
+                "maker_queue_eligible": 806,
+                "maker_fills": 806
+              },
+              "2022": {
+                "ret": 276.63,
+                "dd": 16.13,
+                "tr": 588,
+                "wr": 78.7,
+                "pf": 1.62,
+                "marginal": 358,
+                "marginal_accepted": 358,
+                "maker_orders": 588,
+                "maker_touches": 588,
+                "maker_queue_eligible": 588,
+                "maker_fills": 588
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.0739,
+            "geo_pct": 307.39,
+            "compound_x": 4.074,
+            "worst_fold": 307.39,
+            "mean_ret": 307.39,
+            "max_dd": 12.82,
+            "total_trades": 578,
+            "per": {
+              "2023": {
+                "ret": 307.39,
+                "dd": 12.82,
+                "tr": 578,
+                "wr": 78.5,
+                "pf": 1.7,
+                "marginal": 255,
+                "marginal_accepted": 255,
+                "maker_orders": 579,
+                "maker_touches": 578,
+                "maker_queue_eligible": 578,
+                "maker_fills": 578
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 583.779,
+          "parameter_turnover": 0.2758670255399767
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 21.73,
+            "tier.marginal_threshold_low": 12.22,
+            "tier.tp1_rr": 2.15,
+            "tier.tp2_rr": 4.0,
+            "tier.tp1_exit_pct": 0.7,
+            "scoring.atr_sl_multiplier": 1.96,
+            "filters.min_adx": 23.4,
+            "trailing.activation_pct": 1.07,
+            "trailing.callback_pct": 0.25,
+            "weights": {
+              "trend": 0.2603839116331616,
+              "momentum": 0.2709600767384093,
+              "volume": 0.24754721734405732,
+              "support_resistance": 0.11372444023916287,
+              "risk": 0.06779094130308307
+            }
+          },
+          "train": {
+            "geo_factor": 3.8567,
+            "geo_pct": 285.67,
+            "compound_x": 14.874,
+            "worst_fold": 281.38,
+            "mean_ret": 285.69,
+            "max_dd": 15.49,
+            "total_trades": 1069,
+            "per": {
+              "2022": {
+                "ret": 290.01,
+                "dd": 15.49,
+                "tr": 531,
+                "wr": 75.1,
+                "pf": 1.66,
+                "marginal": 256,
+                "marginal_accepted": 256,
+                "maker_orders": 531,
+                "maker_touches": 531,
+                "maker_queue_eligible": 531,
+                "maker_fills": 531
+              },
+              "2023": {
+                "ret": 281.38,
+                "dd": 12.29,
+                "tr": 538,
+                "wr": 73.0,
+                "pf": 1.69,
+                "marginal": 167,
+                "marginal_accepted": 167,
+                "maker_orders": 538,
+                "maker_touches": 538,
+                "maker_queue_eligible": 538,
+                "maker_fills": 538
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.3985,
+            "geo_pct": 239.85,
+            "compound_x": 3.398,
+            "worst_fold": 239.85,
+            "mean_ret": 239.85,
+            "max_dd": 16.13,
+            "total_trades": 590,
+            "per": {
+              "2024": {
+                "ret": 239.85,
+                "dd": 16.13,
+                "tr": 590,
+                "wr": 73.9,
+                "pf": 1.63,
+                "marginal": 203,
+                "marginal_accepted": 203,
+                "maker_orders": 591,
+                "maker_touches": 590,
+                "maker_queue_eligible": 590,
+                "maker_fills": 590
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 280.24850000000004,
+          "parameter_turnover": 0.3234472385834324
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 18.77,
+            "tier.marginal_threshold_low": 10.41,
+            "tier.tp1_rr": 2.45,
+            "tier.tp2_rr": 2.95,
+            "tier.tp1_exit_pct": 0.65,
+            "scoring.atr_sl_multiplier": 2.43,
+            "filters.min_adx": 17.7,
+            "trailing.activation_pct": 1.24,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.22571600872054237,
+              "momentum": 0.32081249260072714,
+              "volume": 0.19261886784719173,
+              "support_resistance": 0.18505022184714154,
+              "risk": 0.07924531058550727
+            }
+          },
+          "train": {
+            "geo_factor": 3.511,
+            "geo_pct": 251.1,
+            "compound_x": 12.327,
+            "worst_fold": 247.37,
+            "mean_ret": 251.12,
+            "max_dd": 16.81,
+            "total_trades": 1041,
+            "per": {
+              "2023": {
+                "ret": 254.87,
+                "dd": 16.81,
+                "tr": 483,
+                "wr": 71.8,
+                "pf": 1.61,
+                "marginal": 192,
+                "marginal_accepted": 192,
+                "maker_orders": 483,
+                "maker_touches": 483,
+                "maker_queue_eligible": 483,
+                "maker_fills": 483
+              },
+              "2024": {
+                "ret": 247.37,
+                "dd": 10.08,
+                "tr": 558,
+                "wr": 73.7,
+                "pf": 1.6,
+                "marginal": 222,
+                "marginal_accepted": 222,
+                "maker_orders": 559,
+                "maker_touches": 558,
+                "maker_queue_eligible": 558,
+                "maker_fills": 558
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.2939,
+            "geo_pct": 29.39,
+            "compound_x": 1.294,
+            "worst_fold": 29.39,
+            "mean_ret": 29.39,
+            "max_dd": 18.6,
+            "total_trades": 206,
+            "per": {
+              "2025H1": {
+                "ret": 29.39,
+                "dd": 18.6,
+                "tr": 206,
+                "wr": 67.0,
+                "pf": 1.36,
+                "marginal": 94,
+                "marginal_accepted": 94,
+                "maker_orders": 206,
+                "maker_touches": 206,
+                "maker_queue_eligible": 206,
+                "maker_fills": 206
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 245.2165,
+          "parameter_turnover": 0.3796816100041013
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 60,
+      "seed": 73,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.6012292846623577,
+      "walk_forward_compound_x": 17.542561413879,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.6084123107894053,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 18.99,
+            "tier.marginal_threshold_low": 12.88,
+            "tier.tp1_rr": 2.36,
+            "tier.tp2_rr": 3.36,
+            "tier.tp1_exit_pct": 0.59,
+            "scoring.atr_sl_multiplier": 2.3,
+            "filters.min_adx": 19.5,
+            "trailing.activation_pct": 1.05,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.22926431039604397,
+              "momentum": 0.280888250466425,
+              "volume": 0.17892320781741997,
+              "support_resistance": 0.16695687772014234,
+              "risk": 0.0720943275067401
+            }
+          },
+          "train": {
+            "geo_factor": 6.9592,
+            "geo_pct": 595.92,
+            "compound_x": 48.431,
+            "worst_fold": 311.87,
+            "mean_ret": 693.88,
+            "max_dd": 16.14,
+            "total_trades": 1206,
+            "per": {
+              "2021": {
+                "ret": 1075.88,
+                "dd": 16.14,
+                "tr": 721,
+                "wr": 76.3,
+                "pf": 1.67,
+                "marginal": 194,
+                "marginal_accepted": 194,
+                "maker_orders": 725,
+                "maker_touches": 721,
+                "maker_queue_eligible": 721,
+                "maker_fills": 721
+              },
+              "2022": {
+                "ret": 311.87,
+                "dd": 14.36,
+                "tr": 485,
+                "wr": 77.7,
+                "pf": 1.68,
+                "marginal": 206,
+                "marginal_accepted": 206,
+                "maker_orders": 485,
+                "maker_touches": 485,
+                "maker_queue_eligible": 485,
+                "maker_fills": 485
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.7437,
+            "geo_pct": 274.37,
+            "compound_x": 3.744,
+            "worst_fold": 274.37,
+            "mean_ret": 274.37,
+            "max_dd": 11.7,
+            "total_trades": 510,
+            "per": {
+              "2023": {
+                "ret": 274.37,
+                "dd": 11.7,
+                "tr": 510,
+                "wr": 75.7,
+                "pf": 1.7,
+                "marginal": 141,
+                "marginal_accepted": 141,
+                "maker_orders": 510,
+                "maker_touches": 510,
+                "maker_queue_eligible": 510,
+                "maker_fills": 510
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 590.271,
+          "parameter_turnover": 0.1898051304362867
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 18.09,
+            "tier.marginal_threshold_low": 14.59,
+            "tier.tp1_rr": 2.42,
+            "tier.tp2_rr": 3.16,
+            "tier.tp1_exit_pct": 0.68,
+            "scoring.atr_sl_multiplier": 2.58,
+            "filters.min_adx": 18.9,
+            "trailing.activation_pct": 0.92,
+            "trailing.callback_pct": 0.3,
+            "weights": {
+              "trend": 0.22827277791397388,
+              "momentum": 0.25910258767040595,
+              "volume": 0.17166639047080667,
+              "support_resistance": 0.19245549656732097,
+              "risk": 0.07077107816557351
+            }
+          },
+          "train": {
+            "geo_factor": 3.854,
+            "geo_pct": 285.4,
+            "compound_x": 14.853,
+            "worst_fold": 263.52,
+            "mean_ret": 286.05,
+            "max_dd": 17.61,
+            "total_trades": 966,
+            "per": {
+              "2022": {
+                "ret": 263.52,
+                "dd": 17.61,
+                "tr": 464,
+                "wr": 80.2,
+                "pf": 1.64,
+                "marginal": 114,
+                "marginal_accepted": 114,
+                "maker_orders": 464,
+                "maker_touches": 464,
+                "maker_queue_eligible": 464,
+                "maker_fills": 464
+              },
+              "2023": {
+                "ret": 308.59,
+                "dd": 12.35,
+                "tr": 502,
+                "wr": 79.1,
+                "pf": 1.78,
+                "marginal": 91,
+                "marginal_accepted": 91,
+                "maker_orders": 503,
+                "maker_touches": 502,
+                "maker_queue_eligible": 502,
+                "maker_fills": 502
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.2453,
+            "geo_pct": 224.53,
+            "compound_x": 3.245,
+            "worst_fold": 224.53,
+            "mean_ret": 224.53,
+            "max_dd": 9.95,
+            "total_trades": 574,
+            "per": {
+              "2024": {
+                "ret": 224.53,
+                "dd": 9.95,
+                "tr": 574,
+                "wr": 77.7,
+                "pf": 1.54,
+                "marginal": 105,
+                "marginal_accepted": 105,
+                "maker_orders": 575,
+                "maker_touches": 574,
+                "maker_queue_eligible": 574,
+                "maker_fills": 574
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 279.2365,
+          "parameter_turnover": 0.1495641419089851
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 22.49,
+            "tier.marginal_threshold_low": 10.28,
+            "tier.tp1_rr": 2.03,
+            "tier.tp2_rr": 3.44,
+            "tier.tp1_exit_pct": 0.71,
+            "scoring.atr_sl_multiplier": 2.32,
+            "filters.min_adx": 17.3,
+            "trailing.activation_pct": 0.98,
+            "trailing.callback_pct": 0.35,
+            "weights": {
+              "trend": 0.2456670789846302,
+              "momentum": 0.2817068325763555,
+              "volume": 0.1605785851517736,
+              "support_resistance": 0.14173442275245526,
+              "risk": 0.06336649959908462
+            }
+          },
+          "train": {
+            "geo_factor": 3.4089,
+            "geo_pct": 240.89,
+            "compound_x": 11.621,
+            "worst_fold": 226.28,
+            "mean_ret": 241.22,
+            "max_dd": 11.59,
+            "total_trades": 1248,
+            "per": {
+              "2023": {
+                "ret": 256.16,
+                "dd": 11.59,
+                "tr": 580,
+                "wr": 75.9,
+                "pf": 1.63,
+                "marginal": 267,
+                "marginal_accepted": 267,
+                "maker_orders": 580,
+                "maker_touches": 580,
+                "maker_queue_eligible": 580,
+                "maker_fills": 580
+              },
+              "2024": {
+                "ret": 226.28,
+                "dd": 10.17,
+                "tr": 668,
+                "wr": 76.9,
+                "pf": 1.55,
+                "marginal": 306,
+                "marginal_accepted": 306,
+                "maker_orders": 669,
+                "maker_touches": 668,
+                "maker_queue_eligible": 668,
+                "maker_fills": 668
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.4439,
+            "geo_pct": 44.39,
+            "compound_x": 1.444,
+            "worst_fold": 44.39,
+            "mean_ret": 44.39,
+            "max_dd": 14.8,
+            "total_trades": 259,
+            "per": {
+              "2025H1": {
+                "ret": 44.39,
+                "dd": 14.8,
+                "tr": 259,
+                "wr": 73.7,
+                "pf": 1.5,
+                "marginal": 141,
+                "marginal_accepted": 141,
+                "maker_orders": 259,
+                "maker_touches": 259,
+                "maker_queue_eligible": 259,
+                "maker_fills": 259
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 236.8335,
+          "parameter_turnover": 0.26186001231708594
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 60,
+      "seed": 211,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.582807088424397,
+      "walk_forward_compound_x": 21.441387477174,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.96588119403179,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 18.03,
+            "tier.marginal_threshold_low": 10.26,
+            "tier.tp1_rr": 2.31,
+            "tier.tp2_rr": 3.37,
+            "tier.tp1_exit_pct": 0.68,
+            "scoring.atr_sl_multiplier": 2.24,
+            "filters.min_adx": 18.7,
+            "trailing.activation_pct": 0.76,
+            "trailing.callback_pct": 0.25,
+            "weights": {
+              "trend": 0.20630926682838957,
+              "momentum": 0.24112736160453233,
+              "volume": 0.15486310404523093,
+              "support_resistance": 0.1497915277431489,
+              "risk": 0.06029089579256405
+            }
+          },
+          "train": {
+            "geo_factor": 10.5201,
+            "geo_pct": 952.01,
+            "compound_x": 110.672,
+            "worst_fold": 320.72,
+            "mean_ret": 1425.64,
+            "max_dd": 17.15,
+            "total_trades": 1501,
+            "per": {
+              "2021": {
+                "ret": 2530.55,
+                "dd": 17.15,
+                "tr": 906,
+                "wr": 80.9,
+                "pf": 1.78,
+                "marginal": 264,
+                "marginal_accepted": 264,
+                "maker_orders": 910,
+                "maker_touches": 906,
+                "maker_queue_eligible": 906,
+                "maker_fills": 906
+              },
+              "2022": {
+                "ret": 320.72,
+                "dd": 15.29,
+                "tr": 595,
+                "wr": 80.3,
+                "pf": 1.63,
+                "marginal": 258,
+                "marginal_accepted": 258,
+                "maker_orders": 595,
+                "maker_touches": 595,
+                "maker_queue_eligible": 595,
+                "maker_fills": 595
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.1097,
+            "geo_pct": 310.97,
+            "compound_x": 4.11,
+            "worst_fold": 310.97,
+            "mean_ret": 310.97,
+            "max_dd": 13.1,
+            "total_trades": 629,
+            "per": {
+              "2023": {
+                "ret": 310.97,
+                "dd": 13.1,
+                "tr": 629,
+                "wr": 79.3,
+                "pf": 1.7,
+                "marginal": 189,
+                "marginal_accepted": 189,
+                "maker_orders": 629,
+                "maker_touches": 629,
+                "maker_queue_eligible": 629,
+                "maker_fills": 629
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 946.0074999999999,
+          "parameter_turnover": 0.22323720465401747
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 18.99,
+            "tier.marginal_threshold_low": 11.03,
+            "tier.tp1_rr": 2.15,
+            "tier.tp2_rr": 3.3,
+            "tier.tp1_exit_pct": 0.56,
+            "scoring.atr_sl_multiplier": 2.62,
+            "filters.min_adx": 18.2,
+            "trailing.activation_pct": 0.89,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.22492151811176342,
+              "momentum": 0.2725875035582936,
+              "volume": 0.22838442583367108,
+              "support_resistance": 0.21752099291928334,
+              "risk": 0.09920151852815219
+            }
+          },
+          "train": {
+            "geo_factor": 3.9125,
+            "geo_pct": 291.25,
+            "compound_x": 15.308,
+            "worst_fold": 279.76,
+            "mean_ret": 291.42,
+            "max_dd": 18.27,
+            "total_trades": 1048,
+            "per": {
+              "2022": {
+                "ret": 303.09,
+                "dd": 18.27,
+                "tr": 516,
+                "wr": 80.8,
+                "pf": 1.71,
+                "marginal": 275,
+                "marginal_accepted": 275,
+                "maker_orders": 516,
+                "maker_touches": 516,
+                "maker_queue_eligible": 516,
+                "maker_fills": 516
+              },
+              "2023": {
+                "ret": 279.76,
+                "dd": 12.97,
+                "tr": 532,
+                "wr": 77.8,
+                "pf": 1.7,
+                "marginal": 202,
+                "marginal_accepted": 202,
+                "maker_orders": 532,
+                "maker_touches": 532,
+                "maker_queue_eligible": 532,
+                "maker_fills": 532
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5278,
+            "geo_pct": 252.78,
+            "compound_x": 3.528,
+            "worst_fold": 252.78,
+            "mean_ret": 252.78,
+            "max_dd": 10.95,
+            "total_trades": 628,
+            "per": {
+              "2024": {
+                "ret": 252.78,
+                "dd": 10.95,
+                "tr": 628,
+                "wr": 78.7,
+                "pf": 1.55,
+                "marginal": 214,
+                "marginal_accepted": 214,
+                "maker_orders": 629,
+                "maker_touches": 628,
+                "maker_queue_eligible": 628,
+                "maker_fills": 628
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 284.8555,
+          "parameter_turnover": 0.20546768928293208
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 19.97,
+            "tier.marginal_threshold_low": 10.49,
+            "tier.tp1_rr": 2.21,
+            "tier.tp2_rr": 3.11,
+            "tier.tp1_exit_pct": 0.65,
+            "scoring.atr_sl_multiplier": 2.54,
+            "filters.min_adx": 20.8,
+            "trailing.activation_pct": 0.73,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.2455978109636161,
+              "momentum": 0.3134044324717257,
+              "volume": 0.25100085506974695,
+              "support_resistance": 0.19082712347772002,
+              "risk": 0.09685249274948135
+            }
+          },
+          "train": {
+            "geo_factor": 3.8294,
+            "geo_pct": 282.94,
+            "compound_x": 14.664,
+            "worst_fold": 272.85,
+            "mean_ret": 283.08,
+            "max_dd": 12.64,
+            "total_trades": 1319,
+            "per": {
+              "2023": {
+                "ret": 293.3,
+                "dd": 12.64,
+                "tr": 624,
+                "wr": 80.8,
+                "pf": 1.71,
+                "marginal": 238,
+                "marginal_accepted": 238,
+                "maker_orders": 624,
+                "maker_touches": 624,
+                "maker_queue_eligible": 624,
+                "maker_fills": 624
+              },
+              "2024": {
+                "ret": 272.85,
+                "dd": 11.48,
+                "tr": 695,
+                "wr": 82.0,
+                "pf": 1.63,
+                "marginal": 246,
+                "marginal_accepted": 246,
+                "maker_orders": 696,
+                "maker_touches": 695,
+                "maker_queue_eligible": 695,
+                "maker_fills": 695
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.4789,
+            "geo_pct": 47.89,
+            "compound_x": 1.479,
+            "worst_fold": 47.89,
+            "mean_ret": 47.89,
+            "max_dd": 13.67,
+            "total_trades": 252,
+            "per": {
+              "2025H1": {
+                "ret": 47.89,
+                "dd": 13.67,
+                "tr": 252,
+                "wr": 79.8,
+                "pf": 1.57,
+                "marginal": 111,
+                "marginal_accepted": 111,
+                "maker_orders": 252,
+                "maker_touches": 252,
+                "maker_queue_eligible": 252,
+                "maker_fills": 252
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 278.516,
+          "parameter_turnover": 0.1541021944874474
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 60,
+      "seed": 419,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.7491696894552624,
+      "walk_forward_compound_x": 18.266845166661,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.6748191984151575,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 22.37,
+            "tier.marginal_threshold_low": 12.68,
+            "tier.tp1_rr": 1.8,
+            "tier.tp2_rr": 4.03,
+            "tier.tp1_exit_pct": 0.79,
+            "scoring.atr_sl_multiplier": 2.47,
+            "filters.min_adx": 18.0,
+            "trailing.activation_pct": 0.89,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.21656462942583055,
+              "momentum": 0.2826472026784305,
+              "volume": 0.23119927994364492,
+              "support_resistance": 0.21215577493276416,
+              "risk": 0.07443585230232247
+            }
+          },
+          "train": {
+            "geo_factor": 6.3215,
+            "geo_pct": 532.15,
+            "compound_x": 39.962,
+            "worst_fold": 288.8,
+            "mean_ret": 608.31,
+            "max_dd": 11.49,
+            "total_trades": 1270,
+            "per": {
+              "2021": {
+                "ret": 927.82,
+                "dd": 11.49,
+                "tr": 765,
+                "wr": 78.4,
+                "pf": 1.73,
+                "marginal": 369,
+                "marginal_accepted": 369,
+                "maker_orders": 768,
+                "maker_touches": 765,
+                "maker_queue_eligible": 765,
+                "maker_fills": 765
+              },
+              "2022": {
+                "ret": 288.8,
+                "dd": 11.49,
+                "tr": 505,
+                "wr": 81.0,
+                "pf": 1.76,
+                "marginal": 313,
+                "marginal_accepted": 313,
+                "maker_orders": 505,
+                "maker_touches": 505,
+                "maker_queue_eligible": 505,
+                "maker_fills": 505
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.7419,
+            "geo_pct": 274.19,
+            "compound_x": 3.742,
+            "worst_fold": 274.19,
+            "mean_ret": 274.19,
+            "max_dd": 12.87,
+            "total_trades": 529,
+            "per": {
+              "2023": {
+                "ret": 274.19,
+                "dd": 12.87,
+                "tr": 529,
+                "wr": 78.1,
+                "pf": 1.76,
+                "marginal": 257,
+                "marginal_accepted": 257,
+                "maker_orders": 530,
+                "maker_touches": 529,
+                "maker_queue_eligible": 529,
+                "maker_fills": 529
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 528.1285,
+          "parameter_turnover": 0.2422727877389351
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 20.11,
+            "tier.marginal_threshold_low": 11.86,
+            "tier.tp1_rr": 2.07,
+            "tier.tp2_rr": 4.01,
+            "tier.tp1_exit_pct": 0.61,
+            "scoring.atr_sl_multiplier": 2.31,
+            "filters.min_adx": 17.6,
+            "trailing.activation_pct": 1.15,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.2867440319728063,
+              "momentum": 0.283067597321809,
+              "volume": 0.24101382111735892,
+              "support_resistance": 0.1585504202938991,
+              "risk": 0.07798171004365834
+            }
+          },
+          "train": {
+            "geo_factor": 3.8712,
+            "geo_pct": 287.12,
+            "compound_x": 14.987,
+            "worst_fold": 261.54,
+            "mean_ret": 288.03,
+            "max_dd": 18.23,
+            "total_trades": 1073,
+            "per": {
+              "2022": {
+                "ret": 261.54,
+                "dd": 18.23,
+                "tr": 544,
+                "wr": 74.1,
+                "pf": 1.51,
+                "marginal": 271,
+                "marginal_accepted": 271,
+                "maker_orders": 544,
+                "maker_touches": 544,
+                "maker_queue_eligible": 544,
+                "maker_fills": 544
+              },
+              "2023": {
+                "ret": 314.52,
+                "dd": 12.22,
+                "tr": 529,
+                "wr": 73.3,
+                "pf": 1.66,
+                "marginal": 180,
+                "marginal_accepted": 180,
+                "maker_orders": 529,
+                "maker_touches": 529,
+                "maker_queue_eligible": 529,
+                "maker_fills": 529
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.9157,
+            "geo_pct": 291.57,
+            "compound_x": 3.916,
+            "worst_fold": 291.57,
+            "mean_ret": 291.57,
+            "max_dd": 8.53,
+            "total_trades": 602,
+            "per": {
+              "2024": {
+                "ret": 291.57,
+                "dd": 8.53,
+                "tr": 602,
+                "wr": 74.4,
+                "pf": 1.65,
+                "marginal": 208,
+                "marginal_accepted": 208,
+                "maker_orders": 603,
+                "maker_touches": 602,
+                "maker_queue_eligible": 602,
+                "maker_fills": 602
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 280.7395,
+          "parameter_turnover": 0.22341493576076996
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 19.74,
+            "tier.marginal_threshold_low": 12.65,
+            "tier.tp1_rr": 2.16,
+            "tier.tp2_rr": 3.66,
+            "tier.tp1_exit_pct": 0.72,
+            "scoring.atr_sl_multiplier": 2.03,
+            "filters.min_adx": 20.5,
+            "trailing.activation_pct": 0.87,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.25263092386813396,
+              "momentum": 0.24026159022049762,
+              "volume": 0.17122799182417264,
+              "support_resistance": 0.20667935664803833,
+              "risk": 0.12415570436068246
+            }
+          },
+          "train": {
+            "geo_factor": 3.8971,
+            "geo_pct": 289.71,
+            "compound_x": 15.187,
+            "worst_fold": 288.53,
+            "mean_ret": 289.71,
+            "max_dd": 12.0,
+            "total_trades": 1151,
+            "per": {
+              "2023": {
+                "ret": 288.53,
+                "dd": 12.0,
+                "tr": 545,
+                "wr": 77.1,
+                "pf": 1.77,
+                "marginal": 166,
+                "marginal_accepted": 166,
+                "maker_orders": 546,
+                "maker_touches": 545,
+                "maker_queue_eligible": 545,
+                "maker_fills": 545
+              },
+              "2024": {
+                "ret": 290.89,
+                "dd": 10.88,
+                "tr": 606,
+                "wr": 78.5,
+                "pf": 1.67,
+                "marginal": 176,
+                "marginal_accepted": 176,
+                "maker_orders": 607,
+                "maker_touches": 606,
+                "maker_queue_eligible": 606,
+                "maker_fills": 606
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.2467,
+            "geo_pct": 24.67,
+            "compound_x": 1.247,
+            "worst_fold": 24.67,
+            "mean_ret": 24.67,
+            "max_dd": 14.62,
+            "total_trades": 223,
+            "per": {
+              "2025H1": {
+                "ret": 24.67,
+                "dd": 14.62,
+                "tr": 223,
+                "wr": 73.5,
+                "pf": 1.31,
+                "marginal": 78,
+                "marginal_accepted": 78,
+                "maker_orders": 223,
+                "maker_touches": 223,
+                "maker_queue_eligible": 223,
+                "maker_fills": 223
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 285.51,
+          "parameter_turnover": 0.2834819659555573
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 60,
+      "seed": 887,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.7110043786568448,
+      "walk_forward_compound_x": 17.93359057168,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.6442643221602848,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 20.06,
+            "tier.marginal_threshold_low": 11.82,
+            "tier.tp1_rr": 1.76,
+            "tier.tp2_rr": 3.72,
+            "tier.tp1_exit_pct": 0.74,
+            "scoring.atr_sl_multiplier": 2.76,
+            "filters.min_adx": 17.0,
+            "trailing.activation_pct": 0.99,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.20669919837104045,
+              "momentum": 0.34860546634773437,
+              "volume": 0.15468605010593323,
+              "support_resistance": 0.1715553042461255,
+              "risk": 0.094772538447708
+            }
+          },
+          "train": {
+            "geo_factor": 7.6406,
+            "geo_pct": 664.06,
+            "compound_x": 58.378,
+            "worst_fold": 295.85,
+            "mean_ret": 835.31,
+            "max_dd": 15.28,
+            "total_trades": 1244,
+            "per": {
+              "2021": {
+                "ret": 1374.76,
+                "dd": 15.28,
+                "tr": 745,
+                "wr": 77.3,
+                "pf": 1.76,
+                "marginal": 287,
+                "marginal_accepted": 287,
+                "maker_orders": 747,
+                "maker_touches": 745,
+                "maker_queue_eligible": 745,
+                "maker_fills": 745
+              },
+              "2022": {
+                "ret": 295.85,
+                "dd": 13.75,
+                "tr": 499,
+                "wr": 79.4,
+                "pf": 1.67,
+                "marginal": 281,
+                "marginal_accepted": 281,
+                "maker_orders": 499,
+                "maker_touches": 499,
+                "maker_queue_eligible": 499,
+                "maker_fills": 499
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.101,
+            "geo_pct": 210.1,
+            "compound_x": 3.101,
+            "worst_fold": 210.1,
+            "mean_ret": 210.1,
+            "max_dd": 16.98,
+            "total_trades": 500,
+            "per": {
+              "2023": {
+                "ret": 210.1,
+                "dd": 16.98,
+                "tr": 500,
+                "wr": 76.0,
+                "pf": 1.58,
+                "marginal": 217,
+                "marginal_accepted": 217,
+                "maker_orders": 500,
+                "maker_touches": 500,
+                "maker_queue_eligible": 500,
+                "maker_fills": 500
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 658.712,
+          "parameter_turnover": 0.22535885843008976
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 19.66,
+            "tier.marginal_threshold_low": 10.73,
+            "tier.tp1_rr": 2.05,
+            "tier.tp2_rr": 3.18,
+            "tier.tp1_exit_pct": 0.64,
+            "scoring.atr_sl_multiplier": 2.39,
+            "filters.min_adx": 20.9,
+            "trailing.activation_pct": 1.0,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.26647943961836124,
+              "momentum": 0.3680104776806039,
+              "volume": 0.2541508704290775,
+              "support_resistance": 0.1364839309996204,
+              "risk": 0.08196864816183116
+            }
+          },
+          "train": {
+            "geo_factor": 4.2816,
+            "geo_pct": 328.16,
+            "compound_x": 18.332,
+            "worst_fold": 282.02,
+            "mean_ret": 330.94,
+            "max_dd": 14.82,
+            "total_trades": 1113,
+            "per": {
+              "2022": {
+                "ret": 379.87,
+                "dd": 14.82,
+                "tr": 554,
+                "wr": 78.2,
+                "pf": 1.73,
+                "marginal": 269,
+                "marginal_accepted": 269,
+                "maker_orders": 554,
+                "maker_touches": 554,
+                "maker_queue_eligible": 554,
+                "maker_fills": 554
+              },
+              "2023": {
+                "ret": 282.02,
+                "dd": 12.27,
+                "tr": 559,
+                "wr": 75.5,
+                "pf": 1.68,
+                "marginal": 184,
+                "marginal_accepted": 184,
+                "maker_orders": 559,
+                "maker_touches": 559,
+                "maker_queue_eligible": 559,
+                "maker_fills": 559
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5246,
+            "geo_pct": 252.46,
+            "compound_x": 3.525,
+            "worst_fold": 252.46,
+            "mean_ret": 252.46,
+            "max_dd": 12.37,
+            "total_trades": 605,
+            "per": {
+              "2024": {
+                "ret": 252.46,
+                "dd": 12.37,
+                "tr": 605,
+                "wr": 76.4,
+                "pf": 1.6,
+                "marginal": 215,
+                "marginal_accepted": 215,
+                "maker_orders": 606,
+                "maker_touches": 605,
+                "maker_queue_eligible": 605,
+                "maker_fills": 605
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 322.973,
+          "parameter_turnover": 0.28179284471019905
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 24.08,
+            "tier.marginal_threshold_low": 13.87,
+            "tier.tp1_rr": 2.21,
+            "tier.tp2_rr": 3.8,
+            "tier.tp1_exit_pct": 0.65,
+            "scoring.atr_sl_multiplier": 2.29,
+            "filters.min_adx": 20.7,
+            "trailing.activation_pct": 0.76,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.27358295025966883,
+              "momentum": 0.32657472031884766,
+              "volume": 0.2186638877255703,
+              "support_resistance": 0.11101656038357413,
+              "risk": 0.08950074283504811
+            }
+          },
+          "train": {
+            "geo_factor": 3.3743,
+            "geo_pct": 237.43,
+            "compound_x": 11.386,
+            "worst_fold": 201.27,
+            "mean_ret": 239.6,
+            "max_dd": 15.58,
+            "total_trades": 1288,
+            "per": {
+              "2023": {
+                "ret": 277.92,
+                "dd": 12.48,
+                "tr": 624,
+                "wr": 79.0,
+                "pf": 1.7,
+                "marginal": 246,
+                "marginal_accepted": 246,
+                "maker_orders": 624,
+                "maker_touches": 624,
+                "maker_queue_eligible": 624,
+                "maker_fills": 624
+              },
+              "2024": {
+                "ret": 201.27,
+                "dd": 15.58,
+                "tr": 664,
+                "wr": 80.6,
+                "pf": 1.54,
+                "marginal": 256,
+                "marginal_accepted": 256,
+                "maker_orders": 665,
+                "maker_touches": 664,
+                "maker_queue_eligible": 664,
+                "maker_fills": 664
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.6408,
+            "geo_pct": 64.08,
+            "compound_x": 1.641,
+            "worst_fold": 64.08,
+            "mean_ret": 64.08,
+            "max_dd": 13.48,
+            "total_trades": 257,
+            "per": {
+              "2025H1": {
+                "ret": 64.08,
+                "dd": 13.48,
+                "tr": 257,
+                "wr": 80.9,
+                "pf": 1.8,
+                "marginal": 118,
+                "marginal_accepted": 118,
+                "maker_orders": 257,
+                "maker_touches": 257,
+                "maker_queue_eligible": 257,
+                "maker_fills": 257
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 231.977,
+          "parameter_turnover": 0.203852675516556
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 17,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.8252349721092265,
+      "walk_forward_compound_x": 24.944735987535,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 2.2870902090729057,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 20.05,
+            "tier.marginal_threshold_low": 10.52,
+            "tier.tp1_rr": 2.44,
+            "tier.tp2_rr": 3.74,
+            "tier.tp1_exit_pct": 0.61,
+            "scoring.atr_sl_multiplier": 2.74,
+            "filters.min_adx": 19.0,
+            "trailing.activation_pct": 0.83,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.24598815520927722,
+              "momentum": 0.24667719914360536,
+              "volume": 0.15859073052486444,
+              "support_resistance": 0.13201083226398969,
+              "risk": 0.07306789106486114
+            }
+          },
+          "train": {
+            "geo_factor": 9.2016,
+            "geo_pct": 820.16,
+            "compound_x": 84.67,
+            "worst_fold": 366.47,
+            "mean_ret": 1040.8,
+            "max_dd": 20.08,
+            "total_trades": 1511,
+            "per": {
+              "2021": {
+                "ret": 1715.12,
+                "dd": 20.08,
+                "tr": 896,
+                "wr": 78.3,
+                "pf": 1.67,
+                "marginal": 285,
+                "marginal_accepted": 285,
+                "maker_orders": 900,
+                "maker_touches": 896,
+                "maker_queue_eligible": 896,
+                "maker_fills": 896
+              },
+              "2022": {
+                "ret": 366.47,
+                "dd": 13.88,
+                "tr": 615,
+                "wr": 80.3,
+                "pf": 1.69,
+                "marginal": 292,
+                "marginal_accepted": 292,
+                "maker_orders": 615,
+                "maker_touches": 615,
+                "maker_queue_eligible": 615,
+                "maker_fills": 615
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.3935,
+            "geo_pct": 339.35,
+            "compound_x": 4.394,
+            "worst_fold": 339.35,
+            "mean_ret": 339.35,
+            "max_dd": 13.52,
+            "total_trades": 624,
+            "per": {
+              "2023": {
+                "ret": 339.35,
+                "dd": 13.52,
+                "tr": 624,
+                "wr": 79.2,
+                "pf": 1.7,
+                "marginal": 202,
+                "marginal_accepted": 202,
+                "maker_orders": 624,
+                "maker_touches": 624,
+                "maker_queue_eligible": 624,
+                "maker_fills": 624
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 813.132,
+          "parameter_turnover": 0.2835239037414806
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 19.6,
+            "tier.marginal_threshold_low": 12.28,
+            "tier.tp1_rr": 2.45,
+            "tier.tp2_rr": 4.06,
+            "tier.tp1_exit_pct": 0.61,
+            "scoring.atr_sl_multiplier": 1.95,
+            "filters.min_adx": 19.5,
+            "trailing.activation_pct": 0.81,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.25411088839356144,
+              "momentum": 0.35618991142099965,
+              "volume": 0.19154071148677865,
+              "support_resistance": 0.11675573241504297,
+              "risk": 0.0850967870951052
+            }
+          },
+          "train": {
+            "geo_factor": 4.0089,
+            "geo_pct": 300.89,
+            "compound_x": 16.072,
+            "worst_fold": 249.14,
+            "mean_ret": 304.73,
+            "max_dd": 12.62,
+            "total_trades": 1171,
+            "per": {
+              "2022": {
+                "ret": 360.32,
+                "dd": 12.62,
+                "tr": 556,
+                "wr": 79.9,
+                "pf": 1.79,
+                "marginal": 239,
+                "marginal_accepted": 239,
+                "maker_orders": 556,
+                "maker_touches": 556,
+                "maker_queue_eligible": 556,
+                "maker_fills": 556
+              },
+              "2023": {
+                "ret": 249.14,
+                "dd": 12.51,
+                "tr": 615,
+                "wr": 76.1,
+                "pf": 1.64,
+                "marginal": 173,
+                "marginal_accepted": 173,
+                "maker_orders": 615,
+                "maker_touches": 615,
+                "maker_queue_eligible": 615,
+                "maker_fills": 615
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5399,
+            "geo_pct": 253.99,
+            "compound_x": 3.54,
+            "worst_fold": 253.99,
+            "mean_ret": 253.99,
+            "max_dd": 14.09,
+            "total_trades": 683,
+            "per": {
+              "2024": {
+                "ret": 253.99,
+                "dd": 14.09,
+                "tr": 683,
+                "wr": 78.8,
+                "pf": 1.6,
+                "marginal": 186,
+                "marginal_accepted": 186,
+                "maker_orders": 684,
+                "maker_touches": 683,
+                "maker_queue_eligible": 683,
+                "maker_fills": 683
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 296.473,
+          "parameter_turnover": 0.18098928252033258
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 19.0,
+            "tier.marginal_threshold_low": 10.05,
+            "tier.tp1_rr": 1.94,
+            "tier.tp2_rr": 2.71,
+            "tier.tp1_exit_pct": 0.56,
+            "scoring.atr_sl_multiplier": 2.8,
+            "filters.min_adx": 17.1,
+            "trailing.activation_pct": 0.93,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.2090671967512265,
+              "momentum": 0.29348429390638187,
+              "volume": 0.21907161734646668,
+              "support_resistance": 0.12348017725729737,
+              "risk": 0.11981286983050111
+            }
+          },
+          "train": {
+            "geo_factor": 3.7568,
+            "geo_pct": 275.68,
+            "compound_x": 14.114,
+            "worst_fold": 235.0,
+            "mean_ret": 278.15,
+            "max_dd": 14.12,
+            "total_trades": 1229,
+            "per": {
+              "2023": {
+                "ret": 321.31,
+                "dd": 14.12,
+                "tr": 567,
+                "wr": 78.1,
+                "pf": 1.69,
+                "marginal": 217,
+                "marginal_accepted": 217,
+                "maker_orders": 567,
+                "maker_touches": 567,
+                "maker_queue_eligible": 567,
+                "maker_fills": 567
+              },
+              "2024": {
+                "ret": 235.0,
+                "dd": 11.05,
+                "tr": 662,
+                "wr": 77.3,
+                "pf": 1.56,
+                "marginal": 274,
+                "marginal_accepted": 274,
+                "maker_orders": 663,
+                "maker_touches": 662,
+                "maker_queue_eligible": 662,
+                "maker_fills": 662
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.6039,
+            "geo_pct": 60.39,
+            "compound_x": 1.604,
+            "worst_fold": 60.39,
+            "mean_ret": 60.39,
+            "max_dd": 10.49,
+            "total_trades": 238,
+            "per": {
+              "2025H1": {
+                "ret": 60.39,
+                "dd": 10.49,
+                "tr": 238,
+                "wr": 78.2,
+                "pf": 1.68,
+                "marginal": 105,
+                "marginal_accepted": 105,
+                "maker_orders": 238,
+                "maker_touches": 238,
+                "maker_queue_eligible": 238,
+                "maker_fills": 238
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 270.738,
+          "parameter_turnover": 0.3607217858474133
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 73,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.6972084099218413,
+      "walk_forward_compound_x": 22.380404223408,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 2.0519761524045883,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 20.01,
+            "tier.marginal_threshold_low": 11.12,
+            "tier.tp1_rr": 1.93,
+            "tier.tp2_rr": 3.28,
+            "tier.tp1_exit_pct": 0.7,
+            "scoring.atr_sl_multiplier": 2.57,
+            "filters.min_adx": 18.5,
+            "trailing.activation_pct": 0.91,
+            "trailing.callback_pct": 0.25,
+            "weights": {
+              "trend": 0.25105512336828606,
+              "momentum": 0.34391044836482076,
+              "volume": 0.2118427371488268,
+              "support_resistance": 0.15590573561206478,
+              "risk": 0.06252810848678549
+            }
+          },
+          "train": {
+            "geo_factor": 8.6414,
+            "geo_pct": 764.14,
+            "compound_x": 74.674,
+            "worst_fold": 335.08,
+            "mean_ret": 975.7,
+            "max_dd": 16.89,
+            "total_trades": 1409,
+            "per": {
+              "2021": {
+                "ret": 1616.33,
+                "dd": 16.89,
+                "tr": 838,
+                "wr": 77.1,
+                "pf": 1.71,
+                "marginal": 285,
+                "marginal_accepted": 285,
+                "maker_orders": 841,
+                "maker_touches": 838,
+                "maker_queue_eligible": 838,
+                "maker_fills": 838
+              },
+              "2022": {
+                "ret": 335.08,
+                "dd": 15.81,
+                "tr": 571,
+                "wr": 79.2,
+                "pf": 1.65,
+                "marginal": 301,
+                "marginal_accepted": 301,
+                "maker_orders": 571,
+                "maker_touches": 571,
+                "maker_queue_eligible": 571,
+                "maker_fills": 571
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.3637,
+            "geo_pct": 336.37,
+            "compound_x": 4.364,
+            "worst_fold": 336.37,
+            "mean_ret": 336.37,
+            "max_dd": 14.6,
+            "total_trades": 578,
+            "per": {
+              "2023": {
+                "ret": 336.37,
+                "dd": 14.6,
+                "tr": 578,
+                "wr": 78.0,
+                "pf": 1.71,
+                "marginal": 213,
+                "marginal_accepted": 213,
+                "maker_orders": 578,
+                "maker_touches": 578,
+                "maker_queue_eligible": 578,
+                "maker_fills": 578
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 758.2284999999999,
+          "parameter_turnover": 0.17711976486511763
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 19.11,
+            "tier.marginal_threshold_low": 12.73,
+            "tier.tp1_rr": 2.19,
+            "tier.tp2_rr": 3.71,
+            "tier.tp1_exit_pct": 0.63,
+            "scoring.atr_sl_multiplier": 2.29,
+            "filters.min_adx": 20.4,
+            "trailing.activation_pct": 1.09,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.23071721749497354,
+              "momentum": 0.24387541812570476,
+              "volume": 0.2566026642514587,
+              "support_resistance": 0.11042264108629775,
+              "risk": 0.12852988717715624
+            }
+          },
+          "train": {
+            "geo_factor": 4.2334,
+            "geo_pct": 323.34,
+            "compound_x": 17.922,
+            "worst_fold": 304.45,
+            "mean_ret": 323.78,
+            "max_dd": 16.45,
+            "total_trades": 1022,
+            "per": {
+              "2022": {
+                "ret": 304.45,
+                "dd": 16.45,
+                "tr": 500,
+                "wr": 76.8,
+                "pf": 1.65,
+                "marginal": 200,
+                "marginal_accepted": 200,
+                "maker_orders": 500,
+                "maker_touches": 500,
+                "maker_queue_eligible": 500,
+                "maker_fills": 500
+              },
+              "2023": {
+                "ret": 343.12,
+                "dd": 11.95,
+                "tr": 522,
+                "wr": 75.1,
+                "pf": 1.78,
+                "marginal": 157,
+                "marginal_accepted": 157,
+                "maker_orders": 522,
+                "maker_touches": 522,
+                "maker_queue_eligible": 522,
+                "maker_fills": 522
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.3168,
+            "geo_pct": 231.68,
+            "compound_x": 3.317,
+            "worst_fold": 231.68,
+            "mean_ret": 231.68,
+            "max_dd": 14.07,
+            "total_trades": 556,
+            "per": {
+              "2024": {
+                "ret": 231.68,
+                "dd": 14.07,
+                "tr": 556,
+                "wr": 75.0,
+                "pf": 1.61,
+                "marginal": 159,
+                "marginal_accepted": 159,
+                "maker_orders": 557,
+                "maker_touches": 556,
+                "maker_queue_eligible": 556,
+                "maker_fills": 556
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 317.5825,
+          "parameter_turnover": 0.30928348306629966
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 18.2,
+            "tier.marginal_threshold_low": 11.75,
+            "tier.tp1_rr": 2.2,
+            "tier.tp2_rr": 2.85,
+            "tier.tp1_exit_pct": 0.58,
+            "scoring.atr_sl_multiplier": 2.46,
+            "filters.min_adx": 20.2,
+            "trailing.activation_pct": 0.88,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.2385546191653326,
+              "momentum": 0.2926326340017614,
+              "volume": 0.22439107131076214,
+              "support_resistance": 0.11739744202345788,
+              "risk": 0.07988365399247946
+            }
+          },
+          "train": {
+            "geo_factor": 4.3822,
+            "geo_pct": 338.22,
+            "compound_x": 19.204,
+            "worst_fold": 308.0,
+            "mean_ret": 339.34,
+            "max_dd": 12.96,
+            "total_trades": 1230,
+            "per": {
+              "2023": {
+                "ret": 370.68,
+                "dd": 11.84,
+                "tr": 591,
+                "wr": 77.7,
+                "pf": 1.8,
+                "marginal": 135,
+                "marginal_accepted": 135,
+                "maker_orders": 591,
+                "maker_touches": 591,
+                "maker_queue_eligible": 591,
+                "maker_fills": 591
+              },
+              "2024": {
+                "ret": 308.0,
+                "dd": 12.96,
+                "tr": 639,
+                "wr": 79.0,
+                "pf": 1.64,
+                "marginal": 166,
+                "marginal_accepted": 166,
+                "maker_orders": 640,
+                "maker_touches": 639,
+                "maker_queue_eligible": 639,
+                "maker_fills": 639
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.5463,
+            "geo_pct": 54.63,
+            "compound_x": 1.546,
+            "worst_fold": 54.63,
+            "mean_ret": 54.63,
+            "max_dd": 14.29,
+            "total_trades": 244,
+            "per": {
+              "2025H1": {
+                "ret": 54.63,
+                "dd": 14.29,
+                "tr": 244,
+                "wr": 75.8,
+                "pf": 1.59,
+                "marginal": 78,
+                "marginal_accepted": 78,
+                "maker_orders": 244,
+                "maker_touches": 244,
+                "maker_queue_eligible": 244,
+                "maker_fills": 244
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 333.684,
+          "parameter_turnover": 0.210805161990424
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 211,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.5837668248767403,
+      "walk_forward_compound_x": 20.604810081975003,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.8891785193413286,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 18.03,
+            "tier.marginal_threshold_low": 10.26,
+            "tier.tp1_rr": 2.31,
+            "tier.tp2_rr": 3.37,
+            "tier.tp1_exit_pct": 0.68,
+            "scoring.atr_sl_multiplier": 2.24,
+            "filters.min_adx": 18.7,
+            "trailing.activation_pct": 0.76,
+            "trailing.callback_pct": 0.25,
+            "weights": {
+              "trend": 0.20630926682838957,
+              "momentum": 0.24112736160453233,
+              "volume": 0.15486310404523093,
+              "support_resistance": 0.1497915277431489,
+              "risk": 0.06029089579256405
+            }
+          },
+          "train": {
+            "geo_factor": 10.5201,
+            "geo_pct": 952.01,
+            "compound_x": 110.672,
+            "worst_fold": 320.72,
+            "mean_ret": 1425.64,
+            "max_dd": 17.15,
+            "total_trades": 1501,
+            "per": {
+              "2021": {
+                "ret": 2530.55,
+                "dd": 17.15,
+                "tr": 906,
+                "wr": 80.9,
+                "pf": 1.78,
+                "marginal": 264,
+                "marginal_accepted": 264,
+                "maker_orders": 910,
+                "maker_touches": 906,
+                "maker_queue_eligible": 906,
+                "maker_fills": 906
+              },
+              "2022": {
+                "ret": 320.72,
+                "dd": 15.29,
+                "tr": 595,
+                "wr": 80.3,
+                "pf": 1.63,
+                "marginal": 258,
+                "marginal_accepted": 258,
+                "maker_orders": 595,
+                "maker_touches": 595,
+                "maker_queue_eligible": 595,
+                "maker_fills": 595
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.1097,
+            "geo_pct": 310.97,
+            "compound_x": 4.11,
+            "worst_fold": 310.97,
+            "mean_ret": 310.97,
+            "max_dd": 13.1,
+            "total_trades": 629,
+            "per": {
+              "2023": {
+                "ret": 310.97,
+                "dd": 13.1,
+                "tr": 629,
+                "wr": 79.3,
+                "pf": 1.7,
+                "marginal": 189,
+                "marginal_accepted": 189,
+                "maker_orders": 629,
+                "maker_touches": 629,
+                "maker_queue_eligible": 629,
+                "maker_fills": 629
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 946.0074999999999,
+          "parameter_turnover": 0.22323720465401747
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 22.06,
+            "tier.marginal_threshold_low": 11.53,
+            "tier.tp1_rr": 2.32,
+            "tier.tp2_rr": 3.33,
+            "tier.tp1_exit_pct": 0.64,
+            "scoring.atr_sl_multiplier": 2.2,
+            "filters.min_adx": 20.6,
+            "trailing.activation_pct": 0.79,
+            "trailing.callback_pct": 0.29,
+            "weights": {
+              "trend": 0.24044923409114582,
+              "momentum": 0.24572202094779674,
+              "volume": 0.15399238520253697,
+              "support_resistance": 0.11388093046029163,
+              "risk": 0.07009695144974142
+            }
+          },
+          "train": {
+            "geo_factor": 4.2157,
+            "geo_pct": 321.57,
+            "compound_x": 17.772,
+            "worst_fold": 304.21,
+            "mean_ret": 321.94,
+            "max_dd": 12.49,
+            "total_trades": 1241,
+            "per": {
+              "2022": {
+                "ret": 339.67,
+                "dd": 12.43,
+                "tr": 607,
+                "wr": 81.4,
+                "pf": 1.75,
+                "marginal": 306,
+                "marginal_accepted": 306,
+                "maker_orders": 607,
+                "maker_touches": 607,
+                "maker_queue_eligible": 607,
+                "maker_fills": 607
+              },
+              "2023": {
+                "ret": 304.21,
+                "dd": 12.49,
+                "tr": 634,
+                "wr": 79.0,
+                "pf": 1.72,
+                "marginal": 227,
+                "marginal_accepted": 227,
+                "maker_orders": 634,
+                "maker_touches": 634,
+                "maker_queue_eligible": 634,
+                "maker_fills": 634
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5395,
+            "geo_pct": 253.95,
+            "compound_x": 3.539,
+            "worst_fold": 253.95,
+            "mean_ret": 253.95,
+            "max_dd": 11.27,
+            "total_trades": 702,
+            "per": {
+              "2024": {
+                "ret": 253.95,
+                "dd": 11.27,
+                "tr": 702,
+                "wr": 80.6,
+                "pf": 1.59,
+                "marginal": 243,
+                "marginal_accepted": 243,
+                "maker_orders": 703,
+                "maker_touches": 702,
+                "maker_queue_eligible": 702,
+                "maker_fills": 702
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 317.19849999999997,
+          "parameter_turnover": 0.1549799444214352
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 20.05,
+            "tier.marginal_threshold_low": 10.52,
+            "tier.tp1_rr": 2.3,
+            "tier.tp2_rr": 3.88,
+            "tier.tp1_exit_pct": 0.69,
+            "scoring.atr_sl_multiplier": 1.89,
+            "filters.min_adx": 18.2,
+            "trailing.activation_pct": 0.91,
+            "trailing.callback_pct": 0.28,
+            "weights": {
+              "trend": 0.2832821099118241,
+              "momentum": 0.26357176106616736,
+              "volume": 0.18221108606973668,
+              "support_resistance": 0.11237420649610502,
+              "risk": 0.13474279884915757
+            }
+          },
+          "train": {
+            "geo_factor": 3.9996,
+            "geo_pct": 299.96,
+            "compound_x": 15.997,
+            "worst_fold": 286.82,
+            "mean_ret": 300.19,
+            "max_dd": 12.43,
+            "total_trades": 1302,
+            "per": {
+              "2023": {
+                "ret": 313.55,
+                "dd": 12.43,
+                "tr": 611,
+                "wr": 75.0,
+                "pf": 1.72,
+                "marginal": 210,
+                "marginal_accepted": 210,
+                "maker_orders": 611,
+                "maker_touches": 611,
+                "maker_queue_eligible": 611,
+                "maker_fills": 611
+              },
+              "2024": {
+                "ret": 286.82,
+                "dd": 11.04,
+                "tr": 691,
+                "wr": 76.7,
+                "pf": 1.62,
+                "marginal": 217,
+                "marginal_accepted": 217,
+                "maker_orders": 692,
+                "maker_touches": 691,
+                "maker_queue_eligible": 691,
+                "maker_fills": 691
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.4165,
+            "geo_pct": 41.65,
+            "compound_x": 1.417,
+            "worst_fold": 41.65,
+            "mean_ret": 41.65,
+            "max_dd": 11.89,
+            "total_trades": 273,
+            "per": {
+              "2025H1": {
+                "ret": 41.65,
+                "dd": 11.89,
+                "tr": 273,
+                "wr": 72.2,
+                "pf": 1.4,
+                "marginal": 123,
+                "marginal_accepted": 123,
+                "maker_orders": 273,
+                "maker_touches": 273,
+                "maker_queue_eligible": 273,
+                "maker_fills": 273
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 295.60949999999997,
+          "parameter_turnover": 0.20554967580128763
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 419,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.8356877329786344,
+      "walk_forward_compound_x": 14.296993142523002,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.3108382085818198,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 22.01,
+            "tier.marginal_threshold_low": 11.26,
+            "tier.tp1_rr": 2.37,
+            "tier.tp2_rr": 3.76,
+            "tier.tp1_exit_pct": 0.76,
+            "scoring.atr_sl_multiplier": 2.77,
+            "filters.min_adx": 18.3,
+            "trailing.activation_pct": 0.98,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.2663543928543871,
+              "momentum": 0.2433412653113509,
+              "volume": 0.1531352832555142,
+              "support_resistance": 0.15183012138959892,
+              "risk": 0.06986938396224059
+            }
+          },
+          "train": {
+            "geo_factor": 9.1269,
+            "geo_pct": 812.69,
+            "compound_x": 83.3,
+            "worst_fold": 381.14,
+            "mean_ret": 1006.22,
+            "max_dd": 17.67,
+            "total_trades": 1418,
+            "per": {
+              "2021": {
+                "ret": 1631.31,
+                "dd": 17.67,
+                "tr": 830,
+                "wr": 76.6,
+                "pf": 1.68,
+                "marginal": 301,
+                "marginal_accepted": 301,
+                "maker_orders": 833,
+                "maker_touches": 830,
+                "maker_queue_eligible": 830,
+                "maker_fills": 830
+              },
+              "2022": {
+                "ret": 381.14,
+                "dd": 16.21,
+                "tr": 588,
+                "wr": 79.4,
+                "pf": 1.65,
+                "marginal": 318,
+                "marginal_accepted": 318,
+                "maker_orders": 588,
+                "maker_touches": 588,
+                "maker_queue_eligible": 588,
+                "maker_fills": 588
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.7859,
+            "geo_pct": 278.59,
+            "compound_x": 3.786,
+            "worst_fold": 278.59,
+            "mean_ret": 278.59,
+            "max_dd": 12.95,
+            "total_trades": 555,
+            "per": {
+              "2023": {
+                "ret": 278.59,
+                "dd": 12.95,
+                "tr": 555,
+                "wr": 76.0,
+                "pf": 1.65,
+                "marginal": 225,
+                "marginal_accepted": 225,
+                "maker_orders": 555,
+                "maker_touches": 555,
+                "maker_queue_eligible": 555,
+                "maker_fills": 555
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 806.5055000000001,
+          "parameter_turnover": 0.2800910565239361
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 20.87,
+            "tier.marginal_threshold_low": 10.46,
+            "tier.tp1_rr": 1.76,
+            "tier.tp2_rr": 2.93,
+            "tier.tp1_exit_pct": 0.73,
+            "scoring.atr_sl_multiplier": 2.45,
+            "filters.min_adx": 20.7,
+            "trailing.activation_pct": 0.86,
+            "trailing.callback_pct": 0.31,
+            "weights": {
+              "trend": 0.17284658700406935,
+              "momentum": 0.255303360909432,
+              "volume": 0.14932338726624325,
+              "support_resistance": 0.13634306235185878,
+              "risk": 0.06690769047645262
+            }
+          },
+          "train": {
+            "geo_factor": 3.8856,
+            "geo_pct": 288.56,
+            "compound_x": 15.098,
+            "worst_fold": 275.84,
+            "mean_ret": 288.77,
+            "max_dd": 14.06,
+            "total_trades": 1126,
+            "per": {
+              "2022": {
+                "ret": 301.71,
+                "dd": 14.06,
+                "tr": 557,
+                "wr": 81.7,
+                "pf": 1.79,
+                "marginal": 331,
+                "marginal_accepted": 331,
+                "maker_orders": 557,
+                "maker_touches": 557,
+                "maker_queue_eligible": 557,
+                "maker_fills": 557
+              },
+              "2023": {
+                "ret": 275.84,
+                "dd": 12.05,
+                "tr": 569,
+                "wr": 79.1,
+                "pf": 1.71,
+                "marginal": 239,
+                "marginal_accepted": 239,
+                "maker_orders": 569,
+                "maker_touches": 569,
+                "maker_queue_eligible": 569,
+                "maker_fills": 569
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.0291,
+            "geo_pct": 202.91,
+            "compound_x": 3.029,
+            "worst_fold": 202.91,
+            "mean_ret": 202.91,
+            "max_dd": 8.56,
+            "total_trades": 645,
+            "per": {
+              "2024": {
+                "ret": 202.91,
+                "dd": 8.56,
+                "tr": 645,
+                "wr": 78.6,
+                "pf": 1.52,
+                "marginal": 272,
+                "marginal_accepted": 272,
+                "maker_orders": 646,
+                "maker_touches": 645,
+                "maker_queue_eligible": 645,
+                "maker_fills": 645
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 283.639,
+          "parameter_turnover": 0.28227240541379967
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 19.74,
+            "tier.marginal_threshold_low": 12.65,
+            "tier.tp1_rr": 2.16,
+            "tier.tp2_rr": 3.66,
+            "tier.tp1_exit_pct": 0.72,
+            "scoring.atr_sl_multiplier": 2.03,
+            "filters.min_adx": 20.5,
+            "trailing.activation_pct": 0.87,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.25263092386813396,
+              "momentum": 0.24026159022049762,
+              "volume": 0.17122799182417264,
+              "support_resistance": 0.20667935664803833,
+              "risk": 0.12415570436068246
+            }
+          },
+          "train": {
+            "geo_factor": 3.8971,
+            "geo_pct": 289.71,
+            "compound_x": 15.187,
+            "worst_fold": 288.53,
+            "mean_ret": 289.71,
+            "max_dd": 12.0,
+            "total_trades": 1151,
+            "per": {
+              "2023": {
+                "ret": 288.53,
+                "dd": 12.0,
+                "tr": 545,
+                "wr": 77.1,
+                "pf": 1.77,
+                "marginal": 166,
+                "marginal_accepted": 166,
+                "maker_orders": 546,
+                "maker_touches": 545,
+                "maker_queue_eligible": 545,
+                "maker_fills": 545
+              },
+              "2024": {
+                "ret": 290.89,
+                "dd": 10.88,
+                "tr": 606,
+                "wr": 78.5,
+                "pf": 1.67,
+                "marginal": 176,
+                "marginal_accepted": 176,
+                "maker_orders": 607,
+                "maker_touches": 606,
+                "maker_queue_eligible": 606,
+                "maker_fills": 606
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.2467,
+            "geo_pct": 24.67,
+            "compound_x": 1.247,
+            "worst_fold": 24.67,
+            "mean_ret": 24.67,
+            "max_dd": 14.62,
+            "total_trades": 223,
+            "per": {
+              "2025H1": {
+                "ret": 24.67,
+                "dd": 14.62,
+                "tr": 223,
+                "wr": 73.5,
+                "pf": 1.31,
+                "marginal": 78,
+                "marginal_accepted": 78,
+                "maker_orders": 223,
+                "maker_touches": 223,
+                "maker_queue_eligible": 223,
+                "maker_fills": 223
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 285.51,
+          "parameter_turnover": 0.2733242710408986
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 887,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.7035250509844543,
+      "walk_forward_compound_x": 17.560238505179996,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.6100330576459605,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 19.06,
+            "tier.marginal_threshold_low": 10.75,
+            "tier.tp1_rr": 2.34,
+            "tier.tp2_rr": 3.13,
+            "tier.tp1_exit_pct": 0.64,
+            "scoring.atr_sl_multiplier": 2.63,
+            "filters.min_adx": 19.4,
+            "trailing.activation_pct": 0.71,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.25308464463740277,
+              "momentum": 0.2813609694476794,
+              "volume": 0.21379068287409508,
+              "support_resistance": 0.1532455101336678,
+              "risk": 0.12289886188118153
+            }
+          },
+          "train": {
+            "geo_factor": 8.9621,
+            "geo_pct": 796.21,
+            "compound_x": 80.319,
+            "worst_fold": 313.99,
+            "mean_ret": 1077.06,
+            "max_dd": 20.06,
+            "total_trades": 1472,
+            "per": {
+              "2021": {
+                "ret": 1840.13,
+                "dd": 20.06,
+                "tr": 875,
+                "wr": 80.2,
+                "pf": 1.7,
+                "marginal": 295,
+                "marginal_accepted": 295,
+                "maker_orders": 879,
+                "maker_touches": 875,
+                "maker_queue_eligible": 875,
+                "maker_fills": 875
+              },
+              "2022": {
+                "ret": 313.99,
+                "dd": 15.84,
+                "tr": 597,
+                "wr": 81.9,
+                "pf": 1.7,
+                "marginal": 280,
+                "marginal_accepted": 280,
+                "maker_orders": 597,
+                "maker_touches": 597,
+                "maker_queue_eligible": 597,
+                "maker_fills": 597
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.209,
+            "geo_pct": 320.9,
+            "compound_x": 4.209,
+            "worst_fold": 320.9,
+            "mean_ret": 320.9,
+            "max_dd": 12.73,
+            "total_trades": 642,
+            "per": {
+              "2023": {
+                "ret": 320.9,
+                "dd": 12.73,
+                "tr": 642,
+                "wr": 80.8,
+                "pf": 1.7,
+                "marginal": 215,
+                "marginal_accepted": 215,
+                "maker_orders": 642,
+                "maker_touches": 642,
+                "maker_queue_eligible": 642,
+                "maker_fills": 642
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 789.1890000000001,
+          "parameter_turnover": 0.24654619528933716
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 19.66,
+            "tier.marginal_threshold_low": 10.73,
+            "tier.tp1_rr": 2.05,
+            "tier.tp2_rr": 3.18,
+            "tier.tp1_exit_pct": 0.64,
+            "scoring.atr_sl_multiplier": 2.39,
+            "filters.min_adx": 20.9,
+            "trailing.activation_pct": 1.0,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.26647943961836124,
+              "momentum": 0.3680104776806039,
+              "volume": 0.2541508704290775,
+              "support_resistance": 0.1364839309996204,
+              "risk": 0.08196864816183116
+            }
+          },
+          "train": {
+            "geo_factor": 4.2816,
+            "geo_pct": 328.16,
+            "compound_x": 18.332,
+            "worst_fold": 282.02,
+            "mean_ret": 330.94,
+            "max_dd": 14.82,
+            "total_trades": 1113,
+            "per": {
+              "2022": {
+                "ret": 379.87,
+                "dd": 14.82,
+                "tr": 554,
+                "wr": 78.2,
+                "pf": 1.73,
+                "marginal": 269,
+                "marginal_accepted": 269,
+                "maker_orders": 554,
+                "maker_touches": 554,
+                "maker_queue_eligible": 554,
+                "maker_fills": 554
+              },
+              "2023": {
+                "ret": 282.02,
+                "dd": 12.27,
+                "tr": 559,
+                "wr": 75.5,
+                "pf": 1.68,
+                "marginal": 184,
+                "marginal_accepted": 184,
+                "maker_orders": 559,
+                "maker_touches": 559,
+                "maker_queue_eligible": 559,
+                "maker_fills": 559
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5246,
+            "geo_pct": 252.46,
+            "compound_x": 3.525,
+            "worst_fold": 252.46,
+            "mean_ret": 252.46,
+            "max_dd": 12.37,
+            "total_trades": 605,
+            "per": {
+              "2024": {
+                "ret": 252.46,
+                "dd": 12.37,
+                "tr": 605,
+                "wr": 76.4,
+                "pf": 1.6,
+                "marginal": 215,
+                "marginal_accepted": 215,
+                "maker_orders": 606,
+                "maker_touches": 605,
+                "maker_queue_eligible": 605,
+                "maker_fills": 605
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 322.973,
+          "parameter_turnover": 0.20070547720847529
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 18.01,
+            "tier.marginal_threshold_low": 12.25,
+            "tier.tp1_rr": 2.07,
+            "tier.tp2_rr": 3.34,
+            "tier.tp1_exit_pct": 0.67,
+            "scoring.atr_sl_multiplier": 1.94,
+            "filters.min_adx": 18.0,
+            "trailing.activation_pct": 0.95,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.26691442128378806,
+              "momentum": 0.2634766041803968,
+              "volume": 0.15656366259145604,
+              "support_resistance": 0.19246836178916604,
+              "risk": 0.08209003084110653
+            }
+          },
+          "train": {
+            "geo_factor": 4.0454,
+            "geo_pct": 304.54,
+            "compound_x": 16.365,
+            "worst_fold": 285.53,
+            "mean_ret": 305.01,
+            "max_dd": 12.75,
+            "total_trades": 1174,
+            "per": {
+              "2023": {
+                "ret": 285.53,
+                "dd": 12.75,
+                "tr": 549,
+                "wr": 74.3,
+                "pf": 1.7,
+                "marginal": 133,
+                "marginal_accepted": 133,
+                "maker_orders": 549,
+                "maker_touches": 549,
+                "maker_queue_eligible": 549,
+                "maker_fills": 549
+              },
+              "2024": {
+                "ret": 324.49,
+                "dd": 8.66,
+                "tr": 625,
+                "wr": 75.8,
+                "pf": 1.69,
+                "marginal": 135,
+                "marginal_accepted": 135,
+                "maker_orders": 626,
+                "maker_touches": 625,
+                "maker_queue_eligible": 625,
+                "maker_fills": 625
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.1837,
+            "geo_pct": 18.37,
+            "compound_x": 1.184,
+            "worst_fold": 18.37,
+            "mean_ret": 18.37,
+            "max_dd": 16.69,
+            "total_trades": 236,
+            "per": {
+              "2025H1": {
+                "ret": 18.37,
+                "dd": 16.69,
+                "tr": 236,
+                "wr": 69.5,
+                "pf": 1.21,
+                "marginal": 69,
+                "marginal_accepted": 69,
+                "maker_orders": 236,
+                "maker_touches": 236,
+                "maker_queue_eligible": 236,
+                "maker_fills": 236
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 300.07750000000004,
+          "parameter_turnover": 0.25627337848664183
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 1000,
+      "seed": 17,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.7174396043523569,
+      "walk_forward_compound_x": 21.265084442520003,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.9497166234952048,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 20.05,
+            "tier.marginal_threshold_low": 10.52,
+            "tier.tp1_rr": 2.44,
+            "tier.tp2_rr": 3.74,
+            "tier.tp1_exit_pct": 0.61,
+            "scoring.atr_sl_multiplier": 2.74,
+            "filters.min_adx": 19.0,
+            "trailing.activation_pct": 0.83,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.24598815520927722,
+              "momentum": 0.24667719914360536,
+              "volume": 0.15859073052486444,
+              "support_resistance": 0.13201083226398969,
+              "risk": 0.07306789106486114
+            }
+          },
+          "train": {
+            "geo_factor": 9.2016,
+            "geo_pct": 820.16,
+            "compound_x": 84.67,
+            "worst_fold": 366.47,
+            "mean_ret": 1040.8,
+            "max_dd": 20.08,
+            "total_trades": 1511,
+            "per": {
+              "2021": {
+                "ret": 1715.12,
+                "dd": 20.08,
+                "tr": 896,
+                "wr": 78.3,
+                "pf": 1.67,
+                "marginal": 285,
+                "marginal_accepted": 285,
+                "maker_orders": 900,
+                "maker_touches": 896,
+                "maker_queue_eligible": 896,
+                "maker_fills": 896
+              },
+              "2022": {
+                "ret": 366.47,
+                "dd": 13.88,
+                "tr": 615,
+                "wr": 80.3,
+                "pf": 1.69,
+                "marginal": 292,
+                "marginal_accepted": 292,
+                "maker_orders": 615,
+                "maker_touches": 615,
+                "maker_queue_eligible": 615,
+                "maker_fills": 615
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.3935,
+            "geo_pct": 339.35,
+            "compound_x": 4.394,
+            "worst_fold": 339.35,
+            "mean_ret": 339.35,
+            "max_dd": 13.52,
+            "total_trades": 624,
+            "per": {
+              "2023": {
+                "ret": 339.35,
+                "dd": 13.52,
+                "tr": 624,
+                "wr": 79.2,
+                "pf": 1.7,
+                "marginal": 202,
+                "marginal_accepted": 202,
+                "maker_orders": 624,
+                "maker_touches": 624,
+                "maker_queue_eligible": 624,
+                "maker_fills": 624
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 813.132,
+          "parameter_turnover": 0.2835239037414806
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 21.88,
+            "tier.marginal_threshold_low": 10.41,
+            "tier.tp1_rr": 2.07,
+            "tier.tp2_rr": 3.36,
+            "tier.tp1_exit_pct": 0.7,
+            "scoring.atr_sl_multiplier": 1.91,
+            "filters.min_adx": 21.8,
+            "trailing.activation_pct": 1.0,
+            "trailing.callback_pct": 0.28,
+            "weights": {
+              "trend": 0.2568837938252897,
+              "momentum": 0.26269373108549393,
+              "volume": 0.17990772936993626,
+              "support_resistance": 0.1379732088542367,
+              "risk": 0.09437847930844677
+            }
+          },
+          "train": {
+            "geo_factor": 4.109,
+            "geo_pct": 310.9,
+            "compound_x": 16.884,
+            "worst_fold": 254.91,
+            "mean_ret": 315.31,
+            "max_dd": 12.16,
+            "total_trades": 1132,
+            "per": {
+              "2022": {
+                "ret": 375.72,
+                "dd": 11.74,
+                "tr": 568,
+                "wr": 77.5,
+                "pf": 1.77,
+                "marginal": 324,
+                "marginal_accepted": 324,
+                "maker_orders": 568,
+                "maker_touches": 568,
+                "maker_queue_eligible": 568,
+                "maker_fills": 568
+              },
+              "2023": {
+                "ret": 254.91,
+                "dd": 12.16,
+                "tr": 564,
+                "wr": 74.5,
+                "pf": 1.69,
+                "marginal": 219,
+                "marginal_accepted": 219,
+                "maker_orders": 564,
+                "maker_touches": 564,
+                "maker_queue_eligible": 564,
+                "maker_fills": 564
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.4791,
+            "geo_pct": 247.91,
+            "compound_x": 3.479,
+            "worst_fold": 247.91,
+            "mean_ret": 247.91,
+            "max_dd": 8.62,
+            "total_trades": 631,
+            "per": {
+              "2024": {
+                "ret": 247.91,
+                "dd": 8.62,
+                "tr": 631,
+                "wr": 74.8,
+                "pf": 1.63,
+                "marginal": 269,
+                "marginal_accepted": 269,
+                "maker_orders": 632,
+                "maker_touches": 631,
+                "maker_queue_eligible": 631,
+                "maker_fills": 631
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 306.644,
+          "parameter_turnover": 0.23888652659858686
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 18.42,
+            "tier.marginal_threshold_low": 10.2,
+            "tier.tp1_rr": 2.39,
+            "tier.tp2_rr": 3.34,
+            "tier.tp1_exit_pct": 0.6,
+            "scoring.atr_sl_multiplier": 2.44,
+            "filters.min_adx": 20.7,
+            "trailing.activation_pct": 0.96,
+            "trailing.callback_pct": 0.29,
+            "weights": {
+              "trend": 0.2638994960076538,
+              "momentum": 0.25585517415003073,
+              "volume": 0.17759148320552084,
+              "support_resistance": 0.18505649339642324,
+              "risk": 0.08754490468135556
+            }
+          },
+          "train": {
+            "geo_factor": 4.1359,
+            "geo_pct": 313.59,
+            "compound_x": 17.106,
+            "worst_fold": 295.29,
+            "mean_ret": 314.01,
+            "max_dd": 12.52,
+            "total_trades": 1183,
+            "per": {
+              "2023": {
+                "ret": 295.29,
+                "dd": 12.52,
+                "tr": 546,
+                "wr": 76.6,
+                "pf": 1.7,
+                "marginal": 170,
+                "marginal_accepted": 170,
+                "maker_orders": 546,
+                "maker_touches": 546,
+                "maker_queue_eligible": 546,
+                "maker_fills": 546
+              },
+              "2024": {
+                "ret": 332.74,
+                "dd": 8.33,
+                "tr": 637,
+                "wr": 77.9,
+                "pf": 1.7,
+                "marginal": 197,
+                "marginal_accepted": 197,
+                "maker_orders": 638,
+                "maker_touches": 637,
+                "maker_queue_eligible": 637,
+                "maker_fills": 637
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.3912,
+            "geo_pct": 39.12,
+            "compound_x": 1.391,
+            "worst_fold": 39.12,
+            "mean_ret": 39.12,
+            "max_dd": 15.57,
+            "total_trades": 237,
+            "per": {
+              "2025H1": {
+                "ret": 39.12,
+                "dd": 15.57,
+                "tr": 237,
+                "wr": 73.0,
+                "pf": 1.44,
+                "marginal": 89,
+                "marginal_accepted": 89,
+                "maker_orders": 237,
+                "maker_touches": 237,
+                "maker_queue_eligible": 237,
+                "maker_fills": 237
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 309.20799999999997,
+          "parameter_turnover": 0.19502917401228936
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 1000,
+      "seed": 73,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.5519677846899018,
+      "walk_forward_compound_x": 25.713713342548,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 2.3575948871151127,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 20.01,
+            "tier.marginal_threshold_low": 11.12,
+            "tier.tp1_rr": 1.93,
+            "tier.tp2_rr": 3.28,
+            "tier.tp1_exit_pct": 0.7,
+            "scoring.atr_sl_multiplier": 2.57,
+            "filters.min_adx": 18.5,
+            "trailing.activation_pct": 0.91,
+            "trailing.callback_pct": 0.25,
+            "weights": {
+              "trend": 0.25105512336828606,
+              "momentum": 0.34391044836482076,
+              "volume": 0.2118427371488268,
+              "support_resistance": 0.15590573561206478,
+              "risk": 0.06252810848678549
+            }
+          },
+          "train": {
+            "geo_factor": 8.6414,
+            "geo_pct": 764.14,
+            "compound_x": 74.674,
+            "worst_fold": 335.08,
+            "mean_ret": 975.7,
+            "max_dd": 16.89,
+            "total_trades": 1409,
+            "per": {
+              "2021": {
+                "ret": 1616.33,
+                "dd": 16.89,
+                "tr": 838,
+                "wr": 77.1,
+                "pf": 1.71,
+                "marginal": 285,
+                "marginal_accepted": 285,
+                "maker_orders": 841,
+                "maker_touches": 838,
+                "maker_queue_eligible": 838,
+                "maker_fills": 838
+              },
+              "2022": {
+                "ret": 335.08,
+                "dd": 15.81,
+                "tr": 571,
+                "wr": 79.2,
+                "pf": 1.65,
+                "marginal": 301,
+                "marginal_accepted": 301,
+                "maker_orders": 571,
+                "maker_touches": 571,
+                "maker_queue_eligible": 571,
+                "maker_fills": 571
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.3637,
+            "geo_pct": 336.37,
+            "compound_x": 4.364,
+            "worst_fold": 336.37,
+            "mean_ret": 336.37,
+            "max_dd": 14.6,
+            "total_trades": 578,
+            "per": {
+              "2023": {
+                "ret": 336.37,
+                "dd": 14.6,
+                "tr": 578,
+                "wr": 78.0,
+                "pf": 1.71,
+                "marginal": 213,
+                "marginal_accepted": 213,
+                "maker_orders": 578,
+                "maker_touches": 578,
+                "maker_queue_eligible": 578,
+                "maker_fills": 578
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 758.2284999999999,
+          "parameter_turnover": 0.17711976486511763
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 19.12,
+            "tier.marginal_threshold_low": 12.16,
+            "tier.tp1_rr": 2.04,
+            "tier.tp2_rr": 3.34,
+            "tier.tp1_exit_pct": 0.58,
+            "scoring.atr_sl_multiplier": 2.75,
+            "filters.min_adx": 19.3,
+            "trailing.activation_pct": 0.99,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.2860463799870343,
+              "momentum": 0.24115790987833424,
+              "volume": 0.1876493574952916,
+              "support_resistance": 0.125237775593354,
+              "risk": 0.07719416526803768
+            }
+          },
+          "train": {
+            "geo_factor": 4.5351,
+            "geo_pct": 353.51,
+            "compound_x": 20.567,
+            "worst_fold": 336.67,
+            "mean_ret": 353.83,
+            "max_dd": 16.94,
+            "total_trades": 1141,
+            "per": {
+              "2022": {
+                "ret": 370.99,
+                "dd": 16.94,
+                "tr": 575,
+                "wr": 77.4,
+                "pf": 1.62,
+                "marginal": 189,
+                "marginal_accepted": 189,
+                "maker_orders": 575,
+                "maker_touches": 575,
+                "maker_queue_eligible": 575,
+                "maker_fills": 575
+              },
+              "2023": {
+                "ret": 336.67,
+                "dd": 12.79,
+                "tr": 566,
+                "wr": 76.9,
+                "pf": 1.69,
+                "marginal": 138,
+                "marginal_accepted": 138,
+                "maker_orders": 566,
+                "maker_touches": 566,
+                "maker_queue_eligible": 566,
+                "maker_fills": 566
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.8108,
+            "geo_pct": 281.08,
+            "compound_x": 3.811,
+            "worst_fold": 281.08,
+            "mean_ret": 281.08,
+            "max_dd": 9.43,
+            "total_trades": 634,
+            "per": {
+              "2024": {
+                "ret": 281.08,
+                "dd": 9.43,
+                "tr": 634,
+                "wr": 76.5,
+                "pf": 1.61,
+                "marginal": 173,
+                "marginal_accepted": 173,
+                "maker_orders": 635,
+                "maker_touches": 634,
+                "maker_queue_eligible": 634,
+                "maker_fills": 634
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 347.581,
+          "parameter_turnover": 0.1994412380403527
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 18.2,
+            "tier.marginal_threshold_low": 11.75,
+            "tier.tp1_rr": 2.2,
+            "tier.tp2_rr": 2.85,
+            "tier.tp1_exit_pct": 0.58,
+            "scoring.atr_sl_multiplier": 2.46,
+            "filters.min_adx": 20.2,
+            "trailing.activation_pct": 0.88,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.2385546191653326,
+              "momentum": 0.2926326340017614,
+              "volume": 0.22439107131076214,
+              "support_resistance": 0.11739744202345788,
+              "risk": 0.07988365399247946
+            }
+          },
+          "train": {
+            "geo_factor": 4.3822,
+            "geo_pct": 338.22,
+            "compound_x": 19.204,
+            "worst_fold": 308.0,
+            "mean_ret": 339.34,
+            "max_dd": 12.96,
+            "total_trades": 1230,
+            "per": {
+              "2023": {
+                "ret": 370.68,
+                "dd": 11.84,
+                "tr": 591,
+                "wr": 77.7,
+                "pf": 1.8,
+                "marginal": 135,
+                "marginal_accepted": 135,
+                "maker_orders": 591,
+                "maker_touches": 591,
+                "maker_queue_eligible": 591,
+                "maker_fills": 591
+              },
+              "2024": {
+                "ret": 308.0,
+                "dd": 12.96,
+                "tr": 639,
+                "wr": 79.0,
+                "pf": 1.64,
+                "marginal": 166,
+                "marginal_accepted": 166,
+                "maker_orders": 640,
+                "maker_touches": 639,
+                "maker_queue_eligible": 639,
+                "maker_fills": 639
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.5463,
+            "geo_pct": 54.63,
+            "compound_x": 1.546,
+            "worst_fold": 54.63,
+            "mean_ret": 54.63,
+            "max_dd": 14.29,
+            "total_trades": 244,
+            "per": {
+              "2025H1": {
+                "ret": 54.63,
+                "dd": 14.29,
+                "tr": 244,
+                "wr": 75.8,
+                "pf": 1.59,
+                "marginal": 78,
+                "marginal_accepted": 78,
+                "maker_orders": 244,
+                "maker_touches": 244,
+                "maker_queue_eligible": 244,
+                "maker_fills": 244
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 333.684,
+          "parameter_turnover": 0.1754067817844315
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 1000,
+      "seed": 211,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 0.0,
+      "total_parameter_turnover": 0.5984212543503824,
+      "walk_forward_compound_x": 22.031800458990002,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 2.020013967804007,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 18.03,
+            "tier.marginal_threshold_low": 10.26,
+            "tier.tp1_rr": 2.31,
+            "tier.tp2_rr": 3.37,
+            "tier.tp1_exit_pct": 0.68,
+            "scoring.atr_sl_multiplier": 2.24,
+            "filters.min_adx": 18.7,
+            "trailing.activation_pct": 0.76,
+            "trailing.callback_pct": 0.25,
+            "weights": {
+              "trend": 0.20630926682838957,
+              "momentum": 0.24112736160453233,
+              "volume": 0.15486310404523093,
+              "support_resistance": 0.1497915277431489,
+              "risk": 0.06029089579256405
+            }
+          },
+          "train": {
+            "geo_factor": 10.5201,
+            "geo_pct": 952.01,
+            "compound_x": 110.672,
+            "worst_fold": 320.72,
+            "mean_ret": 1425.64,
+            "max_dd": 17.15,
+            "total_trades": 1501,
+            "per": {
+              "2021": {
+                "ret": 2530.55,
+                "dd": 17.15,
+                "tr": 906,
+                "wr": 80.9,
+                "pf": 1.78,
+                "marginal": 264,
+                "marginal_accepted": 264,
+                "maker_orders": 910,
+                "maker_touches": 906,
+                "maker_queue_eligible": 906,
+                "maker_fills": 906
+              },
+              "2022": {
+                "ret": 320.72,
+                "dd": 15.29,
+                "tr": 595,
+                "wr": 80.3,
+                "pf": 1.63,
+                "marginal": 258,
+                "marginal_accepted": 258,
+                "maker_orders": 595,
+                "maker_touches": 595,
+                "maker_queue_eligible": 595,
+                "maker_fills": 595
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.1097,
+            "geo_pct": 310.97,
+            "compound_x": 4.11,
+            "worst_fold": 310.97,
+            "mean_ret": 310.97,
+            "max_dd": 13.1,
+            "total_trades": 629,
+            "per": {
+              "2023": {
+                "ret": 310.97,
+                "dd": 13.1,
+                "tr": 629,
+                "wr": 79.3,
+                "pf": 1.7,
+                "marginal": 189,
+                "marginal_accepted": 189,
+                "maker_orders": 629,
+                "maker_touches": 629,
+                "maker_queue_eligible": 629,
+                "maker_fills": 629
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 946.0074999999999,
+          "parameter_turnover": 0.22323720465401747
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 22.06,
+            "tier.marginal_threshold_low": 11.53,
+            "tier.tp1_rr": 2.32,
+            "tier.tp2_rr": 3.33,
+            "tier.tp1_exit_pct": 0.64,
+            "scoring.atr_sl_multiplier": 2.2,
+            "filters.min_adx": 20.6,
+            "trailing.activation_pct": 0.79,
+            "trailing.callback_pct": 0.29,
+            "weights": {
+              "trend": 0.24044923409114582,
+              "momentum": 0.24572202094779674,
+              "volume": 0.15399238520253697,
+              "support_resistance": 0.11388093046029163,
+              "risk": 0.07009695144974142
+            }
+          },
+          "train": {
+            "geo_factor": 4.2157,
+            "geo_pct": 321.57,
+            "compound_x": 17.772,
+            "worst_fold": 304.21,
+            "mean_ret": 321.94,
+            "max_dd": 12.49,
+            "total_trades": 1241,
+            "per": {
+              "2022": {
+                "ret": 339.67,
+                "dd": 12.43,
+                "tr": 607,
+                "wr": 81.4,
+                "pf": 1.75,
+                "marginal": 306,
+                "marginal_accepted": 306,
+                "maker_orders": 607,
+                "maker_touches": 607,
+                "maker_queue_eligible": 607,
+                "maker_fills": 607
+              },
+              "2023": {
+                "ret": 304.21,
+                "dd": 12.49,
+                "tr": 634,
+                "wr": 79.0,
+                "pf": 1.72,
+                "marginal": 227,
+                "marginal_accepted": 227,
+                "maker_orders": 634,
+                "maker_touches": 634,
+                "maker_queue_eligible": 634,
+                "maker_fills": 634
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5395,
+            "geo_pct": 253.95,
+            "compound_x": 3.539,
+            "worst_fold": 253.95,
+            "mean_ret": 253.95,
+            "max_dd": 11.27,
+            "total_trades": 702,
+            "per": {
+              "2024": {
+                "ret": 253.95,
+                "dd": 11.27,
+                "tr": 702,
+                "wr": 80.6,
+                "pf": 1.59,
+                "marginal": 243,
+                "marginal_accepted": 243,
+                "maker_orders": 703,
+                "maker_touches": 702,
+                "maker_queue_eligible": 702,
+                "maker_fills": 702
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 317.19849999999997,
+          "parameter_turnover": 0.1549799444214352
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 20.2,
+            "tier.marginal_threshold_low": 11.42,
+            "tier.tp1_rr": 1.83,
+            "tier.tp2_rr": 3.05,
+            "tier.tp1_exit_pct": 0.72,
+            "scoring.atr_sl_multiplier": 2.51,
+            "filters.min_adx": 18.9,
+            "trailing.activation_pct": 0.75,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.2864692292667328,
+              "momentum": 0.25417820877835323,
+              "volume": 0.2261164779461629,
+              "support_resistance": 0.1451085234358676,
+              "risk": 0.11612674651112712
+            }
+          },
+          "train": {
+            "geo_factor": 4.3525,
+            "geo_pct": 335.25,
+            "compound_x": 18.944,
+            "worst_fold": 325.94,
+            "mean_ret": 335.35,
+            "max_dd": 11.78,
+            "total_trades": 1368,
+            "per": {
+              "2023": {
+                "ret": 325.94,
+                "dd": 11.71,
+                "tr": 642,
+                "wr": 80.4,
+                "pf": 1.7,
+                "marginal": 207,
+                "marginal_accepted": 207,
+                "maker_orders": 642,
+                "maker_touches": 642,
+                "maker_queue_eligible": 642,
+                "maker_fills": 642
+              },
+              "2024": {
+                "ret": 344.76,
+                "dd": 11.78,
+                "tr": 726,
+                "wr": 82.2,
+                "pf": 1.68,
+                "marginal": 223,
+                "marginal_accepted": 223,
+                "maker_orders": 727,
+                "maker_touches": 726,
+                "maker_queue_eligible": 726,
+                "maker_fills": 726
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.5146,
+            "geo_pct": 51.46,
+            "compound_x": 1.515,
+            "worst_fold": 51.46,
+            "mean_ret": 51.46,
+            "max_dd": 14.25,
+            "total_trades": 271,
+            "per": {
+              "2025H1": {
+                "ret": 51.46,
+                "dd": 14.25,
+                "tr": 271,
+                "wr": 78.6,
+                "pf": 1.58,
+                "marginal": 112,
+                "marginal_accepted": 112,
+                "maker_orders": 271,
+                "maker_touches": 271,
+                "maker_queue_eligible": 271,
+                "maker_fills": 271
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 331.127,
+          "parameter_turnover": 0.22020410527492978
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 17,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 15.0,
+      "total_parameter_turnover": 0.8252349721092265,
+      "walk_forward_compound_x": 24.944735987535,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 2.2870902090729057,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 20.05,
+            "tier.marginal_threshold_low": 10.52,
+            "tier.tp1_rr": 2.44,
+            "tier.tp2_rr": 3.74,
+            "tier.tp1_exit_pct": 0.61,
+            "scoring.atr_sl_multiplier": 2.74,
+            "filters.min_adx": 19.0,
+            "trailing.activation_pct": 0.83,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.24598815520927722,
+              "momentum": 0.24667719914360536,
+              "volume": 0.15859073052486444,
+              "support_resistance": 0.13201083226398969,
+              "risk": 0.07306789106486114
+            }
+          },
+          "train": {
+            "geo_factor": 9.2016,
+            "geo_pct": 820.16,
+            "compound_x": 84.67,
+            "worst_fold": 366.47,
+            "mean_ret": 1040.8,
+            "max_dd": 20.08,
+            "total_trades": 1511,
+            "per": {
+              "2021": {
+                "ret": 1715.12,
+                "dd": 20.08,
+                "tr": 896,
+                "wr": 78.3,
+                "pf": 1.67,
+                "marginal": 285,
+                "marginal_accepted": 285,
+                "maker_orders": 900,
+                "maker_touches": 896,
+                "maker_queue_eligible": 896,
+                "maker_fills": 896
+              },
+              "2022": {
+                "ret": 366.47,
+                "dd": 13.88,
+                "tr": 615,
+                "wr": 80.3,
+                "pf": 1.69,
+                "marginal": 292,
+                "marginal_accepted": 292,
+                "maker_orders": 615,
+                "maker_touches": 615,
+                "maker_queue_eligible": 615,
+                "maker_fills": 615
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.3935,
+            "geo_pct": 339.35,
+            "compound_x": 4.394,
+            "worst_fold": 339.35,
+            "mean_ret": 339.35,
+            "max_dd": 13.52,
+            "total_trades": 624,
+            "per": {
+              "2023": {
+                "ret": 339.35,
+                "dd": 13.52,
+                "tr": 624,
+                "wr": 79.2,
+                "pf": 1.7,
+                "marginal": 202,
+                "marginal_accepted": 202,
+                "maker_orders": 624,
+                "maker_touches": 624,
+                "maker_queue_eligible": 624,
+                "maker_fills": 624
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 808.8791414438778,
+          "parameter_turnover": 0.2835239037414806
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 19.6,
+            "tier.marginal_threshold_low": 12.28,
+            "tier.tp1_rr": 2.45,
+            "tier.tp2_rr": 4.06,
+            "tier.tp1_exit_pct": 0.61,
+            "scoring.atr_sl_multiplier": 1.95,
+            "filters.min_adx": 19.5,
+            "trailing.activation_pct": 0.81,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.25411088839356144,
+              "momentum": 0.35618991142099965,
+              "volume": 0.19154071148677865,
+              "support_resistance": 0.11675573241504297,
+              "risk": 0.0850967870951052
+            }
+          },
+          "train": {
+            "geo_factor": 4.0089,
+            "geo_pct": 300.89,
+            "compound_x": 16.072,
+            "worst_fold": 249.14,
+            "mean_ret": 304.73,
+            "max_dd": 12.62,
+            "total_trades": 1171,
+            "per": {
+              "2022": {
+                "ret": 360.32,
+                "dd": 12.62,
+                "tr": 556,
+                "wr": 79.9,
+                "pf": 1.79,
+                "marginal": 239,
+                "marginal_accepted": 239,
+                "maker_orders": 556,
+                "maker_touches": 556,
+                "maker_queue_eligible": 556,
+                "maker_fills": 556
+              },
+              "2023": {
+                "ret": 249.14,
+                "dd": 12.51,
+                "tr": 615,
+                "wr": 76.1,
+                "pf": 1.64,
+                "marginal": 173,
+                "marginal_accepted": 173,
+                "maker_orders": 615,
+                "maker_touches": 615,
+                "maker_queue_eligible": 615,
+                "maker_fills": 615
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5399,
+            "geo_pct": 253.99,
+            "compound_x": 3.54,
+            "worst_fold": 253.99,
+            "mean_ret": 253.99,
+            "max_dd": 14.09,
+            "total_trades": 683,
+            "per": {
+              "2024": {
+                "ret": 253.99,
+                "dd": 14.09,
+                "tr": 683,
+                "wr": 78.8,
+                "pf": 1.6,
+                "marginal": 186,
+                "marginal_accepted": 186,
+                "maker_orders": 684,
+                "maker_touches": 683,
+                "maker_queue_eligible": 683,
+                "maker_fills": 683
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 293.758160762195,
+          "parameter_turnover": 0.18098928252033258
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 19.0,
+            "tier.marginal_threshold_low": 10.05,
+            "tier.tp1_rr": 1.94,
+            "tier.tp2_rr": 2.71,
+            "tier.tp1_exit_pct": 0.56,
+            "scoring.atr_sl_multiplier": 2.8,
+            "filters.min_adx": 17.1,
+            "trailing.activation_pct": 0.93,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.2090671967512265,
+              "momentum": 0.29348429390638187,
+              "volume": 0.21907161734646668,
+              "support_resistance": 0.12348017725729737,
+              "risk": 0.11981286983050111
+            }
+          },
+          "train": {
+            "geo_factor": 3.7568,
+            "geo_pct": 275.68,
+            "compound_x": 14.114,
+            "worst_fold": 235.0,
+            "mean_ret": 278.15,
+            "max_dd": 14.12,
+            "total_trades": 1229,
+            "per": {
+              "2023": {
+                "ret": 321.31,
+                "dd": 14.12,
+                "tr": 567,
+                "wr": 78.1,
+                "pf": 1.69,
+                "marginal": 217,
+                "marginal_accepted": 217,
+                "maker_orders": 567,
+                "maker_touches": 567,
+                "maker_queue_eligible": 567,
+                "maker_fills": 567
+              },
+              "2024": {
+                "ret": 235.0,
+                "dd": 11.05,
+                "tr": 662,
+                "wr": 77.3,
+                "pf": 1.56,
+                "marginal": 274,
+                "marginal_accepted": 274,
+                "maker_orders": 663,
+                "maker_touches": 662,
+                "maker_queue_eligible": 662,
+                "maker_fills": 662
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.6039,
+            "geo_pct": 60.39,
+            "compound_x": 1.604,
+            "worst_fold": 60.39,
+            "mean_ret": 60.39,
+            "max_dd": 10.49,
+            "total_trades": 238,
+            "per": {
+              "2025H1": {
+                "ret": 60.39,
+                "dd": 10.49,
+                "tr": 238,
+                "wr": 78.2,
+                "pf": 1.68,
+                "marginal": 105,
+                "marginal_accepted": 105,
+                "maker_orders": 238,
+                "maker_touches": 238,
+                "maker_queue_eligible": 238,
+                "maker_fills": 238
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 265.3271732122888,
+          "parameter_turnover": 0.3607217858474133
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 73,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 15.0,
+      "total_parameter_turnover": 0.6972084099218413,
+      "walk_forward_compound_x": 22.380404223408,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 2.0519761524045883,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 20.01,
+            "tier.marginal_threshold_low": 11.12,
+            "tier.tp1_rr": 1.93,
+            "tier.tp2_rr": 3.28,
+            "tier.tp1_exit_pct": 0.7,
+            "scoring.atr_sl_multiplier": 2.57,
+            "filters.min_adx": 18.5,
+            "trailing.activation_pct": 0.91,
+            "trailing.callback_pct": 0.25,
+            "weights": {
+              "trend": 0.25105512336828606,
+              "momentum": 0.34391044836482076,
+              "volume": 0.2118427371488268,
+              "support_resistance": 0.15590573561206478,
+              "risk": 0.06252810848678549
+            }
+          },
+          "train": {
+            "geo_factor": 8.6414,
+            "geo_pct": 764.14,
+            "compound_x": 74.674,
+            "worst_fold": 335.08,
+            "mean_ret": 975.7,
+            "max_dd": 16.89,
+            "total_trades": 1409,
+            "per": {
+              "2021": {
+                "ret": 1616.33,
+                "dd": 16.89,
+                "tr": 838,
+                "wr": 77.1,
+                "pf": 1.71,
+                "marginal": 285,
+                "marginal_accepted": 285,
+                "maker_orders": 841,
+                "maker_touches": 838,
+                "maker_queue_eligible": 838,
+                "maker_fills": 838
+              },
+              "2022": {
+                "ret": 335.08,
+                "dd": 15.81,
+                "tr": 571,
+                "wr": 79.2,
+                "pf": 1.65,
+                "marginal": 301,
+                "marginal_accepted": 301,
+                "maker_orders": 571,
+                "maker_touches": 571,
+                "maker_queue_eligible": 571,
+                "maker_fills": 571
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.3637,
+            "geo_pct": 336.37,
+            "compound_x": 4.364,
+            "worst_fold": 336.37,
+            "mean_ret": 336.37,
+            "max_dd": 14.6,
+            "total_trades": 578,
+            "per": {
+              "2023": {
+                "ret": 336.37,
+                "dd": 14.6,
+                "tr": 578,
+                "wr": 78.0,
+                "pf": 1.71,
+                "marginal": 213,
+                "marginal_accepted": 213,
+                "maker_orders": 578,
+                "maker_touches": 578,
+                "maker_queue_eligible": 578,
+                "maker_fills": 578
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 755.5717035270231,
+          "parameter_turnover": 0.17711976486511763
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 19.11,
+            "tier.marginal_threshold_low": 12.73,
+            "tier.tp1_rr": 2.19,
+            "tier.tp2_rr": 3.71,
+            "tier.tp1_exit_pct": 0.63,
+            "scoring.atr_sl_multiplier": 2.29,
+            "filters.min_adx": 20.4,
+            "trailing.activation_pct": 1.09,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.23071721749497354,
+              "momentum": 0.24387541812570476,
+              "volume": 0.2566026642514587,
+              "support_resistance": 0.11042264108629775,
+              "risk": 0.12852988717715624
+            }
+          },
+          "train": {
+            "geo_factor": 4.2334,
+            "geo_pct": 323.34,
+            "compound_x": 17.922,
+            "worst_fold": 304.45,
+            "mean_ret": 323.78,
+            "max_dd": 16.45,
+            "total_trades": 1022,
+            "per": {
+              "2022": {
+                "ret": 304.45,
+                "dd": 16.45,
+                "tr": 500,
+                "wr": 76.8,
+                "pf": 1.65,
+                "marginal": 200,
+                "marginal_accepted": 200,
+                "maker_orders": 500,
+                "maker_touches": 500,
+                "maker_queue_eligible": 500,
+                "maker_fills": 500
+              },
+              "2023": {
+                "ret": 343.12,
+                "dd": 11.95,
+                "tr": 522,
+                "wr": 75.1,
+                "pf": 1.78,
+                "marginal": 157,
+                "marginal_accepted": 157,
+                "maker_orders": 522,
+                "maker_touches": 522,
+                "maker_queue_eligible": 522,
+                "maker_fills": 522
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.3168,
+            "geo_pct": 231.68,
+            "compound_x": 3.317,
+            "worst_fold": 231.68,
+            "mean_ret": 231.68,
+            "max_dd": 14.07,
+            "total_trades": 556,
+            "per": {
+              "2024": {
+                "ret": 231.68,
+                "dd": 14.07,
+                "tr": 556,
+                "wr": 75.0,
+                "pf": 1.61,
+                "marginal": 159,
+                "marginal_accepted": 159,
+                "maker_orders": 557,
+                "maker_touches": 556,
+                "maker_queue_eligible": 556,
+                "maker_fills": 556
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 312.9432477540055,
+          "parameter_turnover": 0.30928348306629966
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 18.2,
+            "tier.marginal_threshold_low": 11.75,
+            "tier.tp1_rr": 2.2,
+            "tier.tp2_rr": 2.85,
+            "tier.tp1_exit_pct": 0.58,
+            "scoring.atr_sl_multiplier": 2.46,
+            "filters.min_adx": 20.2,
+            "trailing.activation_pct": 0.88,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.2385546191653326,
+              "momentum": 0.2926326340017614,
+              "volume": 0.22439107131076214,
+              "support_resistance": 0.11739744202345788,
+              "risk": 0.07988365399247946
+            }
+          },
+          "train": {
+            "geo_factor": 4.3822,
+            "geo_pct": 338.22,
+            "compound_x": 19.204,
+            "worst_fold": 308.0,
+            "mean_ret": 339.34,
+            "max_dd": 12.96,
+            "total_trades": 1230,
+            "per": {
+              "2023": {
+                "ret": 370.68,
+                "dd": 11.84,
+                "tr": 591,
+                "wr": 77.7,
+                "pf": 1.8,
+                "marginal": 135,
+                "marginal_accepted": 135,
+                "maker_orders": 591,
+                "maker_touches": 591,
+                "maker_queue_eligible": 591,
+                "maker_fills": 591
+              },
+              "2024": {
+                "ret": 308.0,
+                "dd": 12.96,
+                "tr": 639,
+                "wr": 79.0,
+                "pf": 1.64,
+                "marginal": 166,
+                "marginal_accepted": 166,
+                "maker_orders": 640,
+                "maker_touches": 639,
+                "maker_queue_eligible": 639,
+                "maker_fills": 639
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.5463,
+            "geo_pct": 54.63,
+            "compound_x": 1.546,
+            "worst_fold": 54.63,
+            "mean_ret": 54.63,
+            "max_dd": 14.29,
+            "total_trades": 244,
+            "per": {
+              "2025H1": {
+                "ret": 54.63,
+                "dd": 14.29,
+                "tr": 244,
+                "wr": 75.8,
+                "pf": 1.59,
+                "marginal": 78,
+                "marginal_accepted": 78,
+                "maker_orders": 244,
+                "maker_touches": 244,
+                "maker_queue_eligible": 244,
+                "maker_fills": 244
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 330.52192257014366,
+          "parameter_turnover": 0.210805161990424
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 211,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 15.0,
+      "total_parameter_turnover": 0.5837668248767403,
+      "walk_forward_compound_x": 20.604810081975003,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.8891785193413286,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 18.03,
+            "tier.marginal_threshold_low": 10.26,
+            "tier.tp1_rr": 2.31,
+            "tier.tp2_rr": 3.37,
+            "tier.tp1_exit_pct": 0.68,
+            "scoring.atr_sl_multiplier": 2.24,
+            "filters.min_adx": 18.7,
+            "trailing.activation_pct": 0.76,
+            "trailing.callback_pct": 0.25,
+            "weights": {
+              "trend": 0.20630926682838957,
+              "momentum": 0.24112736160453233,
+              "volume": 0.15486310404523093,
+              "support_resistance": 0.1497915277431489,
+              "risk": 0.06029089579256405
+            }
+          },
+          "train": {
+            "geo_factor": 10.5201,
+            "geo_pct": 952.01,
+            "compound_x": 110.672,
+            "worst_fold": 320.72,
+            "mean_ret": 1425.64,
+            "max_dd": 17.15,
+            "total_trades": 1501,
+            "per": {
+              "2021": {
+                "ret": 2530.55,
+                "dd": 17.15,
+                "tr": 906,
+                "wr": 80.9,
+                "pf": 1.78,
+                "marginal": 264,
+                "marginal_accepted": 264,
+                "maker_orders": 910,
+                "maker_touches": 906,
+                "maker_queue_eligible": 906,
+                "maker_fills": 906
+              },
+              "2022": {
+                "ret": 320.72,
+                "dd": 15.29,
+                "tr": 595,
+                "wr": 80.3,
+                "pf": 1.63,
+                "marginal": 258,
+                "marginal_accepted": 258,
+                "maker_orders": 595,
+                "maker_touches": 595,
+                "maker_queue_eligible": 595,
+                "maker_fills": 595
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.1097,
+            "geo_pct": 310.97,
+            "compound_x": 4.11,
+            "worst_fold": 310.97,
+            "mean_ret": 310.97,
+            "max_dd": 13.1,
+            "total_trades": 629,
+            "per": {
+              "2023": {
+                "ret": 310.97,
+                "dd": 13.1,
+                "tr": 629,
+                "wr": 79.3,
+                "pf": 1.7,
+                "marginal": 189,
+                "marginal_accepted": 189,
+                "maker_orders": 629,
+                "maker_touches": 629,
+                "maker_queue_eligible": 629,
+                "maker_fills": 629
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 942.6589419301897,
+          "parameter_turnover": 0.22323720465401747
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 22.06,
+            "tier.marginal_threshold_low": 11.53,
+            "tier.tp1_rr": 2.32,
+            "tier.tp2_rr": 3.33,
+            "tier.tp1_exit_pct": 0.64,
+            "scoring.atr_sl_multiplier": 2.2,
+            "filters.min_adx": 20.6,
+            "trailing.activation_pct": 0.79,
+            "trailing.callback_pct": 0.29,
+            "weights": {
+              "trend": 0.24044923409114582,
+              "momentum": 0.24572202094779674,
+              "volume": 0.15399238520253697,
+              "support_resistance": 0.11388093046029163,
+              "risk": 0.07009695144974142
+            }
+          },
+          "train": {
+            "geo_factor": 4.2157,
+            "geo_pct": 321.57,
+            "compound_x": 17.772,
+            "worst_fold": 304.21,
+            "mean_ret": 321.94,
+            "max_dd": 12.49,
+            "total_trades": 1241,
+            "per": {
+              "2022": {
+                "ret": 339.67,
+                "dd": 12.43,
+                "tr": 607,
+                "wr": 81.4,
+                "pf": 1.75,
+                "marginal": 306,
+                "marginal_accepted": 306,
+                "maker_orders": 607,
+                "maker_touches": 607,
+                "maker_queue_eligible": 607,
+                "maker_fills": 607
+              },
+              "2023": {
+                "ret": 304.21,
+                "dd": 12.49,
+                "tr": 634,
+                "wr": 79.0,
+                "pf": 1.72,
+                "marginal": 227,
+                "marginal_accepted": 227,
+                "maker_orders": 634,
+                "maker_touches": 634,
+                "maker_queue_eligible": 634,
+                "maker_fills": 634
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5395,
+            "geo_pct": 253.95,
+            "compound_x": 3.539,
+            "worst_fold": 253.95,
+            "mean_ret": 253.95,
+            "max_dd": 11.27,
+            "total_trades": 702,
+            "per": {
+              "2024": {
+                "ret": 253.95,
+                "dd": 11.27,
+                "tr": 702,
+                "wr": 80.6,
+                "pf": 1.59,
+                "marginal": 243,
+                "marginal_accepted": 243,
+                "maker_orders": 703,
+                "maker_touches": 702,
+                "maker_queue_eligible": 702,
+                "maker_fills": 702
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 314.87380083367844,
+          "parameter_turnover": 0.1549799444214352
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 20.05,
+            "tier.marginal_threshold_low": 10.52,
+            "tier.tp1_rr": 2.3,
+            "tier.tp2_rr": 3.88,
+            "tier.tp1_exit_pct": 0.69,
+            "scoring.atr_sl_multiplier": 1.89,
+            "filters.min_adx": 18.2,
+            "trailing.activation_pct": 0.91,
+            "trailing.callback_pct": 0.28,
+            "weights": {
+              "trend": 0.2832821099118241,
+              "momentum": 0.26357176106616736,
+              "volume": 0.18221108606973668,
+              "support_resistance": 0.11237420649610502,
+              "risk": 0.13474279884915757
+            }
+          },
+          "train": {
+            "geo_factor": 3.9996,
+            "geo_pct": 299.96,
+            "compound_x": 15.997,
+            "worst_fold": 286.82,
+            "mean_ret": 300.19,
+            "max_dd": 12.43,
+            "total_trades": 1302,
+            "per": {
+              "2023": {
+                "ret": 313.55,
+                "dd": 12.43,
+                "tr": 611,
+                "wr": 75.0,
+                "pf": 1.72,
+                "marginal": 210,
+                "marginal_accepted": 210,
+                "maker_orders": 611,
+                "maker_touches": 611,
+                "maker_queue_eligible": 611,
+                "maker_fills": 611
+              },
+              "2024": {
+                "ret": 286.82,
+                "dd": 11.04,
+                "tr": 691,
+                "wr": 76.7,
+                "pf": 1.62,
+                "marginal": 217,
+                "marginal_accepted": 217,
+                "maker_orders": 692,
+                "maker_touches": 691,
+                "maker_queue_eligible": 691,
+                "maker_fills": 691
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.4165,
+            "geo_pct": 41.65,
+            "compound_x": 1.417,
+            "worst_fold": 41.65,
+            "mean_ret": 41.65,
+            "max_dd": 11.89,
+            "total_trades": 273,
+            "per": {
+              "2025H1": {
+                "ret": 41.65,
+                "dd": 11.89,
+                "tr": 273,
+                "wr": 72.2,
+                "pf": 1.4,
+                "marginal": 123,
+                "marginal_accepted": 123,
+                "maker_orders": 273,
+                "maker_touches": 273,
+                "maker_queue_eligible": 273,
+                "maker_fills": 273
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 292.52625486298064,
+          "parameter_turnover": 0.20554967580128763
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 419,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 15.0,
+      "total_parameter_turnover": 0.8356877329786344,
+      "walk_forward_compound_x": 14.296993142523002,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.3108382085818198,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 22.01,
+            "tier.marginal_threshold_low": 11.26,
+            "tier.tp1_rr": 2.37,
+            "tier.tp2_rr": 3.76,
+            "tier.tp1_exit_pct": 0.76,
+            "scoring.atr_sl_multiplier": 2.77,
+            "filters.min_adx": 18.3,
+            "trailing.activation_pct": 0.98,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.2663543928543871,
+              "momentum": 0.2433412653113509,
+              "volume": 0.1531352832555142,
+              "support_resistance": 0.15183012138959892,
+              "risk": 0.06986938396224059
+            }
+          },
+          "train": {
+            "geo_factor": 9.1269,
+            "geo_pct": 812.69,
+            "compound_x": 83.3,
+            "worst_fold": 381.14,
+            "mean_ret": 1006.22,
+            "max_dd": 17.67,
+            "total_trades": 1418,
+            "per": {
+              "2021": {
+                "ret": 1631.31,
+                "dd": 17.67,
+                "tr": 830,
+                "wr": 76.6,
+                "pf": 1.68,
+                "marginal": 301,
+                "marginal_accepted": 301,
+                "maker_orders": 833,
+                "maker_touches": 830,
+                "maker_queue_eligible": 830,
+                "maker_fills": 830
+              },
+              "2022": {
+                "ret": 381.14,
+                "dd": 16.21,
+                "tr": 588,
+                "wr": 79.4,
+                "pf": 1.65,
+                "marginal": 318,
+                "marginal_accepted": 318,
+                "maker_orders": 588,
+                "maker_touches": 588,
+                "maker_queue_eligible": 588,
+                "maker_fills": 588
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.7859,
+            "geo_pct": 278.59,
+            "compound_x": 3.786,
+            "worst_fold": 278.59,
+            "mean_ret": 278.59,
+            "max_dd": 12.95,
+            "total_trades": 555,
+            "per": {
+              "2023": {
+                "ret": 278.59,
+                "dd": 12.95,
+                "tr": 555,
+                "wr": 76.0,
+                "pf": 1.65,
+                "marginal": 225,
+                "marginal_accepted": 225,
+                "maker_orders": 555,
+                "maker_touches": 555,
+                "maker_queue_eligible": 555,
+                "maker_fills": 555
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 802.304134152141,
+          "parameter_turnover": 0.2800910565239361
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 20.87,
+            "tier.marginal_threshold_low": 10.46,
+            "tier.tp1_rr": 1.76,
+            "tier.tp2_rr": 2.93,
+            "tier.tp1_exit_pct": 0.73,
+            "scoring.atr_sl_multiplier": 2.45,
+            "filters.min_adx": 20.7,
+            "trailing.activation_pct": 0.86,
+            "trailing.callback_pct": 0.31,
+            "weights": {
+              "trend": 0.17284658700406935,
+              "momentum": 0.255303360909432,
+              "volume": 0.14932338726624325,
+              "support_resistance": 0.13634306235185878,
+              "risk": 0.06690769047645262
+            }
+          },
+          "train": {
+            "geo_factor": 3.8856,
+            "geo_pct": 288.56,
+            "compound_x": 15.098,
+            "worst_fold": 275.84,
+            "mean_ret": 288.77,
+            "max_dd": 14.06,
+            "total_trades": 1126,
+            "per": {
+              "2022": {
+                "ret": 301.71,
+                "dd": 14.06,
+                "tr": 557,
+                "wr": 81.7,
+                "pf": 1.79,
+                "marginal": 331,
+                "marginal_accepted": 331,
+                "maker_orders": 557,
+                "maker_touches": 557,
+                "maker_queue_eligible": 557,
+                "maker_fills": 557
+              },
+              "2023": {
+                "ret": 275.84,
+                "dd": 12.05,
+                "tr": 569,
+                "wr": 79.1,
+                "pf": 1.71,
+                "marginal": 239,
+                "marginal_accepted": 239,
+                "maker_orders": 569,
+                "maker_touches": 569,
+                "maker_queue_eligible": 569,
+                "maker_fills": 569
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.0291,
+            "geo_pct": 202.91,
+            "compound_x": 3.029,
+            "worst_fold": 202.91,
+            "mean_ret": 202.91,
+            "max_dd": 8.56,
+            "total_trades": 645,
+            "per": {
+              "2024": {
+                "ret": 202.91,
+                "dd": 8.56,
+                "tr": 645,
+                "wr": 78.6,
+                "pf": 1.52,
+                "marginal": 272,
+                "marginal_accepted": 272,
+                "maker_orders": 646,
+                "maker_touches": 645,
+                "maker_queue_eligible": 645,
+                "maker_fills": 645
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 279.404913918793,
+          "parameter_turnover": 0.28227240541379967
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 19.74,
+            "tier.marginal_threshold_low": 12.65,
+            "tier.tp1_rr": 2.16,
+            "tier.tp2_rr": 3.66,
+            "tier.tp1_exit_pct": 0.72,
+            "scoring.atr_sl_multiplier": 2.03,
+            "filters.min_adx": 20.5,
+            "trailing.activation_pct": 0.87,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.25263092386813396,
+              "momentum": 0.24026159022049762,
+              "volume": 0.17122799182417264,
+              "support_resistance": 0.20667935664803833,
+              "risk": 0.12415570436068246
+            }
+          },
+          "train": {
+            "geo_factor": 3.8971,
+            "geo_pct": 289.71,
+            "compound_x": 15.187,
+            "worst_fold": 288.53,
+            "mean_ret": 289.71,
+            "max_dd": 12.0,
+            "total_trades": 1151,
+            "per": {
+              "2023": {
+                "ret": 288.53,
+                "dd": 12.0,
+                "tr": 545,
+                "wr": 77.1,
+                "pf": 1.77,
+                "marginal": 166,
+                "marginal_accepted": 166,
+                "maker_orders": 546,
+                "maker_touches": 545,
+                "maker_queue_eligible": 545,
+                "maker_fills": 545
+              },
+              "2024": {
+                "ret": 290.89,
+                "dd": 10.88,
+                "tr": 606,
+                "wr": 78.5,
+                "pf": 1.67,
+                "marginal": 176,
+                "marginal_accepted": 176,
+                "maker_orders": 607,
+                "maker_touches": 606,
+                "maker_queue_eligible": 606,
+                "maker_fills": 606
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.2467,
+            "geo_pct": 24.67,
+            "compound_x": 1.247,
+            "worst_fold": 24.67,
+            "mean_ret": 24.67,
+            "max_dd": 14.62,
+            "total_trades": 223,
+            "per": {
+              "2025H1": {
+                "ret": 24.67,
+                "dd": 14.62,
+                "tr": 223,
+                "wr": 73.5,
+                "pf": 1.31,
+                "marginal": 78,
+                "marginal_accepted": 78,
+                "maker_orders": 223,
+                "maker_touches": 223,
+                "maker_queue_eligible": 223,
+                "maker_fills": 223
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 281.4101359343865,
+          "parameter_turnover": 0.2733242710408986
+        }
+      ]
+    },
+    {
+      "method": "annual trailing-two-year tune, next-year trade",
+      "trials_per_window": 300,
+      "seed": 887,
+      "entry_mode": "maker",
+      "exit_granularity": "sub",
+      "turnover_penalty": 15.0,
+      "total_parameter_turnover": 0.7035250509844543,
+      "walk_forward_compound_x": 17.560238505179996,
+      "static_compound_x": 10.906756492847999,
+      "growth_ratio": 1.6100330576459605,
+      "windows": [
+        {
+          "target": "2023",
+          "winner": {
+            "tier.strong_threshold": 19.06,
+            "tier.marginal_threshold_low": 10.75,
+            "tier.tp1_rr": 2.34,
+            "tier.tp2_rr": 3.13,
+            "tier.tp1_exit_pct": 0.64,
+            "scoring.atr_sl_multiplier": 2.63,
+            "filters.min_adx": 19.4,
+            "trailing.activation_pct": 0.71,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.25308464463740277,
+              "momentum": 0.2813609694476794,
+              "volume": 0.21379068287409508,
+              "support_resistance": 0.1532455101336678,
+              "risk": 0.12289886188118153
+            }
+          },
+          "train": {
+            "geo_factor": 8.9621,
+            "geo_pct": 796.21,
+            "compound_x": 80.319,
+            "worst_fold": 313.99,
+            "mean_ret": 1077.06,
+            "max_dd": 20.06,
+            "total_trades": 1472,
+            "per": {
+              "2021": {
+                "ret": 1840.13,
+                "dd": 20.06,
+                "tr": 875,
+                "wr": 80.2,
+                "pf": 1.7,
+                "marginal": 295,
+                "marginal_accepted": 295,
+                "maker_orders": 879,
+                "maker_touches": 875,
+                "maker_queue_eligible": 875,
+                "maker_fills": 875
+              },
+              "2022": {
+                "ret": 313.99,
+                "dd": 15.84,
+                "tr": 597,
+                "wr": 81.9,
+                "pf": 1.7,
+                "marginal": 280,
+                "marginal_accepted": 280,
+                "maker_orders": 597,
+                "maker_touches": 597,
+                "maker_queue_eligible": 597,
+                "maker_fills": 597
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 4.209,
+            "geo_pct": 320.9,
+            "compound_x": 4.209,
+            "worst_fold": 320.9,
+            "mean_ret": 320.9,
+            "max_dd": 12.73,
+            "total_trades": 642,
+            "per": {
+              "2023": {
+                "ret": 320.9,
+                "dd": 12.73,
+                "tr": 642,
+                "wr": 80.8,
+                "pf": 1.7,
+                "marginal": 215,
+                "marginal_accepted": 215,
+                "maker_orders": 642,
+                "maker_touches": 642,
+                "maker_queue_eligible": 642,
+                "maker_fills": 642
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 3.4404,
+            "geo_pct": 244.04,
+            "compound_x": 3.44,
+            "worst_fold": 244.04,
+            "mean_ret": 244.04,
+            "max_dd": 11.69,
+            "total_trades": 524,
+            "per": {
+              "2023": {
+                "ret": 244.04,
+                "dd": 11.69,
+                "tr": 524,
+                "wr": 78.1,
+                "pf": 1.73,
+                "marginal": 218,
+                "marginal_accepted": 218,
+                "maker_orders": 525,
+                "maker_touches": 524,
+                "maker_queue_eligible": 524,
+                "maker_fills": 524
+              }
+            }
+          },
+          "selection_score": 785.49080707066,
+          "parameter_turnover": 0.24654619528933716
+        },
+        {
+          "target": "2024",
+          "winner": {
+            "tier.strong_threshold": 19.66,
+            "tier.marginal_threshold_low": 10.73,
+            "tier.tp1_rr": 2.05,
+            "tier.tp2_rr": 3.18,
+            "tier.tp1_exit_pct": 0.64,
+            "scoring.atr_sl_multiplier": 2.39,
+            "filters.min_adx": 20.9,
+            "trailing.activation_pct": 1.0,
+            "trailing.callback_pct": 0.27,
+            "weights": {
+              "trend": 0.26647943961836124,
+              "momentum": 0.3680104776806039,
+              "volume": 0.2541508704290775,
+              "support_resistance": 0.1364839309996204,
+              "risk": 0.08196864816183116
+            }
+          },
+          "train": {
+            "geo_factor": 4.2816,
+            "geo_pct": 328.16,
+            "compound_x": 18.332,
+            "worst_fold": 282.02,
+            "mean_ret": 330.94,
+            "max_dd": 14.82,
+            "total_trades": 1113,
+            "per": {
+              "2022": {
+                "ret": 379.87,
+                "dd": 14.82,
+                "tr": 554,
+                "wr": 78.2,
+                "pf": 1.73,
+                "marginal": 269,
+                "marginal_accepted": 269,
+                "maker_orders": 554,
+                "maker_touches": 554,
+                "maker_queue_eligible": 554,
+                "maker_fills": 554
+              },
+              "2023": {
+                "ret": 282.02,
+                "dd": 12.27,
+                "tr": 559,
+                "wr": 75.5,
+                "pf": 1.68,
+                "marginal": 184,
+                "marginal_accepted": 184,
+                "maker_orders": 559,
+                "maker_touches": 559,
+                "maker_queue_eligible": 559,
+                "maker_fills": 559
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 3.5246,
+            "geo_pct": 252.46,
+            "compound_x": 3.525,
+            "worst_fold": 252.46,
+            "mean_ret": 252.46,
+            "max_dd": 12.37,
+            "total_trades": 605,
+            "per": {
+              "2024": {
+                "ret": 252.46,
+                "dd": 12.37,
+                "tr": 605,
+                "wr": 76.4,
+                "pf": 1.6,
+                "marginal": 215,
+                "marginal_accepted": 215,
+                "maker_orders": 606,
+                "maker_touches": 605,
+                "maker_queue_eligible": 605,
+                "maker_fills": 605
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 2.5313,
+            "geo_pct": 153.13,
+            "compound_x": 2.531,
+            "worst_fold": 153.13,
+            "mean_ret": 153.13,
+            "max_dd": 14.56,
+            "total_trades": 576,
+            "per": {
+              "2024": {
+                "ret": 153.13,
+                "dd": 14.56,
+                "tr": 576,
+                "wr": 76.6,
+                "pf": 1.46,
+                "marginal": 262,
+                "marginal_accepted": 262,
+                "maker_orders": 577,
+                "maker_touches": 576,
+                "maker_queue_eligible": 576,
+                "maker_fills": 576
+              }
+            }
+          },
+          "selection_score": 319.9624178418729,
+          "parameter_turnover": 0.20070547720847529
+        },
+        {
+          "target": "2025H1",
+          "winner": {
+            "tier.strong_threshold": 18.01,
+            "tier.marginal_threshold_low": 12.25,
+            "tier.tp1_rr": 2.07,
+            "tier.tp2_rr": 3.34,
+            "tier.tp1_exit_pct": 0.67,
+            "scoring.atr_sl_multiplier": 1.94,
+            "filters.min_adx": 18.0,
+            "trailing.activation_pct": 0.95,
+            "trailing.callback_pct": 0.26,
+            "weights": {
+              "trend": 0.26691442128378806,
+              "momentum": 0.2634766041803968,
+              "volume": 0.15656366259145604,
+              "support_resistance": 0.19246836178916604,
+              "risk": 0.08209003084110653
+            }
+          },
+          "train": {
+            "geo_factor": 4.0454,
+            "geo_pct": 304.54,
+            "compound_x": 16.365,
+            "worst_fold": 285.53,
+            "mean_ret": 305.01,
+            "max_dd": 12.75,
+            "total_trades": 1174,
+            "per": {
+              "2023": {
+                "ret": 285.53,
+                "dd": 12.75,
+                "tr": 549,
+                "wr": 74.3,
+                "pf": 1.7,
+                "marginal": 133,
+                "marginal_accepted": 133,
+                "maker_orders": 549,
+                "maker_touches": 549,
+                "maker_queue_eligible": 549,
+                "maker_fills": 549
+              },
+              "2024": {
+                "ret": 324.49,
+                "dd": 8.66,
+                "tr": 625,
+                "wr": 75.8,
+                "pf": 1.69,
+                "marginal": 135,
+                "marginal_accepted": 135,
+                "maker_orders": 626,
+                "maker_touches": 625,
+                "maker_queue_eligible": 625,
+                "maker_fills": 625
+              }
+            }
+          },
+          "unseen": {
+            "geo_factor": 1.1837,
+            "geo_pct": 18.37,
+            "compound_x": 1.184,
+            "worst_fold": 18.37,
+            "mean_ret": 18.37,
+            "max_dd": 16.69,
+            "total_trades": 236,
+            "per": {
+              "2025H1": {
+                "ret": 18.37,
+                "dd": 16.69,
+                "tr": 236,
+                "wr": 69.5,
+                "pf": 1.21,
+                "marginal": 69,
+                "marginal_accepted": 69,
+                "maker_orders": 236,
+                "maker_touches": 236,
+                "maker_queue_eligible": 236,
+                "maker_fills": 236
+              }
+            }
+          },
+          "static": {
+            "geo_factor": 1.2524,
+            "geo_pct": 25.24,
+            "compound_x": 1.252,
+            "worst_fold": 25.24,
+            "mean_ret": 25.24,
+            "max_dd": 13.02,
+            "total_trades": 198,
+            "per": {
+              "2025H1": {
+                "ret": 25.24,
+                "dd": 13.02,
+                "tr": 198,
+                "wr": 74.2,
+                "pf": 1.39,
+                "marginal": 80,
+                "marginal_accepted": 80,
+                "maker_orders": 198,
+                "maker_touches": 198,
+                "maker_queue_eligible": 198,
+                "maker_fills": 198
+              }
+            }
+          },
+          "selection_score": 296.2333993227004,
+          "parameter_turnover": 0.25627337848664183
+        }
+      ]
+    }
+  ]
+}

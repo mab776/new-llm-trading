@@ -47,13 +47,22 @@ def evaluate_shared(assets: dict[str, AssetInput], *, slip: float = .0002,
         per[name] = {
             "return_pct": result.return_pct, "max_dd": result.max_dd_pct,
             "trades": result.trades, "symbols": result.per_symbol,
+            "maker_orders": result.maker_orders,
+            "maker_touches": result.maker_touches,
+            "maker_queue_eligible": result.maker_queue_eligible,
+            "maker_fills": result.maker_fills,
         }
     compound = math.prod(factors)
     geo = math.exp(sum(math.log(x) for x in factors) / len(factors))
     return {
         "geo_pct": (geo - 1) * 100, "compound_x": compound,
         "worst_fold": min(x["return_pct"] for x in per.values()),
-        "max_dd": max_dd, "trades": total_trades, "per": per,
+        "max_dd": max_dd, "trades": total_trades,
+        "maker_orders": sum(x["maker_orders"] for x in per.values()),
+        "maker_touches": sum(x["maker_touches"] for x in per.values()),
+        "maker_queue_eligible": sum(x["maker_queue_eligible"] for x in per.values()),
+        "maker_fills": sum(x["maker_fills"] for x in per.values()),
+        "per": per,
     }
 
 

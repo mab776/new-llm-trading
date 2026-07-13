@@ -14,6 +14,7 @@ step for step. validate.py checks it reproduces the engine exactly.
 from __future__ import annotations
 
 import copy
+import hashlib
 from dataclasses import dataclass
 
 import numpy as np
@@ -28,6 +29,7 @@ from openwebui_filter import (
 from llm_trading_bot.scoring import (
     Direction, IndicatorSet, SignalStrength, CategoryScore,
     calculate_targets, apply_pre_trade_filters, compute_composite_score,
+    detect_market_regime,
 )
 from llm_trading_bot.portfolio import Portfolio
 from llm_trading_bot.entry import PendingEntry, maker_limit_touched
@@ -209,6 +211,43 @@ class Result:
     sharpe: float
     marginal_candidates: int = 0
     marginal_accepted: int = 0
+    maker_orders: int = 0
+    maker_touches: int = 0
+    maker_queue_eligible: int = 0
+    maker_fills: int = 0
+
+
+def maker_queue_eligible(direction: str, limit_price: float, bar_high: float,
+                         bar_low: float, penetration_bps: float = 0.0) -> bool:
+    """Return whether price traded far enough through a maker limit to model a fill.
+
+    ``penetration_bps=0`` is exactly the canonical touched-limit rule. Positive
+    values are a conservative queue-depth proxy: a long bid must trade below the
+    limit and a short offer above it before the order becomes fill-eligible.
+    """
+    if penetration_bps < 0:
+        raise ValueError("maker_queue_penetration_bps must be non-negative")
+    distance = penetration_bps / 10_000
+    adjusted_limit = (limit_price * (1 - distance) if direction == "LONG"
+                      else limit_price * (1 + distance))
+    return maker_limit_touched(direction, adjusted_limit, bar_high, bar_low)
+
+
+def deterministic_maker_fill(probability: float, seed: int, key: str) -> bool:
+    """Reproducibly accept an eligible maker order with ``probability``.
+
+    Hashing the immutable order identity avoids evaluation-order and fold-boundary
+    effects from a mutable PRNG. Probability 1.0 preserves the shipped baseline.
+    """
+    if not 0 <= probability <= 1:
+        raise ValueError("maker_fill_probability must be between 0 and 1")
+    if probability in (0, 1):
+        return bool(probability)
+    digest = hashlib.blake2b(
+        f"{seed}|{key}".encode("utf-8"), digest_size=8
+    ).digest()
+    sample = int.from_bytes(digest, "big") / 2**64
+    return sample < probability
 
 
 DEFAULT_STRAT = {
@@ -217,11 +256,20 @@ DEFAULT_STRAT = {
     # decision bar's close, paying taker fee + `slip`. "maker": rest a limit at that
     # close and fill it only if the NEXT bar trades back to it (LONG: next-bar low <=
     # limit; SHORT: next-bar high >= limit), paying the maker fee with NO slip. Good-
-    # for-one-bar: an unfilled limit is cancelled (price ran away -> missed trade). The
-    # fill is modelled as end-of-fill-bar (exits start the bar after, mirroring taker's
-    # enter-at-close), so it slightly delays the first exit — an honest engine/sub-bar
-    # port is required before shipping if this screens EV-positive.
+    # for-one-bar: an unfilled limit is cancelled (price ran away -> missed trade).
+    # A fill is immediately exposed to adverse-first exits from its touched bar/sub-bar.
     "entry_mode": "taker",        # "taker" | "maker"
+    # Maker queue/fill sensitivity controls. These are research-only stressors;
+    # defaults preserve the canonical touched-limit behavior exactly.
+    "maker_queue_penetration_bps": 0.0,
+    "maker_fill_probability": 1.0,
+    "maker_fill_seed": 0,
+    # Research-only causal regime overlays. Keys are MarketRegime string values;
+    # empty mappings preserve the static strategy.
+    "regime_threshold_mults": {},
+    "regime_leverage_mults": {},
+    "regime_trailing_activation_mults": {},
+    "regime_trailing_callback_mults": {},
     "vol_target_lev": None,       # e.g. 40.0 -> lev_eff = min(lev, vol_target_lev / atr_pct)
     "trail_mode": "pct",          # "pct" (of entry) | "atr" (multiples of entry ATR)
     "trail_act_atr": 0.5,          # activation distance in ATRs (trail_mode="atr")
@@ -310,6 +358,10 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     st["entry_mode"] = getattr(config.trading, "entry_mode", "taker")
     if strat:
         st.update(strat)
+    if st["maker_queue_penetration_bps"] < 0:
+        raise ValueError("maker_queue_penetration_bps must be non-negative")
+    if not 0 <= st["maker_fill_probability"] <= 1:
+        raise ValueError("maker_fill_probability must be between 0 and 1")
     tr = config.trading
     tier = tr.active_leverage_tier
     sc = config.scoring
@@ -343,6 +395,10 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     ti = -1  # test-bar counter (mirrors engine's enumerate over test_indices)
     marginal_candidates = 0
     marginal_accepted = 0
+    maker_orders = 0
+    maker_touches = 0
+    maker_queue_eligible_count = 0
+    maker_fills = 0
 
     def loss_penalty():
         if consec_losses == 0:
@@ -366,6 +422,14 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
 
         ts = str(pre.timestamps[i])
         bar_high = prim.high; bar_low = prim.low; bar_close = prim.close
+        regime = detect_market_regime(prim).value
+        bar_st = dict(st)
+        bar_st["_trail_activation_multiplier"] = st[
+            "regime_trailing_activation_mults"
+        ].get(regime, 1.0)
+        bar_st["_trail_callback_multiplier"] = st[
+            "regime_trailing_callback_mults"
+        ].get(regime, 1.0)
         last_close = bar_close; last_time = ts
 
         # 0.75 Resolve a maker order from the previous bar.  The fresh fill is
@@ -376,19 +440,36 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         subs = pre.subbars[i] if (exit_granularity == "sub" and pre.subbars) else None
         if pending is not None:
             touched = False
+            queue_eligible = False
             if subs:
                 for sub_i, (s_high, s_low, _s_close) in enumerate(subs):
-                    if maker_limit_touched(
-                        pending.direction, pending.limit_price, s_high, s_low
-                    ):
+                    if maker_limit_touched(pending.direction, pending.limit_price,
+                                           s_high, s_low):
                         touched = True
+                    if maker_queue_eligible(
+                        pending.direction, pending.limit_price, s_high, s_low,
+                        st["maker_queue_penetration_bps"],
+                    ):
+                        queue_eligible = True
                         fresh_sub_start = sub_i
                         break
             else:
                 touched = maker_limit_touched(
                     pending.direction, pending.limit_price, bar_high, bar_low
                 )
-            if touched:
+                queue_eligible = maker_queue_eligible(
+                    pending.direction, pending.limit_price, bar_high, bar_low,
+                    st["maker_queue_penetration_bps"],
+                )
+            maker_touches += int(touched)
+            maker_queue_eligible_count += int(queue_eligible)
+            fill_key = (f"{getattr(config.trading, 'symbol', '')}|"
+                        f"{pending.decision_time}|{pending.direction}|"
+                        f"{pending.limit_price:.12g}")
+            fills_queue = queue_eligible and deterministic_maker_fill(
+                st["maker_fill_probability"], st["maker_fill_seed"], fill_key
+            )
+            if fills_queue:
                 fresh_trade = port.open_trade(
                     direction=pending.direction, entry_price=pending.limit_price,
                     entry_time=ts, stop_loss=pending.stop_loss,
@@ -398,13 +479,14 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     tp1_exit_pct=pending.tp1_exit_pct, order_type="maker",
                 )
                 fresh_trade._atr_entry = pending.atr_at_entry
+                maker_fills += 1
             pending = None
 
         # 1. exits first (records risk events on the portfolio as trades close).
-        # exit_granularity="sub": replay the 4h bar's 1h sub-bars in time order —
-        # real intrabar sequencing (trailing ratchets between sub-bars) instead of
-        # the worst-case single-bar assumption. Falls back to the 4h bar when the
-        # 1h series has a hole.
+        # exit_granularity="sub": replay the 4h bar's 1h sub-bars in time order for
+        # exit sequencing while keeping the trailing stop FIXED intrabar. Ratchet
+        # exactly once after the completed 4h bar, matching engine/live cadence.
+        # Falls back to the 4h bar when the 1h series has a hole.
         for trade in list(port.open_trades):
             if subs:
                 start = fresh_sub_start if trade is fresh_trade else 0
@@ -415,13 +497,23 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     _check_exits(port, trade, s_high, s_low, s_close, ts, risk,
                                  tf_hours, bt.enable_partial_exits, bt.enable_trailing_stops,
                                  config.trading.trailing_stop, slip, model_liquidation,
-                                 maintenance_margin, st, count_bar=first)
+                                 maintenance_margin, bar_st, count_bar=first,
+                                 ratchet_trailing=False)
                     first = False
+                if (trade.is_open and bt.enable_trailing_stops
+                        and config.trading.trailing_stop.enabled):
+                    active_subs = subs[start:]
+                    favorable = (max(row[0] for row in active_subs)
+                                 if trade.direction == "LONG"
+                                 else min(row[1] for row in active_subs))
+                    _ratchet_trailing_stop(
+                        trade, favorable, config.trading.trailing_stop, bar_st
+                    )
             else:
                 _check_exits(port, trade, bar_high, bar_low, bar_close, ts, risk,
                              tf_hours, bt.enable_partial_exits, bt.enable_trailing_stops,
                              config.trading.trailing_stop, slip, model_liquidation,
-                             maintenance_margin, st)
+                             maintenance_margin, bar_st)
 
         # 1.5 funding settlement (mirrors engine: survivors of this bar's exits pay;
         # entries happen at the close, after settlement)
@@ -493,6 +585,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                 fm = fund_metric[i]
                 if fm == fm and fm >= st["funding_boost_thr"]:
                     side_mult *= st["funding_short_boost"]
+        side_mult *= st["regime_threshold_mults"].get(regime, 1.0)
         eff_marg = tier.marginal_threshold_low * side_mult + lp
         eff_strong = tier.strong_threshold * side_mult + lp
         if abs_score >= eff_strong:
@@ -588,6 +681,9 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     # is unchanged.
                     if gate_accept:
                         lev_eff = tier.leverage
+                        lev_eff = max(1, int(round(
+                            lev_eff * st["regime_leverage_mults"].get(regime, 1.0)
+                        )))
                         if st["vol_target_lev"] is not None and prim.atr_pct:
                             lev_eff = max(1, min(tier.leverage, int(round(st["vol_target_lev"] / prim.atr_pct))))
                         # Conviction sizing: scale margin with signal strength
@@ -635,6 +731,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                                 tp1_exit_pct=tier.tp1_exit_pct,
                                 atr_at_entry=prim.atr_14, decision_time=ts,
                             )
+                            maker_orders += 1
                         else:
                             entry_eff = bar_close * (1 + slip) if direction_str == "LONG" else bar_close * (1 - slip)
                             trade = port.open_trade(
@@ -660,15 +757,55 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         return_pct=s.total_return_pct, final_balance=s.final_balance, trades=s.total_trades,
         win_rate=s.win_rate, profit_factor=s.profit_factor, max_dd_pct=s.max_drawdown_pct,
         sharpe=s.sharpe_ratio, marginal_candidates=marginal_candidates,
-        marginal_accepted=marginal_accepted,
+        marginal_accepted=marginal_accepted, maker_orders=maker_orders,
+        maker_touches=maker_touches,
+        maker_queue_eligible=maker_queue_eligible_count,
+        maker_fills=maker_fills,
     )
+
+
+def _ratchet_trailing_stop(trade, favorable, trailing_config, st=None):
+    """Ratchet once after a completed primary bar's exit sequence."""
+    from llm_trading_bot.trailing import compute_trailing_stop
+    if st is None:
+        st = DEFAULT_STRAT
+    if not trailing_config.enabled or not trade.is_open:
+        return
+    is_long = trade.direction == "LONG"
+    if st["trail_mode"] == "atr" and getattr(trade, "_atr_entry", None):
+        act_d = st["trail_act_atr"] * trade._atr_entry
+        cb_d = st["trail_cb_atr"] * trade._atr_entry
+        new_sl = None
+        if is_long:
+            if favorable >= trade.entry_price + act_d:
+                candidate = favorable - cb_d
+                if candidate > trade.stop_loss:
+                    new_sl = candidate
+        else:
+            if favorable <= trade.entry_price - act_d:
+                candidate = favorable + cb_d
+                if candidate < trade.stop_loss:
+                    new_sl = candidate
+    else:
+        activation_pct = trailing_config.activation_pct * st.get(
+            "_trail_activation_multiplier", 1.0
+        )
+        callback_pct = trailing_config.callback_pct * st.get(
+            "_trail_callback_multiplier", 1.0
+        )
+        new_sl = compute_trailing_stop(
+            direction=trade.direction, entry_price=trade.entry_price,
+            favorable_extreme=favorable, current_sl=trade.stop_loss,
+            activation_pct=activation_pct, callback_pct=callback_pct,
+        )
+    if new_sl is not None:
+        trade.stop_loss = new_sl
 
 
 def _check_exits(port, trade, bar_high, bar_low, bar_close, bar_time, risk, tf_hours,
                  enable_partial, enable_trailing, trailing_config,
                  slip=0.0, model_liquidation=True, maintenance_margin=0.005, st=None,
-                 count_bar=True):
-    from llm_trading_bot.trailing import compute_trailing_stop
+                 count_bar=True, ratchet_trailing=True):
     if st is None:
         st = DEFAULT_STRAT
     if not trade.is_open:
@@ -738,28 +875,7 @@ def _check_exits(port, trade, bar_high, bar_low, bar_close, bar_time, risk, tf_h
 
     # Ratchet the trailing stop LAST — using this bar's favorable extreme — so it only
     # affects subsequent bars (conservative: never rewards an intrabar top-of-bar exit).
-    if enable_trailing and trailing_config.enabled and trade.is_open:
+    if (ratchet_trailing and enable_trailing and trailing_config.enabled
+            and trade.is_open):
         favorable = bar_high if is_long else bar_low
-        if st["trail_mode"] == "atr" and getattr(trade, "_atr_entry", None):
-            # Distances as multiples of the ATR at entry (adapts to vol regime).
-            act_d = st["trail_act_atr"] * trade._atr_entry
-            cb_d = st["trail_cb_atr"] * trade._atr_entry
-            new_sl = None
-            if is_long:
-                if favorable >= trade.entry_price + act_d:
-                    cand = favorable - cb_d
-                    if cand > trade.stop_loss:
-                        new_sl = cand
-            else:
-                if favorable <= trade.entry_price - act_d:
-                    cand = favorable + cb_d
-                    if cand < trade.stop_loss:
-                        new_sl = cand
-        else:
-            new_sl = compute_trailing_stop(
-                direction=trade.direction, entry_price=trade.entry_price,
-                favorable_extreme=favorable, current_sl=trade.stop_loss,
-                activation_pct=trailing_config.activation_pct, callback_pct=trailing_config.callback_pct,
-            )
-        if new_sl is not None:
-            trade.stop_loss = new_sl
+        _ratchet_trailing_stop(trade, favorable, trailing_config, st)

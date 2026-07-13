@@ -16,8 +16,10 @@ import pandas as pd
 import pytest
 
 import llm_trading_bot.scheduler as sched_mod
-from llm_trading_bot.config import load_config
+from llm_trading_bot.config import AppConfig, load_config
 from llm_trading_bot.scheduler import TradingScheduler
+from llm_trading_bot.portfolio import Portfolio
+from opt.fastbt import _check_exits, _ratchet_trailing_stop
 
 
 class FakeExchange:
@@ -50,6 +52,35 @@ def _mk_scheduler(monkeypatch, df):
     sch._log = lambda msg: None
     monkeypatch.setattr(sched_mod, "fetch_multi_timeframe", lambda **kw: {"4h": df})
     return sch
+
+
+def test_subbar_exit_replay_keeps_trailing_fixed_until_primary_close():
+    """A favorable first hour cannot raise the stop for a later hour in the same 4h bar."""
+    cfg = AppConfig()
+    cfg.trading.trailing_stop.enabled = True
+    cfg.trading.trailing_stop.activation_pct = 1.0
+    cfg.trading.trailing_stop.callback_pct = 0.5
+    port = Portfolio(initial_balance=1000)
+    trade = port.open_trade(
+        "LONG", 100, "t0", 90, 200, 300, leverage=1, risk_pct=.1,
+    )
+    strat = {"trail_mode": "pct"}
+
+    _check_exits(
+        port, trade, 110, 100, 105, "t1", cfg.risk_management, 4,
+        False, True, cfg.trading.trailing_stop, st=strat,
+        ratchet_trailing=False,
+    )
+    _check_exits(
+        port, trade, 105, 95, 100, "t1", cfg.risk_management, 4,
+        False, True, cfg.trading.trailing_stop, st=strat, count_bar=False,
+        ratchet_trailing=False,
+    )
+    assert trade.is_open
+    assert trade.stop_loss == 90
+
+    _ratchet_trailing_stop(trade, 110, cfg.trading.trailing_stop, strat)
+    assert trade.stop_loss == pytest.approx(109.5)
 
 
 def _bars(rows):
