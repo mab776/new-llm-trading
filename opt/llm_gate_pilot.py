@@ -47,10 +47,14 @@ JSON_SCHEMA = {
 }
 
 
-def _prompt_id(model: str, timestamp: str, prompt: str) -> str:
+def _prompt_id(model: str, timestamp: str, prompt: str, *, think: bool = False,
+               num_predict: int = 500) -> str:
     # Timestamp distinguishes cache rows but is deliberately never included in the
     # inference payload (historical dates would make memorized-future leakage easier).
-    return hashlib.sha256(f"{model}\0{timestamp}\0{prompt}".encode()).hexdigest()[:20]
+    inference = f"think={think}\0num_predict={num_predict}"
+    return hashlib.sha256(
+        f"{model}\0{inference}\0{timestamp}\0{prompt}".encode()
+    ).hexdigest()[:20]
 
 
 def _build_blinded_context(result, targets) -> str:
@@ -104,7 +108,8 @@ def _append_cache(path: Path, row: dict) -> None:
         f.write(json.dumps(row, separators=(",", ":")) + "\n")
 
 
-def _query_ollama(base_url: str, model: str, prompt: str, timeout: int) -> dict:
+def _query_ollama(base_url: str, model: str, prompt: str, timeout: int, *,
+                  think: bool = False, num_predict: int = 500) -> dict:
     started = time.time()
     response = requests.post(
         f"{base_url.rstrip('/')}/api/chat",
@@ -121,14 +126,16 @@ def _query_ollama(base_url: str, model: str, prompt: str, timeout: int) -> dict:
                 {"role": "user", "content": prompt},
             ],
             "stream": False,
-            "think": False,
+            "think": think,
             "format": JSON_SCHEMA,
-            "options": {"temperature": 0, "seed": 7, "num_predict": 500},
+            "options": {"temperature": 0, "seed": 7, "num_predict": num_predict},
         },
         timeout=timeout,
     )
     response.raise_for_status()
-    raw = response.json()["message"]["content"]
+    payload = response.json()
+    message = payload["message"]
+    raw = message["content"]
     parsed = _parse_llm_response(raw, model)
     return {
         "decision": parsed.decision,
@@ -136,6 +143,9 @@ def _query_ollama(base_url: str, model: str, prompt: str, timeout: int) -> dict:
         "reasoning": parsed.reasoning,
         "parse_error": parsed.parse_error,
         "raw_response": raw,
+        "thinking": message.get("thinking", ""),
+        "prompt_eval_count": payload.get("prompt_eval_count"),
+        "eval_count": payload.get("eval_count"),
         "latency_s": round(time.time() - started, 3),
     }
 
@@ -198,23 +208,31 @@ def _fold_for_timestamp(timestamp: str) -> str:
 def _query_items(items: list[dict], args, cached: dict[str, dict], label: str = "") -> list[dict]:
     rows = []
     for number, item in enumerate(items, 1):
-        key = _prompt_id(args.model, item["timestamp"], item["prompt"])
+        key = _prompt_id(
+            args.model, item["timestamp"], item["prompt"],
+            think=args.think, num_predict=args.num_predict,
+        )
         prefix = f"{label} " if label else ""
         if key not in cached:
             print(f"{prefix}[{number}/{len(items)}] {item['fold']} {item['expected']} "
                   f"score={item['score']:+.2f}", flush=True)
             try:
-                answer = _query_ollama(args.url, args.model, item["prompt"], args.timeout)
+                answer = _query_ollama(
+                    args.url, args.model, item["prompt"], args.timeout,
+                    think=args.think, num_predict=args.num_predict,
+                )
             except Exception as exc:
                 answer = {
                     "decision": "WAIT", "confidence": 0, "reasoning": "",
                     "parse_error": f"{type(exc).__name__}: {exc}", "raw_response": "",
+                    "thinking": "", "prompt_eval_count": None, "eval_count": None,
                     "latency_s": 0,
                 }
             row = {
                 "id": key, "model": args.model, "fold": item["fold"],
                 "timestamp": item["timestamp"], "expected": item["expected"],
-                "score": item["score"], **answer,
+                "score": item["score"], "think": args.think,
+                "num_predict": args.num_predict, **answer,
             }
             _append_cache(args.cache, row)
             cached[key] = row
@@ -232,17 +250,24 @@ def main() -> None:
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--timeout", type=int, default=1200)
+    parser.add_argument("--think", action="store_true",
+                        help="Enable the model's native thinking/reasoning mode")
+    parser.add_argument("--num-predict", type=int, default=500,
+                        help="Maximum generated tokens, including thinking")
     args = parser.parse_args()
 
     if args.sample_size < 1:
         parser.error("--sample-size must be positive")
+    if args.num_predict < 1:
+        parser.error("--num-predict must be positive")
 
     driver.setup()
     candidates = _collect_candidates()
     sampled = _stratified_sample(candidates, args.sample_size, args.seed)
     cached = _load_cache(args.cache)
     print(f"Collected {len(candidates)} baseline marginal entries; sampled {len(sampled)}.")
-    print(f"Model: {args.model} (single model; no consensus)")
+    print(f"Model: {args.model} (single model; no consensus; think={args.think}; "
+          f"num_predict={args.num_predict})")
 
     rows = _query_items(sampled, args, cached)
 

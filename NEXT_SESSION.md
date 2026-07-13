@@ -61,14 +61,17 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
    held-out TEST. Config unchanged. Opt-in machinery + EDA kept in `fastbt`/`opt/eda_funding*.py`/
    `opt/probe_funding.py`; full write-up in `opt/README.md` Round 7. Don't retry without a
    materially different mechanism.
-2. ~~**Single-LLM gate backtest**~~ — **DONE / REJECTED (Round 8, 2026-07-12).** Dropped the stale
+2. **Single-LLM gate backtest — THINKING MODE NEEDS EXPANSION (Round 8b, 2026-07-13).** Dropped the stale
    three-model consensus plan in favor of exactly `qwen3.6:35b-a3b-q8_0` on Marc's Ollama
    (`192.168.0.70:11435`). Leakage-blinded prompts, 2bps+funding+liquidation, and iterative
-   fixed-point replay produced 1,049 valid decisions (0 failures): the model accepted 748
-   and WAITed on 301. Full gate: 229.51×→144.50×, maxDD 21.7%→23.6%; held-out TEST
-   7.51×→6.72×. Auto-trading MARGINAL wins decisively; production config unchanged. Full
-   methodology/results in `opt/README.md` Round 8. Don't retry without a materially different
-   information source—the model only saw the same indicators already encoded by the score.
+   fixed-point replay produced 1,049 valid **non-thinking** decisions, strongly rejected
+   (229.51×→144.50×). Marc caught that `think:false` handicapped the model. A fresh n=36
+   stratified pilot with `think:true`, 8K generation budget, and separate cache was mixed:
+   TRAIN 30.57×→28.21×, held-out TEST 7.51×→7.64× with DD 21.7%→20.1%, ALL
+   229.51×→215.63×. Thinking changed 12/36 decisions and all traces were non-empty. This is
+   too small for a verdict: production config remains unchanged. If continuing, reuse
+   `reports/llm_gate_qwen36_35b_q8_think8k.jsonl` and the exact command/settings documented
+   in `opt/README.md` Round 8b; expand the sample, then use fixed-point closure for a full run.
 3. **Multi-asset shared portfolio** — BTC+ETH compounding one balance (fastbt currently
    single-symbol per sim). Interleave two Precomputed streams by timestamp with shared
    Portfolio + per-symbol position slots. Measures the real diversification benefit vs

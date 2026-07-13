@@ -13,7 +13,7 @@ from llm_trading_bot.scoring import (
     SignalStrength,
     TradeTargets,
 )
-from opt.llm_gate_pilot import _build_blinded_context
+from opt.llm_gate_pilot import _build_blinded_context, _prompt_id
 
 
 def _indicator(close: float) -> IndicatorSet:
@@ -56,6 +56,15 @@ def test_blinded_context_rebases_prices_and_omits_timestamp():
     assert "54321" not in prompt
     assert "2024-" not in prompt
     assert "Signal: MARGINAL" in prompt
+
+
+def test_cache_key_separates_thinking_configuration():
+    base = _prompt_id("model", "2024-01-01", "prompt")
+    thinking = _prompt_id(
+        "model", "2024-01-01", "prompt", think=True, num_predict=8192
+    )
+
+    assert base != thinking
 
 
 def test_marginal_gate_can_reject_without_changing_default(monkeypatch):

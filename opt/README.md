@@ -224,16 +224,44 @@ accepted and 289 rejected (the other 41 were superseded as earlier decisions cha
 | held-out TEST | 7.51× | 6.72× | 0.8957 | 21.7%→23.6% |
 | ALL half-years | **229.51×** | **144.50×** | **0.6296** | **21.7%→23.6%** |
 
-The gate hurts both TRAIN and held-out TEST, loses 37% of full-period compound growth,
-worsens overall drawdown, and cuts the worst fold from +17.4% to +7.2%. A few folds improve
-(notably 2022H1), but the effect is inconsistent and overwhelmed elsewhere. **Reject the LLM
-gate; keep auto-trading MARGINAL signals.** No engine, scheduler, live config, or strategy
-defaults changed. Reproduce entirely from the response cache (or resume an interrupted run)
-with:
+The non-thinking gate hurts both TRAIN and held-out TEST, loses 37% of full-period compound
+growth, worsens overall drawdown, and cuts the worst fold from +17.4% to +7.2%. A few folds
+improve (notably 2022H1), but the effect is inconsistent and overwhelmed elsewhere. This
+**rejects non-thinking mode only**; see the correction below. No engine, scheduler, live
+config, or strategy defaults changed. Reproduce entirely from the response cache (or resume
+an interrupted run) with:
 
 ```bash
 PYTHONPATH=. /tmp/tmlvenv/bin/python opt/llm_gate_pilot.py --sample-size 967 \
   --model qwen3.6:35b-a3b-q8_0
+```
+
+### Round 8b correction — thinking-enabled pilot is mixed (continue before verdict)
+
+The initial full run used Ollama `think: false`, which materially handicaps this reasoning
+model. A fresh leakage-blinded pilot enabled native thinking with `num_predict: 8192`, a
+separate settings-keyed cache, temperature 0, and the same deterministic seed. It sampled
+36 baseline entries—four per half-year fold. All 36 returned valid JSON and non-empty
+thinking traces (median ~984 words); mean latency rose from 1.8s to 14.2s. Thinking changed
+12/36 decisions versus non-thinking on the identical cases, mostly becoming more selective
+(9 LONG→WAIT, 2 SHORT→WAIT, 1 WAIT→LONG). It accepted 17/36 versus 27/36 non-thinking.
+
+| Split | Auto-trade baseline | Sparse thinking gate | Growth ratio | MaxDD baseline→gate |
+|---|---:|---:|---:|---:|
+| TRAIN | 30.57× | 28.21× | 0.9228 | 21.4%→21.4% |
+| held-out TEST | 7.51× | 7.64× | **1.0181** | **21.7%→20.1%** |
+| ALL half-years | 229.51× | 215.63× | 0.9395 | 21.7%→21.4% |
+
+This is genuinely mixed: the small held-out slice improves slightly, while TRAIN and total
+compound decline. With only four interventions sampled per fold, neither the +1.8% TEST
+gain nor the −6.1% all-fold loss is decisive. The earlier blanket rejection therefore does
+not apply to thinking mode. Do not change production behavior yet; expand the thinking run
+under the same fixed prompt/settings before reaching a verdict. Reproduce/resume with:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python opt/llm_gate_pilot.py --sample-size 36 \
+  --model qwen3.6:35b-a3b-q8_0 --think --num-predict 8192 \
+  --cache reports/llm_gate_qwen36_35b_q8_think8k.jsonl
 ```
 
 ## Repro
