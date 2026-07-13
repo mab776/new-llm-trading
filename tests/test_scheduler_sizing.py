@@ -84,7 +84,12 @@ class TestLiveSizing:
 
 
 class TestLiveTrailing:
-    def test_trailing_update_moves_stop_up(self, monkeypatch, tmp_path):
+    def test_trailing_update_moves_stop_up_on_completed_bar(self, monkeypatch, tmp_path):
+        """The ratchet fires on the last COMPLETED primary bar's high — never on the
+        current price (see tests/test_trailing_cadence.py for why cadence matters)."""
+        import pandas as pd
+        import llm_trading_bot.scheduler as sched_mod
+
         monkeypatch.chdir(tmp_path)
         cfg = _config()
         cfg.trading.trailing_stop.enabled = True
@@ -101,13 +106,28 @@ class TestLiveTrailing:
             lambda symbol, hold_side, size, new_sl: moved.update(new_sl=new_sl) or {"code": "00000"},
         )
 
-        # size = 0.04 base; unrealized so that current price = 51000 (2% up)
-        # unrealized = (price - entry) * size = (51000-50000)*0.04 = 40
+        # Completed 4h bar with high 51000 (2% above entry, past 1% activation);
+        # the still-forming bar spikes to 60000 and must be ignored.
+        now = pd.Timestamp.now(tz="UTC").floor("4h")
+        idx = pd.DatetimeIndex([now - pd.Timedelta(hours=8), now], tz="UTC")
+        df = pd.DataFrame(
+            {"Open": [50000.0, 51000.0], "High": [51000.0, 60000.0],
+             "Low": [49500.0, 50500.0], "Close": [50900.0, 59000.0],
+             "Volume": [1.0, 1.0]},
+            index=idx,
+        )
+        monkeypatch.setattr(sched_mod, "fetch_multi_timeframe", lambda **kw: {"4h": df})
+
         pos = Position(
             symbol="BTC/USDT:USDT", side="long", size=0.04, entry_price=50000.0,
             unrealized_pnl=40.0, leverage=10, margin_mode="crossed", timestamp="t",
         )
         sched._maybe_trail_stop(pos)
-        # new SL = 51000 - 0.5% of entry (250) = 50750
+        # new SL = completed-bar high 51000 - 0.5% of entry (250) = 50750 (NOT 59750)
         assert moved["new_sl"] == pytest.approx(50750.0)
         assert sched._tracked_trades["BTC/USDT:USDT"]["current_sl"] == pytest.approx(50750.0)
+
+        # a second tick inside the same bar must not ratchet again
+        moved.clear()
+        sched._maybe_trail_stop(pos)
+        assert moved == {}

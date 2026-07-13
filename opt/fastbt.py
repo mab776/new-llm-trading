@@ -141,6 +141,8 @@ class Precomputed:
     primary: list             # IndicatorSet|None per 4h row
     sec_by_bar: list          # dict{tf:IndicatorSet} per 4h row (secondary tf, asof)
     warmup: int
+    subbars: list | None = None  # per 4h row: list of (high, low, close) 1h sub-bars
+    #                              in time order (for fine-grained exit replay)
 
 
 def precompute(data_by_tf: dict[str, pd.DataFrame], primary_tf: str, warmup: int) -> Precomputed:
@@ -163,7 +165,29 @@ def precompute(data_by_tf: dict[str, pd.DataFrame], primary_tf: str, warmup: int
                 d[tf] = inds[pos]
         sec_by_bar.append(d)
 
-    return Precomputed(list(primary_df.index), prim, sec_by_bar, warmup)
+    # 1h sub-bars per primary bar (for fine-grained exit replay): bar at t collects
+    # 1h rows with t <= ts < t + 4h, in time order. Sub-bar sets whose extremes
+    # disagree with the 4h bar by >0.5% are data holes (e.g. Bitget's 1h perp history
+    # is placeholder junk before 2021-01-02) — dropped so the sim falls back to 4h.
+    subbars = None
+    if primary_tf == "4h" and "1h" in data_by_tf:
+        df1 = data_by_tf["1h"]
+        h1 = df1["High"].to_numpy(); l1 = df1["Low"].to_numpy(); c1 = df1["Close"].to_numpy()
+        idx1 = df1.index
+        subbars = []
+        delta = pd.Timedelta(hours=4)
+        for k, ts in enumerate(primary_df.index):
+            a = idx1.searchsorted(ts, side="left")
+            b = idx1.searchsorted(ts + delta, side="left")
+            subs = [(float(h1[j]), float(l1[j]), float(c1[j])) for j in range(a, b)]
+            p = prim[k]
+            if subs and p is not None and p.high and p.low:
+                s_hi = max(s[0] for s in subs); s_lo = min(s[1] for s in subs)
+                if abs(s_hi - p.high) / p.high > 0.005 or abs(s_lo - p.low) / p.low > 0.005:
+                    subs = []  # corrupt/incomplete 1h coverage -> 4h fallback
+            subbars.append(subs)
+
+    return Precomputed(list(primary_df.index), prim, sec_by_bar, warmup, subbars)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -202,7 +226,8 @@ DEFAULT_STRAT = {
 def simulate(pre: Precomputed, config, start_date: str, end_date: str,
              slip: float = 0.0, model_liquidation: bool = True,
              maintenance_margin: float = 0.005, strat: dict | None = None,
-             funding_by_pos: "list[float] | None" = None) -> Result:
+             funding_by_pos: "list[float] | None" = None,
+             exit_granularity: str = "primary") -> Result:
     """slip: per-side price slippage fraction applied to market fills (entry, SL, time/EOB).
     model_liquidation: if True, a stop placed beyond the isolated-margin liquidation
     distance is capped at the liquidation price (position wipes ~full margin first).
@@ -275,12 +300,28 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         bar_high = prim.high; bar_low = prim.low; bar_close = prim.close
         last_close = bar_close; last_time = ts
 
-        # 1. exits first (records risk events on the portfolio as trades close)
+        # 1. exits first (records risk events on the portfolio as trades close).
+        # exit_granularity="sub": replay the 4h bar's 1h sub-bars in time order —
+        # real intrabar sequencing (trailing ratchets between sub-bars) instead of
+        # the worst-case single-bar assumption. Falls back to the 4h bar when the
+        # 1h series has a hole.
+        subs = pre.subbars[i] if (exit_granularity == "sub" and pre.subbars) else None
         for trade in list(port.open_trades):
-            _check_exits(port, trade, bar_high, bar_low, bar_close, ts, risk,
-                         tf_hours, bt.enable_partial_exits, bt.enable_trailing_stops,
-                         config.trading.trailing_stop, slip, model_liquidation,
-                         maintenance_margin, st)
+            if subs:
+                first = True
+                for (s_high, s_low, s_close) in subs:
+                    if not trade.is_open:
+                        break
+                    _check_exits(port, trade, s_high, s_low, s_close, ts, risk,
+                                 tf_hours, bt.enable_partial_exits, bt.enable_trailing_stops,
+                                 config.trading.trailing_stop, slip, model_liquidation,
+                                 maintenance_margin, st, count_bar=first)
+                    first = False
+            else:
+                _check_exits(port, trade, bar_high, bar_low, bar_close, ts, risk,
+                             tf_hours, bt.enable_partial_exits, bt.enable_trailing_stops,
+                             config.trading.trailing_stop, slip, model_liquidation,
+                             maintenance_margin, st)
 
         # 1.5 funding settlement (mirrors engine: survivors of this bar's exits pay;
         # entries happen at the close, after settlement)
@@ -425,7 +466,8 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
 
 def _check_exits(port, trade, bar_high, bar_low, bar_close, bar_time, risk, tf_hours,
                  enable_partial, enable_trailing, trailing_config,
-                 slip=0.0, model_liquidation=True, maintenance_margin=0.005, st=None):
+                 slip=0.0, model_liquidation=True, maintenance_margin=0.005, st=None,
+                 count_bar=True):
     from llm_trading_bot.trailing import compute_trailing_stop
     if st is None:
         st = DEFAULT_STRAT
@@ -438,7 +480,8 @@ def _check_exits(port, trade, bar_high, bar_low, bar_close, bar_time, risk, tf_h
     # this bar's favorable extreme) for use on SUBSEQUENT bars. Trailing up first and then
     # checking the low against the raised stop would optimistically credit a top-of-bar exit.
 
-    trade.bars_held += 1
+    if count_bar:  # only once per PRIMARY bar (sub-bar replay passes False after the first)
+        trade.bars_held += 1
     is_long = trade.direction == "LONG"
 
     def record_risk(t):

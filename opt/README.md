@@ -137,6 +137,27 @@ second Portainer service) — the bot is single-symbol by design. Expect BTC/ETH
 drawdowns to partially overlap (high correlation), so don't double leverage just
 because there are two instances.
 
+## Round 6 — trailing-ratchet CADENCE is the strategy (critical live fix)
+
+Added 1h sub-bar exit replay to `fastbt` (`exit_granularity="sub"`: each 4h bar's four
+1h bars replayed in order — real intrabar sequencing instead of the worst-case single-
+bar assumption; corrupt 1h stretches auto-masked, e.g. Bitget's 1h perp history is
+placeholder junk before 2021-01-02).
+
+**Finding:** with clean data, trailing OFF gives identical results at both granularities
+(sanity ✓), but trailing ON collapses under hourly ratcheting: **84× → 5× @5bps**, and
+NO wider activation/callback recovers it (all 1h-cadence params sweep to 0.4–5×, most
+losing). Ratcheting the stop hourly chokes winners on intrabar noise; ratcheting once
+per COMPLETED 4h bar (stop fixed intrabar, exchange triggers on touch) is what the
+84×/228× backtests model — and it is implementable live exactly.
+
+**Live fix:** `scheduler._maybe_trail_stop` previously ratcheted every 15-min position
+check using the current price (~16× tighter than even the 1h replay — live would have
+performed like ~5×, not 228×). Now it fetches the last COMPLETED primary bar and
+ratchets once per bar on its favorable extreme (`last_trail_bar` gate). Guarded by
+`tests/test_trailing_cadence.py` + the updated scheduler test — do not "improve" this
+back to continuous trailing.
+
 ## Repro
 
 ```bash

@@ -16,6 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import pandas as pd
 import schedule
 
 from llm_trading_bot.config import AppConfig
@@ -314,7 +315,16 @@ class TradingScheduler:
             self._log(f"Position check error: {e}")
 
     def _maybe_trail_stop(self, pos) -> None:
-        """Move the position's stop loss up (long) / down (short) if trailing is enabled."""
+        """Ratchet the position's stop — ONLY on completed primary-timeframe bars.
+
+        ⚠️ CADENCE IS THE STRATEGY. The backtested edge ratchets the trailing stop
+        once per COMPLETED primary bar (4h), using that bar's favorable extreme; the
+        stop stays fixed intrabar (the exchange triggers it if touched). Ratcheting
+        on every 15-min position check using the current price tightens the stop ~16×
+        more often and chokes winners on noise — an honest sub-bar backtest showed it
+        destroys the edge (84× → 5× over 2021-2025, and NO wider callback recovers
+        it). Do not "improve" this back to continuous trailing.
+        """
         trailing = self.config.trading.trailing_stop
         if not trailing.enabled:
             return
@@ -322,21 +332,42 @@ class TradingScheduler:
         tracked = self._tracked_trades.get(pos.symbol)
         if not tracked:
             return  # We didn't open this position (or lost context after a restart).
-
-        # Derive the current price from the position's unrealized PnL:
-        #   long:  unrealized = (price - entry) * size  ->  price = entry + unrealized/size
-        #   short: unrealized = (entry - price) * size  ->  price = entry - unrealized/size
         if pos.size <= 0:
             return
-        if tracked["direction"] == "LONG":
-            current_price = pos.entry_price + pos.unrealized_pnl / pos.size
-        else:
-            current_price = pos.entry_price - pos.unrealized_pnl / pos.size
 
+        # Fetch the last COMPLETED primary-timeframe candle; only ratchet when a new
+        # one has closed since the last update (bar-close cadence, like the backtest).
+        tf = self.config.trading.primary_timeframe
+        try:
+            ds = self.config.data_source
+            data_by_tf = fetch_multi_timeframe(
+                symbol=ds.exchange_symbol, timeframes=[tf],
+                source=ds.source, market=ds.market,
+            )
+            df = data_by_tf[tf]
+        except Exception as e:
+            self._log(f"Trailing: could not fetch {tf} candles: {e}")
+            return
+        if df is None or len(df) < 2:
+            return
+        # Last row may be the still-forming candle — use the last COMPLETED one.
+        tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(tf, 4)
+        now = pd.Timestamp.now(tz=df.index.tz) if df.index.tz is not None else pd.Timestamp.now()
+        last = df.iloc[-1]
+        last_ts = df.index[-1]
+        if last_ts + pd.Timedelta(hours=tf_hours) > now:
+            last = df.iloc[-2]
+            last_ts = df.index[-2]
+
+        if tracked.get("last_trail_bar") == str(last_ts):
+            return  # already ratcheted on this bar
+        tracked["last_trail_bar"] = str(last_ts)
+
+        favorable = float(last["High"]) if tracked["direction"] == "LONG" else float(last["Low"])
         new_sl = compute_trailing_stop(
             direction=tracked["direction"],
             entry_price=tracked["entry"],
-            favorable_extreme=current_price,
+            favorable_extreme=favorable,
             current_sl=tracked["current_sl"],
             activation_pct=trailing.activation_pct,
             callback_pct=trailing.callback_pct,

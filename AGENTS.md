@@ -110,6 +110,13 @@ Two tiers with different risk profiles (optimized + OOS-validated 2026-07, see
 Trailing stops are **enabled** (activation 0.94%, callback 0.33% of entry) — the single
 biggest contributor to the edge; stop strategy is `atr` with `atr_sl_multiplier: 2.26`.
 
+⚠️ **Trailing-ratchet cadence IS the strategy.** The stop ratchets once per COMPLETED
+primary (4h) bar using that bar's favorable extreme, and stays FIXED intrabar (the
+exchange triggers it if touched). An honest 1h sub-bar backtest showed hourly ratcheting
+collapses the edge 84×→5× and no wider callback recovers it. The live scheduler
+(`_maybe_trail_stop`) implements bar-close cadence with a `last_trail_bar` gate — never
+revert it to per-tick/current-price trailing (guarded by `tests/test_trailing_cadence.py`).
+
 Three strategy features (2026-07, implemented in BOTH `backtesting.py` and `scheduler.py`
 — keep them in sync):
 
