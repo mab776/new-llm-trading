@@ -20,7 +20,9 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
   post-only live lifecycle, persisted reconciliation, and one-primary-bar expiry. Strict sub-bar
   maker results remain better on BTC/ETH/SOL; all three configs now use `entry_mode: "maker"`.
 - **Shared portfolio exists (Round 12):** BTC+ETH+SOL interleaved against one balance. Honest
-  maker sub replay stays green every year, but maxDD rises to ~38%; global exposure cap is next.
+  maker sub replay stays green every year, but maxDD rises to ~38%. **New acceptance criterion:
+  reject any shared-portfolio strategy whose validated maxDD exceeds 25%.** This is a research/
+  selection threshold, NOT a live kill switch or forced-liquidation rule.
 - **Walk-forward retuning is promising but unstable (Round 13):** with Round 14 points, the
   60-trial cadence produced 13.08× unseen vs 9.63× static across 2023-2025H1, but badly lagged
   static in 2025H1 and has only three deployment windows.
@@ -65,6 +67,11 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
    auto-masks); Bitget funding API only serves ~3 months → Binance series is the proxy.
 6. Keep engine + `openwebui_filter.py` + scheduler in sync (single source of truth);
    run the full test suite before every commit; commit after each validated round.
+7. **Shared-portfolio maxDD must be ≤25% to be accepted.** Enforce this in search/validation
+   objectives across TRAIN, held-out TEST, chronological OOS, and the full-period report. Do NOT
+   implement a live drawdown kill switch, synthetic threshold fill, or forced portfolio close to
+   manufacture compliance. Reach the target through ex-ante exposure controls (global slots,
+   margin/notional caps, and/or risk scaling), then report the natural realized maxDD honestly.
 
 ## Done so far (don't retry — see opt/README.md rounds)
 
@@ -86,9 +93,12 @@ optimization rounds. This file is the handoff; trust it over stale prose elsewhe
 
 ## Improvement backlog, ranked (2026-07-13)
 
-1. **Portfolio-wide exposure cap** — shared BTC+ETH+SOL is profitable but permits nine 25× slots
-   and raises maxDD to ~38%. Search global margin/notional/slot caps on TRAIN, validate TEST +
-   chrono, then mirror the winner in live orchestration before any shared deployment.
+1. **Portfolio-wide exposure controls — TOP PRIORITY.** Shared BTC+ETH+SOL permits nine 25× slots
+   and reaches ~38% maxDD, so it currently FAILS the new ≤25% acceptance criterion. Search global
+   slot, margin, notional, and risk caps on TRAIN only; require ≤25% maxDD on held-out TEST,
+   chronological OOS, and full-period validation. Preserve normal trade exits—no kill switch or
+   forced close. Mirror only the validated ex-ante sizing/exposure controls in live orchestration
+   before any shared deployment. Optimize return subject to the DD constraint, not DD alone.
 2. **Expand walk-forward retuning** — multiple seeds/search sizes, stability of selected params,
    and turnover/operational costs. Adopt only if the 1.36× pilot advantage remains robust.
 3. **Regime-switching params** — `detect_market_regime` exists; different thresholds/leverage per
