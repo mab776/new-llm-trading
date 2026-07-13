@@ -12,6 +12,7 @@ from llm_trading_bot.config import load_config
 from llm_trading_bot.data import fetch_multi_timeframe
 from llm_trading_bot.funding import fetch_funding_history
 from opt.fastbt import precompute, simulate
+from llm_trading_bot.timeframes import timeframe_hours
 
 
 def run(config_path: str, start: str, end: str, entry_mode: str) -> dict:
@@ -36,7 +37,7 @@ def run(config_path: str, start: str, end: str, entry_mode: str) -> dict:
     funding_by_pos = None
     if funding is not None:
         from llm_trading_bot.funding import aggregate_funding_to_bars
-        hours = {"1h": 1, "4h": 4, "1d": 24}.get(cfg.trading.primary_timeframe, 4)
+        hours = timeframe_hours(cfg.trading.primary_timeframe)
         funding_by_pos = aggregate_funding_to_bars(
             funding, data[cfg.trading.primary_timeframe].index, hours
         )

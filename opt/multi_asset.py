@@ -18,6 +18,7 @@ from llm_trading_bot.entry import PendingEntry, maker_limit_touched
 from llm_trading_bot.exposure import (
     anti_martingale_multiplier, cap_risk_pct, update_outcome_streak,
 )
+from llm_trading_bot.timeframes import timeframe_hours
 from llm_trading_bot.funding import funding_cost
 from llm_trading_bot.portfolio import Portfolio
 from llm_trading_bot.scoring import (
@@ -208,7 +209,7 @@ def simulate_multi(
             bar_time = str(ts)
             state.last_close, state.last_time = bar_close, bar_time
             latest_prices[symbol] = bar_close
-            tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(tr.primary_timeframe, 4)
+            tf_hours = timeframe_hours(tr.primary_timeframe)
             symbol_trades = [t for t in port.open_trades if t.symbol == symbol]
 
             # Resolve the prior good-for-one-bar maker order before exit checks.

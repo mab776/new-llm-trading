@@ -28,12 +28,14 @@ def test_shared_state_survives_restart(tmp_path) -> None:
     state.tracked_trades["BTC-USDT"] = {
         "direction": "LONG", "entry": 100, "current_sl": 95,
     }
+    state.last_analysis_bars["BTC-USDT"] = "2026-07-13 08:00:00+00:00"
     state.save()
 
     restored = SharedLiveState(path)
     assert restored.peak_balance == 1234.5
     assert restored.pending_orders == state.pending_orders
     assert restored.tracked_trades == state.tracked_trades
+    assert restored.last_analysis_bars == state.last_analysis_bars
 
 
 def test_orchestrator_gives_every_symbol_one_state_and_lock(tmp_path) -> None:

@@ -554,6 +554,90 @@ engine/config/scheduler. The empty-overlay path remains exact and the research r
 in `opt/regime_search_results.json`; do not retry this parameterization without a materially new
 regime mechanism.
 
+## Round 22 — 1h/5m static transplant: REJECTED; completed-candle blocker found
+
+The shipped BTC numeric parameters were transplanted without tuning to 1h and 5m. To avoid a
+venue-confounded comparison, all cadences use the same Binance USDT-perpetual OHLCV, actual Binance
+funding, Bitget fees, maker entry, liquidation, and 2bps market-exit slippage. Archive timestamps
+are normalized to bar open and secondary indicators are visible only after their candle closes.
+The 4h control retains honest 1h exit replay and one 4h trailing ratchet; 1h replays 5m exits with
+one ratchet after the completed hour; 5m uses adverse-first 5m OHLC.
+
+| primary | alignment timeframes | continuous | maxDD | trades | held-out TEST | worst year |
+|---|---|---:|---:|---:|---:|---:|
+| 4h | 1h / 4h / 1d | **225.91×** | 15.80% | 2,481 | 5.77× | +21.57% |
+| 1h | 1h / 4h / 1d | 76.94× | 28.06% | 6,232 | 7.20× | **-6.76%** |
+| 5m | 5m / 1h / 4h | **0.237×** | **79.26%** | 8,675 | 0.302× | **-59.66%** |
+
+The existing 12× conservative risk dial makes 1h 9.02× / 15.11% continuous, but 2025H1 is still
+-5.64%, so it fails the every-regime acceptance rule. At 5m, removing funding barely changes
+0.237×→0.242× and removing 2bps slip only reaches 0.377×. Removing all fees, slip, and funding
+reveals a thin 4.06× gross edge at 30.40% DD / 1.06 profit factor; realistic execution overwhelms
+it. Lowering leverage to 12× still loses (0.481×). The static 1h and 5m transplants are rejected;
+the production strategy remains 4h.
+
+The experiment exposed a more important causality issue in the existing harness. Bitget rows are
+bar-open stamped, while full/fast secondary selection currently uses
+`secondary_open <= primary_open`. A higher-timeframe row's final high/low/close/volume is thereby
+visible before that candle completes. On identical Bitget BTC data, the legacy path reproduces
+301.18× / 18.93% DD; close-aware secondary alignment produces 204.21× / 17.93% DD. This does not
+erase the edge, but it overstates the current headline and invalidates claimed live parity until
+fixed. Live analysis also needs to remove forming rows and persist a once-per-completed-primary-bar
+decision gate. These are pre-paper blockers, not reasons to tune lower timeframes.
+
+Reproduce all folds and attribution diagnostics with:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.lower_timeframes
+```
+
+Full results: `opt/lower_timeframe_results.json`.
+
+## Round 23 — completed-candle and live bar-close parity: FIXED
+
+Round 22's blocker is resolved. The shared `llm_trading_bot.timeframes` rules now treat every
+OHLCV index as bar open and expose a row only after its close. Binance archives were normalized
+from close timestamps to open timestamps. Full engine and fastbt select secondary inputs at the
+primary decision close, while one-shot/live analysis removes forming rows and freezes every
+timeframe at that same close.
+
+Live state version 2 persists the last analyzed primary bar per symbol. The scheduler claims that
+bar before execution, so restart or repeated polling cannot duplicate it. Analysis polls once per
+minute to detect UTC 4h closes promptly, but the persisted gate prevents repeated data fetches,
+scoring, or execution. This avoids the old process-start-relative hourly delay that could shorten
+a maker order's modeled next-bar lifetime by almost an hour.
+
+Exact full-engine↔fastbt 2024 maker parity after the fix: **+223.04%, 571 trades, 20.97% maxDD**, no
+mismatches. Corrected BTC+ETH+SOL validation (maker, funding, liquidation, 2bps market exits,
+honest 1h exit replay):
+
+| profile | continuous | reported DD | 4h MTM DD | held-out TEST | worst annual fold |
+|---|---:|---:|---:|---:|---:|
+| standard capped | **445,508.49×** | 17.94% | 18.03% | 149.98× | +166.42% |
+| aggressive uncapped | **4.976 trillion×** | 38.47% | 38.67% | 1,311,792.13× | +1,196.40% |
+
+Standard standalone BTC/ETH/SOL are 204.21× / 1,680.87× / 143,881.86×. Aggressive standalone
+BTC/ETH/SOL are 1,729.98× / 18,414.17× / 3,923,246.77×. Every annual fold remains green. The
+aggressive profile is now an approximately 39% historical-DD profile—not ~34%—and live DD can be
+materially worse.
+
+Five-seed maker sensitivity was rerun. The harsh 5bps penetration + 70% fill case retains 62.8%
+median log growth, produces 93.44 million× median continuous historical growth, keeps every annual
+fold green, and reaches 39.2% worst reported / 38.61% mark-to-market DD. This is robustness
+evidence, not a forecast or substitute for paper fill measurements.
+
+Reproduce:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.validate_parity --entry-mode maker
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.completed_candle_validation
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.queue_fill_sensitivity \
+  --output opt/completed_candle_queue_results.json
+```
+
+Artifacts: `opt/completed_candle_results.json` and
+`opt/completed_candle_queue_results.json`. These supersede Round 18's headline and queue results.
+
 ## Repro
 
 ```bash

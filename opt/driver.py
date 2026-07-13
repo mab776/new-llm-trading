@@ -16,6 +16,7 @@ import numpy as np
 from llm_trading_bot.config import load_config, AppConfig
 from llm_trading_bot.data import configure_cache, fetch_multi_timeframe
 import opt.fastbt as fb
+from llm_trading_bot.timeframes import timeframe_hours
 
 # Walk-forward folds (start, end). Distinct regimes.
 FOLDS = [
@@ -74,7 +75,7 @@ def load_context(symbol: str | None = None, config_path: str = "config.json") ->
         import pandas as pd
         fund = fetch_funding_history(ds.exchange_symbol,
                                      start_date="2020-08-01", end_date="2025-06-02")
-        tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(cfg.trading.primary_timeframe, 4)
+        tf_hours = timeframe_hours(cfg.trading.primary_timeframe)
         funding = aggregate_funding_to_bars(
             fund, pd.DatetimeIndex(pre.timestamps), tf_hours
         )

@@ -25,6 +25,7 @@ from llm_trading_bot.exposure import (
 )
 from llm_trading_bot.portfolio import Portfolio, PortfolioStats, Trade
 from llm_trading_bot.trailing import compute_trailing_stop
+from llm_trading_bot.timeframes import decision_close, slice_completed_at, timeframe_hours
 from llm_trading_bot.scoring import (
     Direction,
     IndicatorSet,
@@ -119,8 +120,8 @@ class BacktestEngine:
         if max_hours > 0:
             # Convert hours to bars based on primary timeframe
             tf = self.config.trading.primary_timeframe
-            hours_per_bar = {"1h": 1, "4h": 4, "1d": 24}.get(tf, 4)
-            max_bars = max_hours // hours_per_bar
+            hours_per_bar = timeframe_hours(tf)
+            max_bars = int(max_hours // hours_per_bar)
             if trade.bars_held >= max_bars:
                 self.portfolio.close_trade(trade, bar_close, bar_time, "time_expired")
                 print(f"    << TIME_EXPIRED {trade.direction} after {trade.bars_held} bars @ ${bar_close:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
@@ -284,7 +285,7 @@ class BacktestEngine:
         funding_by_pos: Optional[list[float]] = None
         if funding is not None and len(funding) > 0:
             from llm_trading_bot.funding import aggregate_funding_to_bars
-            tf_hours = {"1h": 1, "4h": 4, "1d": 24}.get(primary_timeframe, 4)
+            tf_hours = timeframe_hours(primary_timeframe)
             funding_by_pos = aggregate_funding_to_bars(funding, primary_df.index, tf_hours)
 
         print(f"Backtesting {len(test_indices)} bars from {test_indices[0]} to {test_indices[-1]}")
@@ -390,13 +391,15 @@ class BacktestEngine:
             except ValueError:
                 continue  # Not enough data yet
 
-            # Secondary timeframes: find the latest data up to this timestamp
+            # Freeze every secondary at the primary decision bar's CLOSE. Indexes
+            # are bar opens, so open <= open would expose a higher-timeframe bar's
+            # final OHLCV before that candle completed.
+            bar_decision_close = decision_close(idx, primary_timeframe)
             for tf, tf_df in data_by_tf.items():
                 if tf == primary_timeframe:
                     continue
                 try:
-                    tf_mask = tf_df.index <= idx
-                    tf_slice = tf_df[tf_mask]
+                    tf_slice = slice_completed_at(tf_df, tf, bar_decision_close)
                     if len(tf_slice) >= 50:
                         indicators_by_tf[tf] = calculate_indicators(tf_slice, tf)
                 except (ValueError, KeyError):

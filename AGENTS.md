@@ -36,6 +36,7 @@ Market Data → Scoring Engine → Signal Router
 | **Bitget history** | `llm_trading_bot/bitget_csv.py` | Windowed (END-anchored) Bitget fetch + monthly disk cache |
 | **Binance history** | `llm_trading_bot/binance_csv.py` | Binance public CSV archive downloader |
 | **Funding** | `llm_trading_bot/funding.py` | Perp funding-rate history (Binance proxy) + per-bar settlement math for backtests |
+| **Timeframes** | `llm_trading_bot/timeframes.py` | Bar durations, completed-candle slicing, frozen live snapshots |
 | **Routing** | `llm_trading_bot/routing.py` | Signal classification and routing decisions |
 | **OpenWebUI Client** | `llm_trading_bot/openwebui_client.py` | API client + robust JSON parsing + consensus |
 | **Exchange** | `llm_trading_bot/exchange.py` | Bitget API — orders, balance, stop updates, safety checks |
@@ -85,6 +86,21 @@ The corrected shared continuous results are 292,212.44× at 19.95% reported / 20
 maxDD for the standard profile and 5.749 trillion× at 34.28% reported / 34.11% mark-to-market maxDD
 for aggressive. These path-dependent multiples are robustness results, never forecasts. The old
 Round 16/17 sub-bar headline results are superseded by `opt/cadence_correction_results.json`.
+
+Round 22's lower-timeframe research found a separate completed-candle alignment issue that must be
+resolved before paper trading. Round 23 resolved it across Binance timestamp normalization, the
+full engine, fastbt, one-shot analysis, and live scheduling. All indexes now mean bar open and a
+row is visible only after `bar_open + duration <= decision_time`. Live snapshots exclude forming
+rows, are frozen at the completed primary close, and use a persisted at-most-once bar key across
+restarts. A one-minute poll detects UTC 4h closes promptly without repeated fetching/scoring.
+Corrected full/fast 2024 parity is exact (+223.04%, 571 trades, 20.97% maxDD).
+
+Round 23 corrected shared continuous results: standard **445,508.49×** at 17.94% reported / 18.03%
+mark-to-market maxDD; aggressive **4.976 trillion×** at 38.47% reported / 38.67% mark-to-market
+maxDD. Standalone standard BTC/ETH/SOL are 204.21× / 1,680.87× / 143,881.86×. All annual folds
+remain green. These path-dependent multiples are robustness results, never forecasts. The
+aggressive profile must be described as approximately 39% corrected historical DD, with live DD
+potentially much worse. `opt/completed_candle_results.json` supersedes the Round 18 headline file.
 
 These are implemented in both `backtesting.py` (full engine) and `grid_search.py` (fast backtest).
 
@@ -180,6 +196,10 @@ favorable extreme, taking effect on subsequent bars. Guarded by
 `tests/test_intrabar_conservatism.py` — any change that makes these fail is inflating
 backtest results.
 
+Historical exchange candles may be stamped at bar open. "Index <= decision index" is not enough
+to establish availability across timeframes: compare candle close times. A secondary candle is
+causal only when `secondary_open + secondary_duration <= primary_open + primary_duration`.
+
 ## Development Guidelines
 
 ### Running
@@ -266,11 +286,10 @@ exists for a reason — it's the last line of defense.
   converted to base size at entry. Live reads the balance via
   `BitgetClient.get_available_balance()` (dry-run returns a default so sizing still works).
 - **Shared risk profiles**: the default capped profile targets natural realized shared-portfolio
-  maxDD of approximately 25%. Corrected-cadence validation realizes 19.95% reported / 20.67% 4h
-  mark-to-market maxDD; a looser TRAIN winner failed held-out validation at 28.6%, so the existing
-  caps remain. The explicit aggressive profile accepts ~34% corrected historical maxDD in exchange
-  for uncapped compounding; never present that backtest as a forecast or assume live DD cannot be
-  materially worse.
+  maxDD of approximately 25%. Completed-candle validation realizes 17.94% reported / 18.03% 4h
+  mark-to-market maxDD, so the existing caps remain. The explicit aggressive profile realizes
+  approximately 39% corrected historical maxDD in exchange for uncapped compounding; never present
+  that backtest as a forecast or assume live DD cannot be materially worse.
 - **Trailing stops**: `trailing.py::compute_trailing_stop` is the single source of truth,
   used by `backtesting.py::_update_trailing_stop` AND `scheduler.py::_maybe_trail_stop`
   (which calls `exchange.modify_stop_loss`). A stop only ever moves in the trade's favour.
@@ -285,6 +304,9 @@ exists for a reason — it's the last line of defense.
 - **One account, one orchestrator** — multi-symbol live/paper execution must use
   `--shared-configs` so exposure check/size/place is serialized and the account peak plus pending
   and trailing state survive restarts. Do not run independent symbol processes against one budget.
+- **Live decisions are completed-bar gated** — the scheduler polls once per minute so UTC 4h
+  closes are detected promptly, but persisted `last_analysis_bars` permits at most one claimed
+  decision/execution attempt per symbol/completed primary bar, including across restarts.
 - **ATR adapts to volatility** — all targets (SL, TP1, TP2) scale with market conditions
 - **Partial exits** — TP1 closes a fraction (default 50%), TP2 closes the rest
 - **The OpenWebUI filter file is self-contained** — it contains the canonical indicator and scoring functions that `scoring.py` imports

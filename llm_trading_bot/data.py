@@ -63,6 +63,11 @@ def configure_cache(ttl_seconds: int) -> None:
     _cache = DataCache(ttl_seconds)
 
 
+def clear_cache() -> None:
+    """Discard cached market frames before a bar-close-sensitive live fetch."""
+    _cache.clear()
+
+
 def aggregate_to_4h(df_1h: pd.DataFrame) -> pd.DataFrame:
     """
     Aggregate 1-hour OHLCV candles to 4-hour candles.

@@ -10,7 +10,7 @@ from pathlib import Path
 class SharedLiveState:
     """Thread-safe state persisted with atomic file replacement."""
 
-    VERSION = 1
+    VERSION = 2
 
     def __init__(self, path: str | Path):
         self.path = Path(path)
@@ -18,6 +18,7 @@ class SharedLiveState:
         self.peak_balance = 0.0
         self.pending_orders: dict[str, dict] = {}
         self.tracked_trades: dict[str, dict] = {}
+        self.last_analysis_bars: dict[str, str] = {}
         self._load()
 
     def _load(self) -> None:
@@ -30,14 +31,21 @@ class SharedLiveState:
             self.peak_balance = max(0.0, float(payload.get("peak_balance", 0) or 0))
             pending = payload.get("pending_orders", {})
             tracked = payload.get("tracked_trades", {})
+            analysis = payload.get("last_analysis_bars", {})
             if isinstance(pending, dict):
                 self.pending_orders.update(pending)
             if isinstance(tracked, dict):
                 self.tracked_trades.update(tracked)
+            if isinstance(analysis, dict):
+                self.last_analysis_bars.update(
+                    (str(symbol), str(timestamp))
+                    for symbol, timestamp in analysis.items()
+                )
         except (OSError, ValueError, TypeError):
             self.peak_balance = 0.0
             self.pending_orders.clear()
             self.tracked_trades.clear()
+            self.last_analysis_bars.clear()
 
     def save(self) -> None:
         """Persist current state atomically."""
@@ -48,6 +56,7 @@ class SharedLiveState:
                 "peak_balance": self.peak_balance,
                 "pending_orders": self.pending_orders,
                 "tracked_trades": self.tracked_trades,
+                "last_analysis_bars": self.last_analysis_bars,
             }
             temp = self.path.with_name(f".{self.path.name}.tmp")
             temp.write_text(json.dumps(payload, indent=2, sort_keys=True))

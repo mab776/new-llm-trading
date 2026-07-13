@@ -80,16 +80,15 @@ All settings live in `config.json`. See `AGENTS.md` for full documentation.
 Two shared-portfolio risk profiles are available:
 
 - **Standard (default):** `config.json`, `config-eth.json`, and `config-sol.json`; portfolio-wide
-  caps target approximately 25% historical shared max drawdown. Corrected 4h-close-cadence
-  validation produced 292,212.44× shared continuous growth at 19.95% reported / 20.67% 4h
-  mark-to-market maxDD. A looser TRAIN-selected cap failed held-out validation at 28.6% DD, so the
-  shipped 4.4% margin and 1.10× notional caps remain unchanged.
+  caps target approximately 25% historical shared max drawdown. Completed-candle validation
+  produced 445,508.49× shared continuous growth at 17.94% reported / 18.03% 4h mark-to-market
+  maxDD. The shipped 4.4% margin and 1.10× notional caps remain unchanged.
 - **Aggressive:** `config-aggressive.json`, `config-eth-aggressive.json`, and
   `config-sol-aggressive.json`; these small profiles inherit their standard asset config and
-  disable the portfolio margin/notional caps. They remain on testnet by inheritance. Correcting a
-  sub-bar harness cadence bug (the stop had been ratcheting hourly instead of once per completed
-  4h bar) produced 5.749 trillion× with 34.28% reported / 34.11% 4h mark-to-market maxDD. This
-  extreme path-dependent compounding is a robustness result, not a live-return forecast.
+  disable the portfolio margin/notional caps. They remain on testnet by inheritance. Completed-
+  candle validation produced 4.976 trillion× with 38.47% reported / 38.67% 4h mark-to-market
+  maxDD. This extreme path-dependent compounding is a robustness result, not a live-return
+  forecast; live drawdown can be materially worse than the corrected approximately 39% history.
 
 Reproduce the shared aggressive study with:
 
@@ -97,9 +96,39 @@ Reproduce the shared aggressive study with:
 python -m opt.multi_portfolio --profile aggressive --entry-mode maker --exit-granularity sub
 ```
 
-Queue sensitivity is recorded in `opt/queue_fill_sensitivity_results.json`. Even the combined
-5bps-penetration/70%-fill scenario retained about 65.6% of baseline log growth across five
-deterministic seeds, kept every annual fold green, and had 38.15% worst 4h mark-to-market DD.
+Corrected queue sensitivity is recorded in `opt/completed_candle_queue_results.json`. The combined
+5bps-penetration/70%-fill scenario retained 62.8% of baseline log growth across five deterministic
+seeds, kept every annual fold green, and had 39.2% worst reported / 38.61% mark-to-market DD.
+
+### Lower-timeframe research and completed-candle audit
+
+The research branch `experiment/lower-timeframes` transplants the shipped numeric strategy to 1h
+and 5m without tuning. On common Binance USDT-perpetual BTC data (2021-01→2025-06), with maker
+entry, funding, liquidation, and 2bps market-exit slippage, the causal 4h control returned 225.91×
+at 15.80% maxDD. The 1h transplant returned 76.94× at 28.06% maxDD but lost 6.76% in 2025H1; the
+5m transplant fell to 0.237× at 79.26% maxDD and lost in every annual fold. The existing 12× tier
+reduced 1h risk but did not fix its losing 2025H1. The unchanged strategy therefore remains 4h.
+
+The experiment also found that cached Bitget OHLCV is bar-open stamped while historical secondary
+selection had used only that open timestamp. Round 23 fixed this throughout the full engine,
+fastbt, Binance normalization, one-shot analysis, and live scheduling. Live now drops forming
+candles, freezes all inputs at the completed primary close, persists an at-most-once decision key
+across restarts, and polls once per minute so a new 4h bar is handled promptly. Corrected full/fast
+2024 parity is exact. No paper/testnet process has been started.
+
+Reproduce the audit with:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.lower_timeframes
+```
+
+Machine-readable results are in `opt/lower_timeframe_results.json`.
+
+Reproduce the corrected standard/aggressive validation with:
+
+```bash
+PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.completed_candle_validation
+```
 
 For eventual multi-symbol paper/live execution, use one serialized account orchestrator (do not
 run independent symbol stacks against the same exposure budget):
@@ -118,7 +147,7 @@ uncovered (backtests must assume the adverse extreme hits first), and full resul
 The current configuration uses a post-only maker limit at the completed decision bar's
 close, good for the following primary bar. Honest 1h sub-bar replay (2021-01→2025-06,
 2bps market-exit slippage, liquidation and perp funding modeled) remains profitable in
-every yearly fold on standalone **BTC (301.18×), ETH (2,436.13×), and SOL (66,125.23×)** with the shipped
+every yearly fold on standalone **BTC (204.21×), ETH (1,680.87×), and SOL (143,881.86×)** with the shipped
 standard portfolio exposure controls after a constrained
 scoring-point search selected on BTC TRAIN and validated on BTC TEST plus untouched ETH/SOL.
 These multiples are robustness signals, not forecasts. Queue/penetration stress tests are
