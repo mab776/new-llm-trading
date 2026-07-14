@@ -36,5 +36,5 @@ Implemented the live execution foundation in code.
 
 NEXT PROMPT : 
 
-› please comit changes and execute next phase, we need to reach paper-trading
+› From the documents LATEST_SESSION.md, NEXT_SESSION.md and PAPER_LIVE_READINESS_REVIEW.md update the PAPER_LIVE_READINESS_REVIEW to be able to delete the 2 oher documents and list here what`s to be solved next before papertrade - we want to reach papertrading ASAP
 
