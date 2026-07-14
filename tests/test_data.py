@@ -17,6 +17,7 @@ from llm_trading_bot.data import (
     _yf_interval,
     _period_for_warmup,
     configure_cache,
+    fetch_multi_timeframe,
 )
 
 
@@ -42,6 +43,16 @@ class TestBitgetRouting:
         df = fetch_ohlcv("BTC/USDT:USDT", "4h", source="bitget", market="futures")
         assert called["market"] == "futures"
         assert len(df) == 3
+
+    def test_multi_timeframe_fails_closed_if_one_fetch_fails(self, monkeypatch):
+        def fake_fetch(symbol, timeframe, *args, **kwargs):
+            if timeframe == "1d":
+                raise RuntimeError("missing daily data")
+            return _tiny_df()
+
+        monkeypatch.setattr(data_mod, "fetch_ohlcv", fake_fetch)
+        with pytest.raises(ValueError, match="1d: missing daily data"):
+            fetch_multi_timeframe("BTC/USDT:USDT", ["4h", "1d"], source="bitget")
 
     def test_bitget_falls_back_to_windowed_ccxt_on_cache_error(self, monkeypatch):
         configure_cache(0)

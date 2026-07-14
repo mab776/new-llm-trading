@@ -26,7 +26,8 @@ class FakeExchange:
     def __init__(self):
         self.modify_calls = []
 
-    def modify_stop_loss(self, symbol, hold_side, size, new_sl):
+    def modify_stop_loss(self, symbol, hold_side, size, new_sl, plan_order_id=None):
+        assert plan_order_id == "plan-1"
         self.modify_calls.append(new_sl)
 
 
@@ -46,8 +47,10 @@ def _mk_scheduler(monkeypatch, df):
     sch = TradingScheduler.__new__(TradingScheduler)  # skip __init__ (no exchange creds)
     sch.config = cfg
     sch.exchange = FakeExchange()
+    previous = str(pd.Timestamp.now(tz="UTC").floor("4h") - pd.Timedelta(hours=12))
     sch._tracked_trades = {
-        "BTC-USDT": {"direction": "LONG", "entry": 100.0, "current_sl": 95.0}
+        "BTC-USDT": {"direction": "LONG", "entry": 100.0, "current_sl": 95.0,
+                     "last_trail_bar": previous, "stop_plan_id": "plan-1"}
     }
     sch._log = lambda msg: None
     monkeypatch.setattr(sched_mod, "fetch_multi_timeframe", lambda **kw: {"4h": df})
@@ -120,6 +123,26 @@ def test_ratchet_fires_once_per_completed_bar(monkeypatch):
     assert len(sch.exchange.modify_calls) == 1
 
 
+def test_missing_exposure_boundary_initializes_without_ratcheting(monkeypatch):
+    now = pd.Timestamp.now(tz="UTC").floor("4h")
+    df = _bars([(now - pd.Timedelta(hours=8), 150.0, 90.0), (now, 160.0, 80.0)])
+    sch = _mk_scheduler(monkeypatch, df)
+    del sch._tracked_trades["BTC-USDT"]["last_trail_bar"]
+    sch._maybe_trail_stop(FakePos())
+    assert sch.exchange.modify_calls == []
+    assert sch._tracked_trades["BTC-USDT"]["last_trail_bar"]
+
+
+def test_exchange_symbol_format_matches_tracked_symbol(monkeypatch):
+    now = pd.Timestamp.now(tz="UTC").floor("4h")
+    df = _bars([(now - pd.Timedelta(hours=8), 110.0, 101.0), (now, 120.0, 100.0)])
+    sch = _mk_scheduler(monkeypatch, df)
+    pos = FakePos()
+    pos.symbol = "BTCUSDT"
+    sch._maybe_trail_stop(pos)
+    assert sch.exchange.modify_calls == [109.0]
+
+
 def test_new_completed_bar_ratchets_again(monkeypatch):
     now = pd.Timestamp.now(tz="UTC").floor("4h")
     df1 = _bars([
@@ -139,3 +162,33 @@ def test_new_completed_bar_ratchets_again(monkeypatch):
     monkeypatch.setattr(sched_mod, "fetch_multi_timeframe", lambda **kw: {"4h": df2})
     sch._maybe_trail_stop(FakePos())
     assert sch.exchange.modify_calls == [109.0, 114.0]
+
+
+def test_pyramided_lots_each_ratchet_their_own_stop(monkeypatch):
+    now = pd.Timestamp.now(tz="UTC").floor("4h")
+    df = _bars([
+        (now - pd.Timedelta(hours=8), 110.0, 101.0),
+        (now, 120.0, 100.0),
+    ])
+    sch = _mk_scheduler(monkeypatch, df)
+    previous = str(now - pd.Timedelta(hours=12))
+    sch._tracked_trades = {
+        "lot-a": {
+            "symbol": "BTC-USDT", "direction": "LONG", "entry": 100.0,
+            "current_sl": 95.0, "remaining_size": 0.7,
+            "last_trail_bar": previous, "plan_ids": {"sl": "sl-a"},
+            "protection_verified": True,
+        },
+        "lot-b": {
+            "symbol": "BTC-USDT", "direction": "LONG", "entry": 102.0,
+            "current_sl": 97.0, "remaining_size": 0.3,
+            "last_trail_bar": previous, "plan_ids": {"sl": "sl-b"},
+            "protection_verified": True,
+        },
+    }
+    calls = []
+    sch.exchange.modify_stop_loss = lambda **kwargs: calls.append(kwargs) or {}
+    sch._maybe_trail_stop(FakePos())
+    assert [call["plan_order_id"] for call in calls] == ["sl-a", "sl-b"]
+    assert [call["size"] for call in calls] == [0.7, 0.3]
+    assert all(call["position_level"] is False for call in calls)

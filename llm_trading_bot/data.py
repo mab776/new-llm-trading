@@ -394,7 +394,10 @@ def fetch_ohlcv(
         "binance"  -> Binance CSV archive (disk-cached, years of data) with ccxt fallback
         "bitget", other -> CCXT live API
     """
-    cache_key = f"{source}_{symbol}_{timeframe}_{start_date}_{end_date}"
+    cache_key = (
+        f"{source}_{exchange}_{market}_{symbol}_{timeframe}_"
+        f"{start_date}_{end_date}_{warmup_periods}"
+    )
     cached = _cache.get(cache_key)
     if cached is not None:
         return cached
@@ -404,10 +407,14 @@ def fetch_ohlcv(
     elif source == "binance":
         # Prefer CSV archive (fast, disk-cached), fall back to ccxt API
         try:
-            df = _fetch_binance_csv(symbol, timeframe, start_date, end_date, warmup_periods)
+            df = _fetch_binance_csv(
+                symbol, timeframe, start_date, end_date, warmup_periods, market
+            )
         except Exception as e:
             print(f"    CSV archive failed ({e}), falling back to ccxt API...")
-            df = _fetch_ccxt(symbol, timeframe, "binance", start_date, end_date, warmup_periods)
+            df = _fetch_ccxt(
+                symbol, timeframe, "binance", start_date, end_date, warmup_periods, market
+            )
     elif source == "bitget":
         # Prefer the windowed CSV archive (disk-cached), fall back to the windowed live API
         try:
@@ -436,6 +443,7 @@ def fetch_multi_timeframe(
 ) -> dict[str, pd.DataFrame]:
     """Fetch OHLCV data for multiple timeframes."""
     result: dict[str, pd.DataFrame] = {}
+    failures: list[str] = []
     for tf in timeframes:
         try:
             result[tf] = fetch_ohlcv(
@@ -443,5 +451,9 @@ def fetch_multi_timeframe(
                 source=source, exchange=exchange, market=market,
             )
         except Exception as e:
-            print(f"Warning: Failed to fetch {tf} data for {symbol}: {e}")
+            failures.append(f"{tf}: {e}")
+    if failures:
+        raise ValueError(
+            f"Required market data unavailable for {symbol}: " + "; ".join(failures)
+        )
     return result

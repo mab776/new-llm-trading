@@ -169,7 +169,7 @@ class TestPnLMagnitude:
           gross_pnl = 2000 * 0.04 = 80  (NO extra leverage — size IS leveraged)
           entry_fee = 0.04 * 50000 * 0.0006 = 1.2  (taker)
           exit_fee  = 0.04 * 52000 * 0.0002 = 0.416  (maker — TP exit uses limit order)
-          net_pnl = 80 - 0.416 = 79.584
+          net_pnl = 80 - 1.2 - 0.416 = 78.384
         """
         port = Portfolio(initial_balance=10000, taker_fee=0.0006)
         trade = port.open_trade(
@@ -187,7 +187,17 @@ class TestPnLMagnitude:
         # TP exit uses maker fee (0.0002) since use_maker_fee_for_tp defaults to True
         exit_fee = 0.04 * 52000 * 0.0002
         assert trade.exit_fee == pytest.approx(exit_fee, rel=1e-3)
-        assert trade.net_pnl == pytest.approx(80.0 - exit_fee, rel=1e-3)
+        assert trade.net_pnl == pytest.approx(80.0 - trade.entry_fee - exit_fee, rel=1e-3)
+
+    def test_trade_outcome_includes_entry_fee(self):
+        port = Portfolio(initial_balance=100, maker_fee=0.0002, taker_fee=0.0002)
+        trade = port.open_trade(
+            "LONG", 100, "t1", 90, 110, 120, leverage=1, risk_pct=1.0,
+        )
+        port.close_trade(trade, 100.01, "t2", "manual")
+        assert trade.gross_pnl > 0
+        assert trade.net_pnl < 0
+        assert trade.net_pnl == pytest.approx(port.balance - port.initial_balance)
 
     def test_long_pnl_at_stop_loss(self):
         """
@@ -306,6 +316,16 @@ class TestSnapshotUnrealized:
         # Price went DOWN to 49000, unrealized = (50000-49000)*0.04 = 40
         snap = port.record_snapshot("t1", current_price=49000)
         assert snap.unrealized_pnl == pytest.approx(40.0, rel=1e-4)
+
+    def test_snapshot_updates_mark_to_market_max_drawdown(self):
+        port = Portfolio(initial_balance=10000, taker_fee=0.0)
+        port.open_trade(
+            "LONG", 50000, "t1", 45000, 55000, 60000,
+            leverage=10, risk_pct=0.1,
+        )
+        snap = port.record_snapshot("t2", current_price=45000)
+        assert snap.drawdown_pct == pytest.approx(10.0)
+        assert port.max_drawdown_pct == pytest.approx(10.0)
 
 
 class TestPortfolioStats:

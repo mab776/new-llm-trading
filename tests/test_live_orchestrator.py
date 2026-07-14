@@ -73,9 +73,11 @@ def test_reconciliation_is_symbol_local_with_shared_pending(tmp_path, monkeypatc
     state = SharedLiveState(tmp_path / "state.json")
     state.pending_orders.update({
         "btc": {"symbol": "BTC-USDT", "direction": "LONG", "entry": 100,
-                "stop_loss": 95, "expires_at": 99999999999},
+                "stop_loss": 95, "take_profit_1": 110, "take_profit_2": 120,
+                "size": 1, "expires_at": 99999999999},
         "eth": {"symbol": "ETH-USDT", "direction": "LONG", "entry": 50,
-                "stop_loss": 45, "expires_at": 99999999999},
+                "stop_loss": 45, "take_profit_1": 60, "take_profit_2": 70,
+                "size": 1, "expires_at": 99999999999},
     })
     scheduler = TradingScheduler(
         _config("BTC-USDT"), shared_state=state, log_dir=tmp_path,
@@ -87,7 +89,7 @@ def test_reconciliation_is_symbol_local_with_shared_pending(tmp_path, monkeypatc
     scheduler._reconcile_pending_orders()
     assert "btc" not in state.pending_orders
     assert "eth" in state.pending_orders
-    assert "BTC-USDT" in state.tracked_trades
+    assert any(lot["symbol"] == "BTC-USDT" for lot in state.lots.values())
 
 
 def test_position_check_persists_realized_account_peak(tmp_path, monkeypatch) -> None:

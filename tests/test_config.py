@@ -204,6 +204,27 @@ class TestPositionSizingConfig:
             PositionSizingConfig(global_max_margin_pct=-0.01)
 
 
+class TestSafetyBounds:
+    @pytest.mark.parametrize("kwargs", (
+        {"confidence_min": 4}, {"confidence_max": 96}, {"atr_sl_multiplier": 0},
+    ))
+    def test_scoring_safety_bounds(self, kwargs):
+        with pytest.raises(ValidationError):
+            ScoringConfig(**kwargs)
+
+    def test_leverage_and_tp_fraction_bounds(self):
+        with pytest.raises(ValidationError):
+            LeverageTier(leverage=126)
+        with pytest.raises(ValidationError):
+            LeverageTier(tp1_exit_pct=1)
+
+    def test_active_tier_rejected_during_validation(self):
+        with pytest.raises(ValidationError, match="active_tier"):
+            TradingConfig(
+                leverage_tiers={"conservative": LeverageTier()}, active_tier="missing"
+            )
+
+
 class TestRiskManagementConfig:
     def test_defaults(self):
         rm = RiskManagementConfig()

@@ -43,7 +43,8 @@ class SharedTradingOrchestrator:
         account = (
             first.bitget.api_key, first.bitget.api_secret,
             first.bitget.passphrase, first.bitget.testnet,
-            first.bitget.product_type,
+            first.bitget.product_type, first.bitget.position_mode,
+            first.bitget.margin_mode,
         )
         cadence = (
             first.scheduling.interval_minutes,
@@ -53,7 +54,8 @@ class SharedTradingOrchestrator:
             other_account = (
                 config.bitget.api_key, config.bitget.api_secret,
                 config.bitget.passphrase, config.bitget.testnet,
-                config.bitget.product_type,
+                config.bitget.product_type, config.bitget.position_mode,
+                config.bitget.margin_mode,
             )
             if other_account != account:
                 raise ValueError("Shared live configs must use the same Bitget account")
@@ -89,6 +91,11 @@ class SharedTradingOrchestrator:
         self._acquire_process_lock()
         symbols = ", ".join(config.trading.symbol for config in self.configs)
         print(f"Shared live orchestrator: {symbols}")
+        # Complete every symbol's account/exchange reconciliation before any one
+        # scheduler is allowed to fetch a signal or place a new order.
+        allowed_symbols = {config.trading.symbol for config in self.configs}
+        for scheduler in self.schedulers:
+            scheduler.reconcile_startup(allowed_symbols=allowed_symbols)
         self.run_cycle()
         schedule.every(self.analysis_poll_minutes).minutes.do(self.run_cycle)
         schedule.every(self.position_interval_minutes).minutes.do(self.check_positions)

@@ -11,6 +11,7 @@ Handles:
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import threading
 import time
@@ -22,7 +23,7 @@ import schedule
 
 from llm_trading_bot.config import AppConfig
 from llm_trading_bot.data import clear_cache, configure_cache, fetch_multi_timeframe
-from llm_trading_bot.exchange import BitgetClient, SafetyViolation
+from llm_trading_bot.exchange import BitgetClient, ExchangeError, PlanOrder, SafetyViolation
 from llm_trading_bot.exposure import (
     anti_martingale_multiplier, cap_risk_pct, outcome_streak,
 )
@@ -67,6 +68,7 @@ class TradingScheduler:
         self._tracked_trades = self._live_state.tracked_trades
         self._pending_orders = self._live_state.pending_orders
         self._candidate_analysis_bar: str | None = None
+        self._startup_reconciled = False
         # One-time compatibility migration from the pre-shared-state maker file.
         legacy = self._log_dir / "pending_orders.json"
         if migrate_legacy and not self._pending_orders and legacy.exists():
@@ -92,6 +94,9 @@ class TradingScheduler:
             self._live_state.save()
         except OSError as e:
             self._log(f"Warning: could not persist pending orders: {e}")
+            self._startup_reconciled = False
+            if not self.exchange._dry_run:
+                raise
 
     def _save_live_state(self) -> None:
         state = getattr(self, "_live_state", None)
@@ -100,6 +105,9 @@ class TradingScheduler:
                 state.save()
             except OSError as e:
                 self._log(f"Warning: could not persist live state: {e}")
+                self._startup_reconciled = False
+                if not self.exchange._dry_run:
+                    raise
 
     @staticmethod
     def _timeframe_seconds(timeframe: str) -> int:
@@ -110,19 +118,211 @@ class TradingScheduler:
         normalize = lambda value: re.sub(r"[^A-Za-z0-9]", "", value).upper()
         return normalize(left) == normalize(right)
 
+    def _entry_client_oid(self, side: str) -> str:
+        """Stable Bitget idempotency key for one symbol/bar/action/account."""
+        material = "|".join((
+            self.config.bitget.api_key,
+            self.config.trading.symbol,
+            self._candidate_analysis_bar or "manual",
+            side,
+            "entry",
+        ))
+        return "llt-" + hashlib.sha256(material.encode()).hexdigest()[:28]
+
+    def _plan_client_oid(self, lot_id: str, action: str) -> str:
+        material = "|".join((
+            self.config.bitget.api_key, lot_id, action, "tpsl",
+        ))
+        return "llt-" + hashlib.sha256(material.encode()).hexdigest()[:28]
+
+    def _lots_for_symbol(self, symbol: str, side: str | None = None) -> list[tuple[str, dict]]:
+        lots = []
+        for lot_id, lot in self._tracked_trades.items():
+            lot_symbol = str(lot.get("symbol") or lot_id)
+            if not self._same_symbol(lot_symbol, symbol):
+                continue
+            lot_side = "long" if lot.get("direction") == "LONG" else "short"
+            if side is None or lot_side == side:
+                lots.append((lot_id, lot))
+        return lots
+
+    @staticmethod
+    def _detail_filled_size(detail: dict, fallback: float) -> float:
+        return float(
+            detail.get("baseVolume") or detail.get("filledQty")
+            or detail.get("filledSize") or fallback
+        )
+
+    def _build_lot(self, order_id: str, pending: dict, detail: dict) -> tuple[str, dict]:
+        client_oid = str(detail.get("clientOid") or pending.get("client_oid") or order_id)
+        direction = str(pending["direction"])
+        filled_size = self._detail_filled_size(detail, float(pending["size"]))
+        entry = float(detail.get("priceAvg") or pending["entry"])
+        filled_at_ms = int(detail.get("uTime") or detail.get("cTime") or time.time() * 1000)
+        tp1_exit_pct = pending.get("tp1_exit_pct")
+        if tp1_exit_pct is None:
+            tp1_exit_pct = (
+                self.config.trading.active_leverage_tier.tp1_exit_pct
+                if self.config.trading.leverage_tiers else 0.7
+            )
+        lot = {
+            "symbol": pending["symbol"],
+            "direction": direction,
+            "entry_order_id": order_id,
+            "client_oid": client_oid,
+            "lifecycle": "protecting",
+            "original_size": filled_size,
+            "remaining_size": filled_size,
+            "entry": entry,
+            "entry_fee": abs(float(detail.get("fee") or 0)),
+            "filled_at_ms": filled_at_ms,
+            "stop_loss": float(pending["stop_loss"]),
+            "take_profit_1": float(pending["take_profit_1"]),
+            "take_profit_2": float(pending["take_profit_2"]),
+            "tp1_exit_pct": float(tp1_exit_pct),
+            "current_sl": float(pending["stop_loss"]),
+            "plan_ids": {},
+            "plan_client_oids": {},
+            "protection_verified": False,
+            # The fill bar's extreme may precede the maker fill. Market entries also
+            # occur after their decision bar, so both wait for the next completed bar.
+            "last_trail_bar": str(latest_completed_bar_open(
+                self.config.trading.primary_timeframe
+            )),
+        }
+        return client_oid, lot
+
+    def _split_lot_size(self, lot: dict) -> tuple[float, float]:
+        total = float(lot["original_size"])
+        pct = float(lot["tp1_exit_pct"])
+        if self.exchange._dry_run:
+            first = total * pct
+            return first, total - first
+        first, remainder = self.exchange.split_size(lot["symbol"], total, pct)
+        return float(first), float(remainder)
+
+    def _ensure_lot_protection(
+        self, lot_id: str, active_plans: list[PlanOrder] | None = None,
+    ) -> bool:
+        """Idempotently establish independently sized SL, TP1 and TP2 plans."""
+        lot = self._tracked_trades[lot_id]
+        side = "long" if lot["direction"] == "LONG" else "short"
+        tp1_size, tp2_size = self._split_lot_size(lot)
+        lot["tp1_size"] = tp1_size
+        lot["tp2_size"] = tp2_size
+        lot.setdefault("plan_ids", {})
+        lot.setdefault("plan_client_oids", {})
+        specs = {
+            "sl": ("loss_plan", float(lot["remaining_size"]), float(lot["current_sl"])),
+            "tp1": ("profit_plan", tp1_size, float(lot["take_profit_1"])),
+            "tp2": ("profit_plan", tp2_size, float(lot["take_profit_2"])),
+        }
+        if active_plans is None:
+            active_plans = ([] if self.exchange._dry_run
+                            else self.exchange.get_tpsl_orders(lot["symbol"]))
+        by_client = {plan.client_oid: plan for plan in active_plans if plan.client_oid}
+        for action, (plan_type, size, trigger) in specs.items():
+            client_oid = lot["plan_client_oids"].setdefault(
+                action, self._plan_client_oid(lot_id, action),
+            )
+            existing = by_client.get(client_oid)
+            if existing:
+                lot["plan_ids"][action] = existing.order_id
+                continue
+            placed = self.exchange.place_tpsl_order(
+                lot["symbol"], side, size, trigger, plan_type, client_oid,
+            )
+            lot["plan_ids"][action] = placed.order_id
+
+        if self.exchange._dry_run:
+            lot["protection_verified"] = True
+            lot["lifecycle"] = "protected"
+            self._save_live_state()
+            return True
+
+        verified = self.exchange.get_tpsl_orders(lot["symbol"])
+        verified_ids = {plan.order_id for plan in verified}
+        required = set(lot["plan_ids"].values())
+        lot["protection_verified"] = bool(required) and required <= verified_ids
+        if not lot["protection_verified"]:
+            lot["lifecycle"] = "protecting"
+            self._save_live_state()
+            return False
+
+        lot["lifecycle"] = "protected"
+        self._save_live_state()
+        return True
+
+    def _cancel_replaced_presets(self, symbol: str) -> None:
+        """Remove anonymous entry presets only after every lot has explicit plans."""
+        lots = self._lots_for_symbol(symbol)
+        if not lots or any(not lot.get("protection_verified") for _, lot in lots):
+            return
+        known_ids = {
+            str(plan_id)
+            for _, lot in lots for plan_id in lot.get("plan_ids", {}).values()
+        }
+        expected_presets = [
+            (
+                int(lot.get("filled_at_ms", 0) or 0),
+                float(price),
+                float(lot.get("original_size", 0) or 0),
+            )
+            for _, lot in lots
+            for price in (lot.get("stop_loss"), lot.get("take_profit_2"))
+            if price is not None
+        ]
+        for plan in self.exchange.get_tpsl_orders(symbol):
+            if plan.order_id in known_ids:
+                continue
+            if plan.client_oid and not plan.client_oid.upper().startswith("BITGET#"):
+                continue
+            if plan.plan_type not in (
+                "profit_plan", "loss_plan", "pos_profit", "pos_loss",
+            ):
+                continue
+            matches_known_preset = any(
+                abs(plan.trigger_price - trigger) < 1e-12
+                and (plan.size == 0 or abs(plan.size - size) < 1e-12)
+                and created_at > 0
+                and abs(plan.created_at_ms - created_at) <= 300_000
+                for created_at, trigger, size in expected_presets
+            )
+            if matches_known_preset:
+                self.exchange.cancel_tpsl_order(symbol, plan.order_id, plan.plan_type)
+
     def _activate_filled_pending(self, order_id: str, detail: dict) -> None:
         pending = self._pending_orders.pop(order_id)
-        avg = float(detail.get("priceAvg") or pending["entry"])
-        self._tracked_trades[pending["symbol"]] = {
-            "direction": pending["direction"],
-            "entry": avg,
-            "current_sl": pending["stop_loss"],
-        }
+        fills = self.exchange.get_order_fills(pending["symbol"], order_id, detail)
+        if fills:
+            total_size = sum(fill.size for fill in fills)
+            detail = dict(detail)
+            detail["baseVolume"] = total_size
+            detail["priceAvg"] = sum(fill.price * fill.size for fill in fills) / total_size
+            detail["fee"] = sum(fill.fee for fill in fills)
+            detail["uTime"] = max(fill.timestamp_ms for fill in fills)
+        lot_id, lot = self._build_lot(order_id, pending, detail)
+        lot["fills"] = [fill.__dict__ for fill in fills]
+        self._tracked_trades[lot_id] = lot
         self._save_live_state()
-        self._log(f"Maker order {order_id} filled @ ${avg:,.2f}")
+        try:
+            protected = self._ensure_lot_protection(lot_id)
+            if protected and not self.exchange._dry_run:
+                self._cancel_replaced_presets(pending["symbol"])
+        except Exception as exc:
+            protected = False
+            lot["protection_verified"] = False
+            lot["lifecycle"] = "protecting"
+            self._save_live_state()
+            self._log(f"CRITICAL: fill {order_id} protection reconciliation failed: {exc}")
+        self._log(
+            f"Maker order {order_id} filled @ ${lot['entry']:,.2f}; "
+            f"per-lot protection {'verified' if protected else 'pending'}"
+        )
         self._log_decision({
             "action": "MAKER_FILL", "order_id": order_id,
-            "entry": avg, "side": pending["direction"],
+            "lot_id": lot_id, "entry": lot["entry"], "side": pending["direction"],
+            "protection_verified": protected,
         })
 
     def _reconcile_pending_orders(self) -> None:
@@ -151,6 +351,10 @@ class TradingScheduler:
                         self._pending_orders.pop(order_id, None)
                         self._save_pending_orders()
                     continue
+                if pending.get("entry_mode", "maker") != "maker":
+                    # A market order is expected to fill promptly, but an ambiguous
+                    # state is never "fixed" by sending a second order or maker cancel.
+                    continue
                 if now < float(pending["expires_at"]):
                     continue
 
@@ -172,6 +376,325 @@ class TradingScheduler:
                 # Keep the order tracked: losing lifecycle state is less safe than
                 # retrying reconciliation on the next scheduler tick.
                 self._log(f"Warning: maker order {order_id} reconciliation failed: {e}")
+
+    def _pending_from_exchange_detail(self, detail: dict) -> dict:
+        """Reconstruct strategy targets for a bot-owned order after lost persistence."""
+        entry = float(detail.get("priceAvg") or detail.get("price") or 0)
+        stop = float(detail.get("presetStopLossPrice") or 0)
+        tp2 = float(detail.get("presetStopSurplusPrice") or 0)
+        size = self._detail_filled_size(detail, float(detail.get("size") or 0))
+        side = str(detail.get("side") or "").lower()
+        if entry <= 0 or stop <= 0 or tp2 <= 0 or size <= 0 or side not in ("buy", "sell"):
+            raise SafetyViolation(
+                "REFUSED: Cannot reconstruct a bot order without entry, size, SL and TP2"
+            )
+        tier = self.config.trading.active_leverage_tier
+        # Recover the original deterministic targets from the two exchange presets.
+        # This remains exact even when a market fill slipped away from decision entry.
+        risk = abs(tp2 - stop) / (tier.tp2_rr + 1)
+        target_entry = stop + risk if side == "buy" else stop - risk
+        tp1 = (
+            target_entry + risk * tier.tp1_rr
+            if side == "buy" else target_entry - risk * tier.tp1_rr
+        )
+        return {
+            "symbol": str(detail.get("symbol") or self.config.trading.symbol),
+            "direction": "LONG" if side == "buy" else "SHORT",
+            "entry": entry,
+            "stop_loss": stop,
+            "take_profit_1": tp1,
+            "take_profit_2": tp2,
+            "tp1_exit_pct": tier.tp1_exit_pct,
+            "size": size,
+            "leverage": int(float(detail.get("leverage") or tier.leverage)),
+            "client_oid": str(detail.get("clientOid") or ""),
+            "entry_mode": "maker" if str(detail.get("orderType", "")).lower() == "limit" else "taker",
+            "placed_at": int(detail.get("cTime") or time.time() * 1000) / 1000,
+            "expires_at": 0,
+        }
+
+    def _validate_pending_against_exchange(self, pending: dict, detail: dict) -> None:
+        """Reject persisted entry state that disagrees with Bitget's safety preset."""
+        expected_client = str(pending.get("client_oid") or "")
+        actual_client = str(detail.get("clientOid") or "")
+        if expected_client and actual_client and expected_client != actual_client:
+            raise SafetyViolation("REFUSED: Pending entry clientOid mismatch")
+        actual_side = str(detail.get("side") or "").lower()
+        expected_side = "buy" if pending.get("direction") == "LONG" else "sell"
+        if actual_side and actual_side != expected_side:
+            raise SafetyViolation("REFUSED: Pending entry side mismatch")
+        checks = {
+            "size": (detail.get("size"), pending.get("size")),
+            "stop loss": (detail.get("presetStopLossPrice"), pending.get("stop_loss")),
+            "TP2": (detail.get("presetStopSurplusPrice"), pending.get("take_profit_2")),
+        }
+        for label, (actual, expected) in checks.items():
+            if actual in (None, "") or expected in (None, ""):
+                raise SafetyViolation(f"REFUSED: Pending entry {label} is unavailable")
+            if abs(float(actual) - float(expected)) > 1e-12:
+                raise SafetyViolation(f"REFUSED: Pending entry {label} mismatch")
+
+    def _reconcile_lot_lifecycle(self) -> None:
+        """Apply exchange-observed TP1/SL/TP2 transitions to every local lot."""
+        symbol = self.config.trading.symbol
+        lots = self._lots_for_symbol(symbol)
+        if not lots:
+            return
+        active = self.exchange.get_tpsl_orders(symbol)
+        history = self.exchange.get_tpsl_orders(symbol, history=True)
+        active_ids = {plan.order_id for plan in active}
+        history_by_id = {plan.order_id: plan for plan in history}
+
+        for lot_id, lot in list(lots):
+            if lot.get("lifecycle") == "closing":
+                close_order_id = str(lot.get("close_order_id") or "")
+                close_client_oid = str(lot.get("close_client_oid") or "")
+                detail = self.exchange.get_order_detail(
+                    lot["symbol"], close_order_id or None,
+                    client_oid=None if close_order_id else close_client_oid,
+                )
+                state = str(detail.get("state") or detail.get("status") or "").lower()
+                if state != "filled":
+                    raise SafetyViolation(
+                        f"Lot {lot_id} close order is unresolved ({state or 'unknown'})"
+                    )
+                for action, plan_id in lot.get("plan_ids", {}).items():
+                    if plan_id in active_ids:
+                        plan_type = "loss_plan" if action == "sl" else "profit_plan"
+                        self.exchange.cancel_tpsl_order(lot["symbol"], plan_id, plan_type)
+                self._tracked_trades.pop(lot_id, None)
+                self._save_live_state()
+                continue
+            if not lot.get("protection_verified"):
+                self._ensure_lot_protection(lot_id, active)
+                continue
+            ids = lot.get("plan_ids", {})
+            sl_event = history_by_id.get(ids.get("sl", ""))
+            tp2_event = history_by_id.get(ids.get("tp2", ""))
+            tp1_event = history_by_id.get(ids.get("tp1", ""))
+            terminal = next(
+                (event for event in (sl_event, tp2_event)
+                 if event and event.status == "executed"),
+                None,
+            )
+            if terminal:
+                for action, plan_id in ids.items():
+                    if plan_id in active_ids:
+                        plan_type = "loss_plan" if action == "sl" else "profit_plan"
+                        self.exchange.cancel_tpsl_order(lot["symbol"], plan_id, plan_type)
+                self._tracked_trades.pop(lot_id, None)
+                self._save_live_state()
+                self._log_decision({
+                    "action": "LOT_CLOSED", "lot_id": lot_id,
+                    "reason": "sl" if terminal.order_id == ids.get("sl") else "tp2",
+                    "filled_size": terminal.filled_size,
+                    "execute_order_id": terminal.execute_order_id,
+                })
+                continue
+
+            if (tp1_event and tp1_event.status == "executed"
+                    and lot.get("lifecycle") != "remainder"):
+                actual_tp1 = tp1_event.filled_size or float(lot["tp1_size"])
+                remaining = max(0.0, float(lot["original_size"]) - actual_tp1)
+                if remaining <= 0:
+                    raise SafetyViolation(f"TP1 unexpectedly consumed all of lot {lot_id}")
+                side = "long" if lot["direction"] == "LONG" else "short"
+                self.exchange.modify_stop_loss(
+                    lot["symbol"], side, remaining, float(lot["entry"]),
+                    plan_order_id=ids.get("sl"), position_level=False,
+                )
+                self.exchange.modify_tpsl_order(
+                    lot["symbol"], ids.get("tp2", ""), side, remaining,
+                    float(lot["take_profit_2"]), protective=False,
+                )
+                lot["remaining_size"] = remaining
+                lot["current_sl"] = float(lot["entry"])
+                lot["lifecycle"] = "remainder"
+                lot["tp1_fill_size"] = actual_tp1
+                lot["tp1_filled_at_ms"] = tp1_event.updated_at_ms
+                lot["protection_verified"] = (
+                    ids.get("sl") in active_ids and ids.get("tp2") in active_ids
+                )
+                self._save_live_state()
+                self._log_decision({
+                    "action": "TP1_PARTIAL", "lot_id": lot_id,
+                    "filled_size": actual_tp1, "remaining_size": remaining,
+                    "break_even_sl": lot["entry"],
+                })
+                continue
+
+            required_actions = ("sl", "tp2") if lot.get("lifecycle") == "remainder" else (
+                "sl", "tp1", "tp2",
+            )
+            missing = [action for action in required_actions if ids.get(action) not in active_ids]
+            if missing:
+                lot["protection_verified"] = False
+                lot["lifecycle"] = "protecting"
+                self._save_live_state()
+                raise SafetyViolation(
+                    f"Lot {lot_id} is missing active protection plans: {', '.join(missing)}"
+                )
+
+    def reconcile_startup(self, allowed_symbols: set[str] | None = None) -> None:
+        """Make exchange state authoritative before any analysis or new order."""
+        with self._execution_lock:
+            result = self.exchange.preflight(self.config.trading.symbol)
+            allowed_symbols = allowed_symbols or {self.config.trading.symbol}
+            raw_pending = self.exchange.get_pending_order_rows()
+            account_pending = self.exchange.get_pending_orders()
+            account_positions = self.exchange.get_positions()
+            account_plans = self.exchange.get_tpsl_orders()
+            unexpected_symbols = {
+                symbol for symbol in [
+                    *(item.symbol for item in account_pending),
+                    *(item.symbol for item in account_positions),
+                    *(item.symbol for item in account_plans),
+                    *(str(row.get("symbol", "")) for row in raw_pending),
+                ]
+                if symbol and not any(
+                    self._same_symbol(symbol, allowed) for allowed in allowed_symbols
+                )
+            }
+            if unexpected_symbols:
+                raise SafetyViolation(
+                    "REFUSED: Exchange exposure exists outside configured symbols: "
+                    + ", ".join(sorted(unexpected_symbols))
+                )
+            known_close_clients = {
+                str(lot.get("close_client_oid", ""))
+                for lot in self._tracked_trades.values()
+                if lot.get("lifecycle") == "closing"
+            }
+            for row in raw_pending:
+                trade_side = str(row.get("tradeSide") or "open").lower()
+                reduce_only = str(row.get("reduceOnly", "NO")).upper() == "YES"
+                if trade_side == "close" or reduce_only:
+                    client_oid = str(row.get("clientOid", ""))
+                    if client_oid not in known_close_clients:
+                        raise SafetyViolation(
+                            f"REFUSED: Unknown closing/reduce-only order {row.get('orderId', '')}"
+                        )
+            exchange_pending = self.exchange.get_pending_orders(self.config.trading.symbol)
+            pending_by_id = {order.order_id: order for order in exchange_pending}
+
+            # Adopt accepted bot entries whose response/local save was lost. Never
+            # cancel or guess at orders created outside this bot namespace.
+            for order in exchange_pending:
+                if order.order_id in self._pending_orders:
+                    continue
+                if not order.client_oid.startswith("llt-"):
+                    raise SafetyViolation(
+                        f"REFUSED: Unknown exchange order {order.order_id} ({order.client_oid or 'no clientOid'})"
+                    )
+                detail = self.exchange.get_order_detail(order.symbol, order.order_id)
+                self._pending_orders[order.order_id] = self._pending_from_exchange_detail(detail)
+
+            for order_id, pending in list(self._pending_orders.items()):
+                if not self._same_symbol(pending.get("symbol", ""), self.config.trading.symbol):
+                    continue
+                if order_id in pending_by_id:
+                    detail = self.exchange.get_order_detail(pending["symbol"], order_id)
+                    self._validate_pending_against_exchange(pending, detail)
+                else:
+                    detail = self.exchange.get_order_detail(pending["symbol"], order_id)
+                    state = str(detail.get("state") or detail.get("status") or "").lower()
+                    if state == "filled" or self._detail_filled_size(detail, 0) > 0:
+                        self._activate_filled_pending(order_id, detail)
+                    elif state in ("canceled", "cancelled"):
+                        self._pending_orders.pop(order_id, None)
+                    else:
+                        raise SafetyViolation(
+                            f"REFUSED: Local order {order_id} has unresolved exchange state {state!r}"
+                        )
+
+            # V2 stored one ambiguous symbol-level trailing context. It cannot prove
+            # lot quantities or TPSL ownership, so rebuild it from exchange history.
+            for lot_id, lot in list(self._lots_for_symbol(self.config.trading.symbol)):
+                if lot.get("lifecycle") == "unreconciled" and not lot.get("original_size"):
+                    self._tracked_trades.pop(lot_id, None)
+
+            positions = self.exchange.get_positions(self.config.trading.symbol)
+            history = self.exchange.get_order_history(self.config.trading.symbol)
+            known_clients = {str(lot.get("client_oid", "")) for _, lot in self._lots_for_symbol(
+                self.config.trading.symbol
+            )}
+            for pos in positions:
+                known_size = sum(
+                    float(lot.get("remaining_size", 0))
+                    for _, lot in self._lots_for_symbol(pos.symbol, pos.side.lower())
+                )
+                if known_size + 1e-12 < pos.size:
+                    candidates = sorted(
+                        (
+                            row for row in history
+                            if str(row.get("clientOid", "")).startswith("llt-")
+                            and str(row.get("clientOid")) not in known_clients
+                            and str(row.get("status", "")).lower() == "filled"
+                            and str(row.get("reduceOnly", "NO")).upper() != "YES"
+                            and str(row.get("tradeSide") or "open").lower()
+                            not in ("close", "reduce_close_long", "reduce_close_short")
+                            and self._same_symbol(
+                                str(row.get("symbol", "")), self.config.trading.symbol
+                            )
+                            and ((str(row.get("side", "")).lower() == "buy") == (pos.side.lower() == "long"))
+                        ),
+                        key=lambda row: int(row.get("cTime", 0) or 0), reverse=True,
+                    )
+                    for row in candidates:
+                        pending = self._pending_from_exchange_detail(row)
+                        lot_id, lot = self._build_lot(str(row.get("orderId", "")), pending, row)
+                        self._tracked_trades[lot_id] = lot
+                        known_clients.add(lot_id)
+                        known_size += float(lot["remaining_size"])
+                        if known_size + 1e-12 >= pos.size:
+                            break
+                if known_size + 1e-12 < pos.size:
+                    raise SafetyViolation(
+                        f"REFUSED: Unexplained {pos.side} {pos.symbol} position size "
+                        f"{pos.size}; only {known_size} is attributable to bot lots"
+                    )
+
+            self._save_live_state()
+            active = self.exchange.get_tpsl_orders(self.config.trading.symbol)
+            for lot_id, _lot in self._lots_for_symbol(self.config.trading.symbol):
+                self._ensure_lot_protection(lot_id, active)
+            self._cancel_replaced_presets(self.config.trading.symbol)
+            self._reconcile_lot_lifecycle()
+            if any(not lot.get("protection_verified")
+                   for _, lot in self._lots_for_symbol(self.config.trading.symbol)):
+                raise SafetyViolation("REFUSED: One or more open lots lack verified SL/TP protection")
+            positions = self.exchange.get_positions(self.config.trading.symbol)
+            for side in ("long", "short"):
+                exchange_size = sum(pos.size for pos in positions if pos.side.lower() == side)
+                local_size = sum(
+                    float(lot.get("remaining_size", 0))
+                    for _, lot in self._lots_for_symbol(self.config.trading.symbol, side)
+                )
+                if abs(exchange_size - local_size) > 1e-12:
+                    raise SafetyViolation(
+                        f"REFUSED: {side} position/lot mismatch: exchange={exchange_size}, "
+                        f"local={local_size}"
+                    )
+            known_plan_ids = {
+                str(plan_id)
+                for _, lot in self._lots_for_symbol(self.config.trading.symbol)
+                for plan_id in lot.get("plan_ids", {}).values()
+            }
+            unexplained_plans = [
+                plan for plan in self.exchange.get_tpsl_orders(self.config.trading.symbol)
+                if plan.order_id not in known_plan_ids
+            ]
+            if unexplained_plans:
+                raise SafetyViolation(
+                    "REFUSED: Unexplained active TPSL plans: "
+                    + ", ".join(plan.order_id for plan in unexplained_plans)
+                )
+            self._startup_reconciled = True
+            self._log(
+                f"Startup reconciliation passed for {result['symbol']} "
+                f"({result['position_mode']}, {result['margin_mode']}, "
+                f"clock drift {result['clock_drift_ms']}ms)"
+            )
 
     def _log(self, msg: str) -> None:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -226,6 +749,13 @@ class TradingScheduler:
         if primary_bar is None:
             self._log("No completed primary candle available")
             return None
+        missing_frames = set(self.config.trading.timeframes) - set(data_by_tf)
+        if missing_frames:
+            self._log(
+                "ERROR: completed snapshot missing required timeframes: "
+                + ", ".join(sorted(missing_frames))
+            )
+            return None
         analysis_bar = str(primary_bar)
         if self._live_state.last_analysis_bars.get(symbol_key) == analysis_bar:
             self._log(f"Primary candle {analysis_bar} already analyzed")
@@ -237,7 +767,8 @@ class TradingScheduler:
             try:
                 indicators_by_tf[tf] = calculate_indicators(df, tf)
             except Exception as e:
-                self._log(f"Warning: Failed to calculate {tf} indicators: {e}")
+                self._log(f"ERROR: Failed to calculate required {tf} indicators: {e}")
+                return None
 
         if not indicators_by_tf:
             self._log("No indicators calculated")
@@ -305,8 +836,19 @@ class TradingScheduler:
                     f"{pos.side} position — closing {pos.size}"
                 )
                 try:
-                    self.exchange.close_position(self.config.trading.symbol, pos.side, pos.size)
-                    self._tracked_trades.pop(self.config.trading.symbol, None)
+                    close_client_oid = self._plan_client_oid(
+                        f"{self.config.trading.symbol}:{self._candidate_analysis_bar or 'manual'}",
+                        "signal-flip-close",
+                    )
+                    response = self.exchange.close_position(
+                        self.config.trading.symbol, pos.side, pos.size,
+                        client_oid=close_client_oid,
+                    )
+                    close_order_id = str((response.get("data", {}) or {}).get("orderId", ""))
+                    for _lot_id, lot in self._lots_for_symbol(pos.symbol, pos.side.lower()):
+                        lot["lifecycle"] = "closing"
+                        lot["close_client_oid"] = close_client_oid
+                        lot["close_order_id"] = close_order_id
                     self._save_live_state()
                     self._log_decision({
                         "action": "SIGNAL_FLIP_CLOSE",
@@ -376,6 +918,16 @@ class TradingScheduler:
         if not decision.targets:
             self._log("No targets calculated — cannot trade")
             return
+        unprotected = [
+            lot_id for lot_id, lot in self._tracked_trades.items()
+            if not lot.get("protection_verified", False)
+        ]
+        if unprotected:
+            self._log(
+                "SAFETY: new entries blocked while lots lack verified protection: "
+                + ", ".join(unprotected)
+            )
+            return
 
         targets = decision.targets
         tier = self.config.trading.active_leverage_tier
@@ -428,7 +980,10 @@ class TradingScheduler:
                         f"DD THROTTLE active ({dd:.1%} >= {rm.dd_throttle_threshold:.1%}) — "
                         f"slots capped at {slots}, risk x{throttle_risk_mult}"
                     )
-            committed = len(positions) + len(pending_for_symbol)
+            # Bitget nets same-side futures into one exchange position, so exchange
+            # row count cannot represent pyramided strategy slots. Durable lots can.
+            open_lots = len(self._lots_for_symbol(self.config.trading.symbol))
+            committed = open_lots + len(pending_for_symbol)
             if committed >= slots:
                 self._log(f"Already have {committed}/{slots} committed slot(s) — skipping")
                 return
@@ -439,7 +994,9 @@ class TradingScheduler:
                    for p in pending_for_symbol):
                 self._log("Resting order in the opposite direction — not stacking, skipping")
                 return
-            global_committed = len(global_positions) + len(exchange_pending) + len(local_pending)
+            global_committed = (
+                len(self._tracked_trades) + len(exchange_pending) + len(local_pending)
+            )
             if ps.global_max_positions > 0 and global_committed >= ps.global_max_positions:
                 self._log(
                     f"GLOBAL EXPOSURE: {global_committed}/{ps.global_max_positions} "
@@ -508,6 +1065,12 @@ class TradingScheduler:
                 f"Computed non-positive size (balance=${balance:,.2f}, margin=${margin:,.2f}) — skipping trade"
             )
             return
+        if not self.exchange._dry_run:
+            # Reject an entry before submission when either 70% TP1 or the remainder
+            # would fall below the contract's executable size step/minimum.
+            self.exchange.split_size(
+                self.config.trading.symbol, size, tier.tp1_exit_pct,
+            )
 
         self._log(
             f"Executing {side.upper()} @ ${targets.entry:,.2f} | "
@@ -518,55 +1081,57 @@ class TradingScheduler:
         )
 
         try:
+            client_oid = self._entry_client_oid(side)
             if self.config.trading.entry_mode == "maker":
                 result = self.exchange.place_order(
                     symbol=self.config.trading.symbol, side=side, size=size,
                     targets=targets, leverage=tier.leverage,
-                    order_type="limit", price=targets.entry,
+                    order_type="limit", price=targets.entry, client_oid=client_oid,
                 )
             else:
                 result = self.exchange.place_order(
                     symbol=self.config.trading.symbol, side=side, size=size,
-                    targets=targets, leverage=tier.leverage,
+                    targets=targets, leverage=tier.leverage, client_oid=client_oid,
                 )
             self._log(f"Order placed: {result.order_id}")
 
             direction = "LONG" if targets.direction == Direction.BULLISH else "SHORT"
+            placed_at = time.time()
             if self.config.trading.entry_mode == "maker":
-                placed_at = time.time()
                 tf_seconds = self._timeframe_seconds(
                     self.config.trading.primary_timeframe
                 )
                 # Expire on the next UTC-aligned primary-bar close, not an
                 # arbitrary wall-clock duration after a delayed scheduler tick.
                 expires_at = (int(placed_at // tf_seconds) + 1) * tf_seconds
-                self._pending_orders[result.order_id] = {
-                    "symbol": self.config.trading.symbol,
-                    "direction": direction,
-                    "entry": targets.entry,
-                    "stop_loss": targets.stop_loss,
-                    "take_profit_1": targets.take_profit_1,
-                    "take_profit_2": targets.take_profit_2,
-                    "size": size,
-                    "leverage": tier.leverage,
-                    "placed_at": placed_at,
-                    "expires_at": expires_at,
-                }
-                self._save_pending_orders()
             else:
-                # Market orders are immediately eligible for trailing management.
-                self._tracked_trades[self.config.trading.symbol] = {
-                    "direction": direction,
-                    "entry": targets.entry,
-                    "current_sl": targets.stop_loss,
-                }
-                self._save_live_state()
+                # Market orders are reconciled from exchange-confirmed fills instead
+                # of assuming response-time price/quantity. They are never cancelled
+                # by the maker expiry path.
+                expires_at = 0
+            self._pending_orders[result.order_id] = {
+                "symbol": self.config.trading.symbol,
+                "direction": direction,
+                "entry": result.price if result.price is not None else targets.entry,
+                "stop_loss": result.stop_loss,
+                "take_profit_1": result.take_profit_1,
+                "take_profit_2": result.take_profit_2,
+                "tp1_exit_pct": tier.tp1_exit_pct,
+                "size": result.size,
+                "leverage": tier.leverage,
+                "client_oid": client_oid,
+                "entry_mode": self.config.trading.entry_mode,
+                "placed_at": placed_at,
+                "expires_at": expires_at,
+            }
+            self._save_pending_orders()
 
             self._log_decision({
                 "action": (f"PLACE_{side.upper()}_MAKER"
                            if self.config.trading.entry_mode == "maker"
                            else f"TRADE_{side.upper()}"),
                 "order_id": result.order_id,
+                "client_oid": client_oid,
                 "entry": targets.entry,
                 "sl": targets.stop_loss,
                 "tp1": targets.take_profit_1,
@@ -585,6 +1150,10 @@ class TradingScheduler:
         """Check and manage existing positions."""
         self._reconcile_pending_orders()
         try:
+            if not self.exchange._dry_run and not self._startup_reconciled:
+                self.reconcile_startup()
+            if not self.exchange._dry_run:
+                self._reconcile_lot_lifecycle()
             positions = self.exchange.get_positions(self.config.trading.symbol)
             global_positions = self.exchange.get_positions()
             equity = self.exchange.get_account_equity()
@@ -619,17 +1188,28 @@ class TradingScheduler:
         trailing = self.config.trading.trailing_stop
         if not trailing.enabled:
             return
-
-        tracked = self._tracked_trades.get(pos.symbol)
-        if not tracked:
-            return  # We didn't open this position (or lost context after a restart).
         if pos.size <= 0:
             return
+
+        tracked_lots = self._lots_for_symbol(pos.symbol, pos.side.lower())
+        if not tracked_lots:
+            return  # We didn't open this position (or startup reconciliation failed).
 
         expected_bar = str(latest_completed_bar_open(
             self.config.trading.primary_timeframe
         ))
-        if tracked.get("last_trail_bar") == expected_bar:
+        eligible = []
+        for lot_id, tracked in tracked_lots:
+            if not tracked.get("last_trail_bar"):
+                tracked["last_trail_bar"] = expected_bar
+                self._save_live_state()
+                self._log(
+                    f"Trailing initialized for {lot_id}; waiting for the next completed primary bar"
+                )
+                continue
+            if tracked.get("last_trail_bar") != expected_bar:
+                eligible.append((lot_id, tracked))
+        if not eligible:
             return
 
         # Fetch the last COMPLETED primary-timeframe candle; only ratchet when a new
@@ -652,38 +1232,58 @@ class TradingScheduler:
         last = df.iloc[-1]
         last_ts = df.index[-1]
 
-        if tracked.get("last_trail_bar") == str(last_ts):
-            return  # already ratcheted on this bar
-        tracked["last_trail_bar"] = str(last_ts)
-
-        favorable = float(last["High"]) if tracked["direction"] == "LONG" else float(last["Low"])
-        new_sl = compute_trailing_stop(
-            direction=tracked["direction"],
-            entry_price=tracked["entry"],
-            favorable_extreme=favorable,
-            current_sl=tracked["current_sl"],
-            activation_pct=trailing.activation_pct,
-            callback_pct=trailing.callback_pct,
-        )
-        if new_sl is None:
-            return
-
-        try:
-            self.exchange.modify_stop_loss(
-                symbol=pos.symbol, hold_side=pos.side, size=pos.size, new_sl=new_sl,
+        for lot_id, tracked in eligible:
+            if tracked.get("last_trail_bar") == str(last_ts):
+                continue
+            favorable = (
+                float(last["High"]) if tracked["direction"] == "LONG"
+                else float(last["Low"])
             )
-            tracked["current_sl"] = new_sl
-            self._save_live_state()
-            self._log(f"Trailing stop moved to ${new_sl:,.2f} ({tracked['direction']})")
-        except Exception as e:
-            self._log(f"Failed to update trailing stop: {e}")
+            new_sl = compute_trailing_stop(
+                direction=tracked["direction"],
+                entry_price=tracked["entry"],
+                favorable_extreme=favorable,
+                current_sl=tracked["current_sl"],
+                activation_pct=trailing.activation_pct,
+                callback_pct=trailing.callback_pct,
+            )
+            if new_sl is None:
+                tracked["last_trail_bar"] = str(last_ts)
+                self._save_live_state()
+                continue
+            plan_ids = tracked.get("plan_ids", {})
+            plan_id = plan_ids.get("sl") or tracked.get("stop_plan_id")
+            try:
+                kwargs = {
+                    "symbol": pos.symbol,
+                    "hold_side": pos.side,
+                    "size": float(tracked.get("remaining_size") or pos.size),
+                    "new_sl": new_sl,
+                    "plan_order_id": plan_id,
+                }
+                if plan_ids:
+                    kwargs["position_level"] = False
+                self.exchange.modify_stop_loss(**kwargs)
+                tracked["current_sl"] = new_sl
+                tracked["last_trail_bar"] = str(last_ts)
+                self._save_live_state()
+                self._log(
+                    f"Trailing stop moved to ${new_sl:,.2f} ({tracked['direction']}, lot {lot_id})"
+                )
+            except Exception as e:
+                self._log(f"Failed to update trailing stop for lot {lot_id}: {e}")
 
     def run_cycle(self) -> None:
         """Run one full analysis + execution cycle."""
         self._log("=" * 50)
         self._log("Starting analysis cycle")
 
+        if not self.exchange._dry_run and not self._startup_reconciled:
+            self.reconcile_startup()
+
         self._reconcile_pending_orders()
+        if not self.exchange._dry_run:
+            self._reconcile_lot_lifecycle()
 
         decision = self.analyze_market()
         if decision:
@@ -701,6 +1301,8 @@ class TradingScheduler:
         interval = self.config.scheduling.interval_minutes
         pos_interval = self.config.scheduling.check_positions_interval_minutes
 
+        # Paper/live is never allowed to degrade silently into credential-free dry run.
+        self.reconcile_startup()
         poll_interval = 1
         self._log(
             f"Starting scheduler — completed-bar analysis poll every {poll_interval}min "

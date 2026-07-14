@@ -204,6 +204,8 @@ class Portfolio:
             take_profit_2=take_profit_2,
             tp1_exit_pct=tp1_exit_pct,
             entry_fee=entry_fee,
+            total_fees=entry_fee,
+            net_pnl=-entry_fee,
             symbol=symbol,
         )
 
@@ -329,6 +331,8 @@ class Portfolio:
             self.peak_balance = equity
 
         dd_pct = (self.peak_balance - equity) / self.peak_balance * 100 if self.peak_balance > 0 else 0
+        if dd_pct > self.max_drawdown_pct:
+            self.max_drawdown_pct = dd_pct
 
         snapshot = PortfolioSnapshot(
             timestamp=timestamp,

@@ -388,8 +388,7 @@ def compute_composite_score(
     """
     primary = indicators_by_tf.get(primary_timeframe)
     if not primary:
-        # Fall back to first available
-        primary = next(iter(indicators_by_tf.values()))
+        raise ValueError(f"Required primary timeframe {primary_timeframe!r} is missing")
 
     # Score each category on primary timeframe
     cat_funcs = {
@@ -565,11 +564,15 @@ def apply_pre_trade_filters(
     failures: list[str] = []
 
     # ADX check — is the market ranging?
-    if indicators.adx is not None and indicators.adx < min_adx:
+    if indicators.adx is None:
+        failures.append("ADX unavailable — required risk filter cannot be evaluated")
+    elif indicators.adx < min_adx:
         failures.append(f"ADX too low ({indicators.adx:.1f} < {min_adx}) — market is ranging")
 
     # Volatility check
-    if indicators.atr_pct is not None and indicators.atr_pct < min_volatility_pct:
+    if indicators.atr_pct is None:
+        failures.append("ATR unavailable — required volatility filter cannot be evaluated")
+    elif indicators.atr_pct < min_volatility_pct:
         failures.append(
             f"Volatility too low ({indicators.atr_pct:.2f}% < {min_volatility_pct}%)"
         )

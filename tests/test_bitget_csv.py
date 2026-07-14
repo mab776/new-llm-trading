@@ -21,7 +21,7 @@ from llm_trading_bot.bitget_csv import (
 
 class FakeExchange:
     """
-    Simulates a well-behaved exchange that honours `since`/`limit`/until.
+    Simulates Bitget's strict boundaries: rows are after `since` and before `until`.
 
     Records every fetch_ohlcv call. Returns up to `limit` candles at `timeframe` spacing
     starting at `since`, stopping before `until`. Timestamps earlier than `listing_ms`
@@ -38,7 +38,7 @@ class FakeExchange:
         self.calls.append({"since": since, "limit": limit, "params": dict(params)})
         until = params.get("until")
         rows = []
-        ts = since
+        ts = since + self.gap
         while ts < until and len(rows) < limit:
             if ts >= self.listing_ms:
                 # [ts, open, high, low, close, volume] + an extra field to ensure we slice [:6]
@@ -68,11 +68,36 @@ class TestFetchOhlcvRange:
         fetch_ohlcv_range(ex, "BTC/USDT:USDT", tf, start, end)
 
         sinces = [c["since"] for c in ex.calls]
-        # 500 candles / 200 per window -> 3 windows at 0, 200*gap, 400*gap
-        assert sinces == [0, 200 * gap, 400 * gap]
+        # Each request overlaps its desired window by one candle so strict `since`
+        # semantics cannot omit the boundary candle.
+        assert sinces == [-gap, 199 * gap, 399 * gap]
         # Each window's `until` = min(end, since + 200*gap)
         assert ex.calls[0]["params"]["until"] == 200 * gap
         assert ex.calls[-1]["params"]["until"] == end
+
+    def test_daily_windows_respect_90_day_span(self):
+        gap = _TF_MS["1d"]
+        ex = FakeExchange("1d")
+        fetch_ohlcv_range(ex, "BTC/USDT:USDT", "1d", 0, 250 * gap)
+
+        assert len(ex.calls) == 3
+        assert all(c["params"]["until"] - c["since"] <= 90 * gap for c in ex.calls)
+
+    def test_strict_page_boundaries_have_no_missing_candles(self):
+        gap = _TF_MS["4h"]
+        ex = FakeExchange("4h")
+        rows = fetch_ohlcv_range(ex, "BTC/USDT:USDT", "4h", 0, 401 * gap)
+        assert [row[0] for row in rows] == list(range(0, 401 * gap, gap))
+
+    def test_gap_inside_history_fails_closed(self):
+        gap = _TF_MS["1h"]
+
+        class GappedExchange(FakeExchange):
+            def fetch_ohlcv(self, *args, **kwargs):
+                return [row for row in super().fetch_ohlcv(*args, **kwargs) if row[0] != 50 * gap]
+
+        with pytest.raises(ValueError, match="Incomplete 1h history"):
+            fetch_ohlcv_range(GappedExchange("1h"), "BTC/USDT:USDT", "1h", 0, 100 * gap)
 
     def test_rows_are_within_range_and_complete(self):
         tf = "1h"

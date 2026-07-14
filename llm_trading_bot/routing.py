@@ -135,6 +135,9 @@ def route_signal(
     """
     tier = config.trading.active_leverage_tier
     scoring_cfg = config.scoring
+    primary_tf = config.trading.primary_timeframe
+    if primary_tf not in indicators_by_tf:
+        raise ValueError(f"Required primary timeframe {primary_tf!r} is missing")
 
     # 1. Score
     result = compute_composite_score(
@@ -147,8 +150,7 @@ def route_signal(
     )
 
     # 2. Calculate targets (use tier R:R ratios)
-    primary_tf = config.trading.primary_timeframe
-    primary_ind = indicators_by_tf.get(primary_tf) or next(iter(indicators_by_tf.values()))
+    primary_ind = indicators_by_tf[primary_tf]
     targets = calculate_targets(
         indicators=primary_ind,
         direction=result.direction,

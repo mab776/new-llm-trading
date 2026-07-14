@@ -116,7 +116,7 @@ def test_limit_order_is_post_only_and_keeps_safety_targets(monkeypatch):
     body = calls[-1][2]["body"]
     assert body["force"] == "post_only"
     assert body["presetStopLossPrice"] == "95"
-    assert body["presetStopSurplusPrice"] == "110"
+    assert body["presetStopSurplusPrice"] == "120"  # TP2 until per-lot plans reconcile
 
 
 def test_live_pending_fill_is_promoted_to_trailing_context(monkeypatch, tmp_path):
@@ -133,9 +133,11 @@ def test_live_pending_fill_is_promoted_to_trailing_context(monkeypatch, tmp_path
                         lambda *a: {"state": "filled", "priceAvg": "99.5"})
     scheduler._reconcile_pending_orders()
     assert scheduler._pending_orders == {}
-    assert scheduler._tracked_trades["BTCUSDT"] == {
-        "direction": "LONG", "entry": 99.5, "current_sl": 95,
-    }
+    tracked = next(iter(scheduler._tracked_trades.values()))
+    assert tracked["direction"] == "LONG"
+    assert tracked["entry"] == 99.5
+    assert tracked["current_sl"] == 95
+    assert tracked["last_trail_bar"]
 
 
 def test_live_expired_pending_is_cancelled(monkeypatch, tmp_path):

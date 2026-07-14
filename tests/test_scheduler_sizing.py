@@ -127,8 +127,9 @@ class TestLiveSizing:
 
         captured = {}
 
-        def fake_place_order(symbol, side, size, targets, leverage):
+        def fake_place_order(symbol, side, size, targets, leverage, client_oid=None, **kwargs):
             captured["size"] = size
+            captured["client_oid"] = client_oid
             from llm_trading_bot.exchange import OrderResult
             return OrderResult(
                 order_id="x", symbol=symbol, side=side, size=size, price=None,
@@ -144,6 +145,7 @@ class TestLiveSizing:
         # margin = min(5000 * 0.02, 100) = 100; notional = 100 * 10 = 1000; size = 1000/50000
         assert captured["size"] == pytest.approx(1000 / 50000)
         assert captured["size"] != 0.001
+        assert captured["client_oid"].startswith("llt-")
 
     def test_zero_balance_skips_trade(self, monkeypatch, tmp_path):
         monkeypatch.chdir(tmp_path)
@@ -181,8 +183,14 @@ class TestLiveSizing:
         captured = {}
         monkeypatch.setattr(
             sched.exchange, "place_order",
-            lambda symbol, side, size, targets, leverage: captured.update(size=size)
-            or type("R", (), {"order_id": "x"})(),
+            lambda symbol, side, size, targets, leverage, client_oid=None, **kwargs:
+            captured.update(size=size, client_oid=client_oid)
+            or type("R", (), {
+                "order_id": "x", "price": None, "size": size,
+                "stop_loss": targets.stop_loss,
+                "take_profit_1": targets.take_profit_1,
+                "take_profit_2": targets.take_profit_2,
+            })(),
         )
 
         sched._execute_trade(_decision())
@@ -206,12 +214,17 @@ class TestLiveTrailing:
         sched = TradingScheduler(cfg)
         sched._tracked_trades["BTC/USDT:USDT"] = {
             "direction": "LONG", "entry": 50000.0, "current_sl": 49000.0,
+            "stop_plan_id": "plan-1",
+            "last_trail_bar": str(
+                pd.Timestamp.now(tz="UTC").floor("4h") - pd.Timedelta(hours=12)
+            ),
         }
 
         moved = {}
         monkeypatch.setattr(
             sched.exchange, "modify_stop_loss",
-            lambda symbol, hold_side, size, new_sl: moved.update(new_sl=new_sl) or {"code": "00000"},
+            lambda symbol, hold_side, size, new_sl, plan_order_id=None:
+            moved.update(new_sl=new_sl, plan_order_id=plan_order_id) or {"code": "00000"},
         )
 
         # Completed 4h bar with high 51000 (2% above entry, past 1% activation);
@@ -233,6 +246,7 @@ class TestLiveTrailing:
         sched._maybe_trail_stop(pos)
         # new SL = completed-bar high 51000 - 0.5% of entry (250) = 50750 (NOT 59750)
         assert moved["new_sl"] == pytest.approx(50750.0)
+        assert moved["plan_order_id"] == "plan-1"
         assert sched._tracked_trades["BTC/USDT:USDT"]["current_sl"] == pytest.approx(50750.0)
 
         # a second tick inside the same bar must not ratchet again

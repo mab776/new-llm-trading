@@ -17,26 +17,34 @@ class OpenWebUIConfig(BaseModel):
     base_url: str = "http://localhost:3000"
     api_key: str = ""
     model_ids: list[str] = ["llama3.1:8b"]
-    timeout_seconds: int = 120
+    timeout_seconds: int = Field(120, gt=0)
     # deterministic matches the validated backtest: passed MARGINAL signals trade
     # directly. consensus remains available for explicit experiments.
     marginal_execution: Literal["deterministic", "consensus"] = "consensus"
 
 
 class LeverageTier(BaseModel):
-    leverage: int = 20
-    strong_threshold: float = 30
-    marginal_threshold_low: float = 25
-    marginal_threshold_high: float = 30
-    tp1_rr: float = 3.0
-    tp2_rr: float = 6.0
-    tp1_exit_pct: float = 0.3
+    leverage: int = Field(20, ge=1, le=125)
+    strong_threshold: float = Field(30, ge=0, le=100)
+    marginal_threshold_low: float = Field(25, ge=0, le=100)
+    marginal_threshold_high: float = Field(30, ge=0, le=100)
+    tp1_rr: float = Field(3.0, gt=0)
+    tp2_rr: float = Field(6.0, gt=0)
+    tp1_exit_pct: float = Field(0.3, gt=0, lt=1)
+
+    @model_validator(mode="after")
+    def validate_thresholds_and_targets(self):
+        if self.marginal_threshold_low > min(self.marginal_threshold_high, self.strong_threshold):
+            raise ValueError("marginal_threshold_low must not exceed the other signal thresholds")
+        if self.tp2_rr < self.tp1_rr:
+            raise ValueError("tp2_rr must be >= tp1_rr")
+        return self
 
 
 class TrailingStopConfig(BaseModel):
     enabled: bool = False
-    activation_pct: float = 1.0
-    callback_pct: float = 0.5
+    activation_pct: float = Field(1.0, gt=0, le=100)
+    callback_pct: float = Field(0.5, gt=0, le=100)
 
 
 class TradingConfig(BaseModel):
@@ -52,6 +60,14 @@ class TradingConfig(BaseModel):
     entry_mode: Literal["taker", "maker"] = "taker"
     trailing_stop: TrailingStopConfig = Field(default_factory=TrailingStopConfig)
 
+    @model_validator(mode="after")
+    def validate_references(self):
+        if not self.timeframes or self.primary_timeframe not in self.timeframes:
+            raise ValueError("primary_timeframe must be present in timeframes")
+        if self.leverage_tiers and self.active_tier not in self.leverage_tiers:
+            raise ValueError(f"active_tier {self.active_tier!r} is not configured")
+        return self
+
     @property
     def active_leverage_tier(self) -> LeverageTier:
         return self.leverage_tiers[self.active_tier]
@@ -62,24 +78,32 @@ class ScoringConfig(BaseModel):
         "trend": 0.30, "momentum": 0.25, "volume": 0.15,
         "support_resistance": 0.20, "risk": 0.10
     })
-    atr_period: int = 14
-    atr_sl_multiplier: float = 1.5
-    atr_tp1_multiplier: float = 3.0
-    atr_tp2_multiplier: float = 6.0
+    atr_period: int = Field(14, gt=0)
+    atr_sl_multiplier: float = Field(1.5, gt=0)
+    atr_tp1_multiplier: float = Field(3.0, gt=0)
+    atr_tp2_multiplier: float = Field(6.0, gt=0)
     adx_ranging_threshold: float = 20
     min_volatility_pct: float = 0.3
-    confidence_min: float = 5
-    confidence_max: float = 95
+    confidence_min: float = Field(5, ge=5, le=95)
+    confidence_max: float = Field(95, ge=5, le=95)
     # Partial overrides of openwebui_filter.DEFAULT_SCORING_POINTS.
     points: dict[str, float] = Field(default_factory=dict)
 
     @field_validator("weights")
     @classmethod
     def validate_weights(cls, v: dict[str, float]) -> dict[str, float]:
+        if any(weight < 0 for weight in v.values()):
+            raise ValueError("Weights cannot be negative")
         total = sum(v.values())
         if abs(total - 1.0) > 0.01:
             raise ValueError(f"Weights must sum to 1.0, got {total:.3f}")
         return v
+
+    @model_validator(mode="after")
+    def validate_confidence_bounds(self):
+        if self.confidence_min > self.confidence_max:
+            raise ValueError("confidence_min must be <= confidence_max")
+        return self
 
 
 class FiltersConfig(BaseModel):
@@ -93,8 +117,8 @@ class FiltersConfig(BaseModel):
 
 
 class FeesConfig(BaseModel):
-    maker: float = 0.0002
-    taker: float = 0.0006
+    maker: float = Field(0.0002, ge=0, lt=0.1)
+    taker: float = Field(0.0006, ge=0, lt=0.1)
     default_order_type: Literal["maker", "taker"] = "taker"
 
     @property
@@ -108,6 +132,8 @@ class BitgetConfig(BaseModel):
     passphrase: str = ""
     testnet: bool = True
     product_type: str = "USDT-FUTURES"
+    position_mode: Literal["one_way", "hedge"] = "one_way"
+    margin_mode: Literal["crossed", "isolated"] = "crossed"
 
 
 class RiskManagementConfig(BaseModel):
@@ -131,10 +157,10 @@ class RiskManagementConfig(BaseModel):
 
 class PositionSizingConfig(BaseModel):
     """How much capital to put behind each trade (used by live AND backtest)."""
-    risk_pct_per_trade: float = 0.02   # Fraction of account balance risked as margin per trade
-    max_position_usd: float = 100      # Hard cap on the margin committed to a single trade
-    max_positions: int = 1             # Concurrent SAME-direction positions (pyramiding); 1 = classic
-    conviction_exponent: float = 0.0   # 0 = off; scale risk by (|score|/strong_threshold)^k,
+    risk_pct_per_trade: float = Field(0.02, gt=0, le=1)
+    max_position_usd: float = Field(100, gt=0)
+    max_positions: int = Field(1, ge=1)
+    conviction_exponent: float = Field(0.0, ge=0)
     #                                    clamped to [0.5, 1.5] — bigger signals get bigger size
     anti_martingale_step: float = Field(0.0, ge=0)  # signed streak step; 0 = disabled
     anti_martingale_min: float = Field(0.7, gt=0)   # lower multiplier after losses
@@ -154,8 +180,8 @@ class PositionSizingConfig(BaseModel):
 class BacktestingConfig(BaseModel):
     start_date: str = "2024-01-01"
     end_date: str = "2025-12-31"
-    initial_balance: float = 10000
-    warmup_periods: int = 200
+    initial_balance: float = Field(10000, gt=0)
+    warmup_periods: int = Field(200, gt=0)
     enable_partial_exits: bool = True
     enable_trailing_stops: bool = False
     include_funding: bool = True    # Model perp funding payments (every 8h on notional).
@@ -163,19 +189,19 @@ class BacktestingConfig(BaseModel):
 
 
 class SchedulingConfig(BaseModel):
-    interval_minutes: int = 60
-    check_positions_interval_minutes: int = 15
+    interval_minutes: int = Field(60, gt=0)
+    check_positions_interval_minutes: int = Field(15, gt=0)
 
 
 class DataCacheConfig(BaseModel):
-    ttl_seconds: int = 300
+    ttl_seconds: int = Field(300, ge=0)
 
 
 class DataSourceConfig(BaseModel):
     """Data source configuration. Controls where OHLCV data comes from."""
     source: str = "yfinance"      # "yfinance", "binance", "bitget", or any ccxt exchange
     exchange_symbol: str = "BTC/USDT"  # Symbol format for ccxt exchanges
-    market: str = "futures"       # "futures" (swap) or "spot" — Bitget market for fetching
+    market: Literal["futures", "spot"] = "futures"
 
 
 class AppConfig(BaseModel):
