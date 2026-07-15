@@ -200,8 +200,8 @@ class SchedulingConfig(BaseModel):
     interval_minutes: int = Field(60, gt=0)
     check_positions_interval_minutes: int = Field(15, gt=0)
     # Live logging: one trading-YYYY-MM-DD.log / decisions-YYYY-MM-DD.jsonl file
-    # per UTC day; files older than this many days are deleted automatically.
-    log_retention_days: int = Field(30, ge=1)
+    # per LOCAL day; files older than this many days are deleted automatically.
+    log_retention_days: int = Field(90, ge=1)
 
 
 class DataCacheConfig(BaseModel):

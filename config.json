@@ -104,7 +104,7 @@
     "scheduling": {
         "interval_minutes": 60,
         "check_positions_interval_minutes": 15,
-        "log_retention_days": 30
+        "log_retention_days": 90
     },
     "data_cache": {
         "ttl_seconds": 300

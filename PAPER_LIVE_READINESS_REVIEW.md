@@ -124,13 +124,15 @@ scenario on the exchange:
 
 **Logging (explicitly requested) — DONE:**
 
-- **One file per UTC day:** `logs/trading-YYYY-MM-DD.log` (human-readable, UTC timestamps,
+- **One file per local day:** `logs/trading-YYYY-MM-DD.log` (human-readable, local timestamps,
   symbol-tagged) and `logs/decisions-YYYY-MM-DD.jsonl` (structured stream). The old unbounded
-  `trading.log`/`decisions.jsonl` appends are gone.
-- **30-day retention** (config: `scheduling.log_retention_days`): dated files older than the
-  window are deleted on startup and at each UTC day rollover; files without a parsable date
+  `trading.log`/`decisions.jsonl` appends are gone. (Decision *bars* stay UTC-aligned — that is
+  exchange reality, not a logging choice.)
+- **90-day retention** (config: `scheduling.log_retention_days`): dated files older than the
+  window are deleted on startup and at each day rollover; files without a parsable date
   suffix are never touched.
-- **Structured, evaluation-ready records:** every record carries `symbol` + UTC `timestamp`;
+- **Structured, evaluation-ready records:** every record carries `symbol` + a local `timestamp`
+  with explicit UTC offset;
   placements carry decision bar, targets, size/margin/risk_pct, leverage, score/confidence,
   loss penalty, equity/available/realized/peak balances; fills carry size/fee/fill-time;
   `TP1_PARTIAL` carries price + break-even move; `LOT_CLOSED` carries reason, exit price, and an

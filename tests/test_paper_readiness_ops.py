@@ -5,7 +5,7 @@ slippage/liquidation, the account-scoped process lock, and max-holding expiry.""
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 
 import pandas as pd
 import pytest
@@ -81,7 +81,7 @@ class TestDailyLogs:
         scheduler._log("hello")
         scheduler._log_decision({"action": "WAIT", "reason": "test"})
 
-        day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        day = datetime.now().astimezone().strftime("%Y-%m-%d")  # LOCAL day
         log_file = tmp_path / f"trading-{day}.log"
         decisions_file = tmp_path / f"decisions-{day}.jsonl"
         assert log_file.exists() and "hello" in log_file.read_text()
@@ -89,6 +89,8 @@ class TestDailyLogs:
         assert record["action"] == "WAIT"
         assert record["symbol"] == "BTC-USDT"
         assert record["timestamp"].startswith(day)
+        # Local timestamp keeps its UTC offset so records stay unambiguous.
+        assert datetime.fromisoformat(record["timestamp"]).tzinfo is not None
 
     def test_retention_prunes_only_old_dated_files(self, tmp_path) -> None:
         old_log = tmp_path / "trading-2020-01-01.log"
@@ -103,11 +105,12 @@ class TestDailyLogs:
         assert not old_log.exists()
         assert not old_decisions.exists()
         assert unrelated.exists()  # unparsable date suffix is never deleted
-        day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        day = datetime.now().astimezone().strftime("%Y-%m-%d")
         assert (tmp_path / f"trading-{day}.log").exists()
 
     def test_retention_window_is_configurable(self, tmp_path) -> None:
         cfg = _config()
+        assert cfg.scheduling.log_retention_days == 90  # shipped default
         cfg.scheduling.log_retention_days = 3650  # ~10 years
         old_log = tmp_path / "trading-2020-01-01.log"
         old_log.write_text("x")

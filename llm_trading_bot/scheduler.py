@@ -16,7 +16,7 @@ import re
 import shutil
 import threading
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
@@ -75,9 +75,9 @@ class TradingScheduler:
         self._startup_reconciled = False
         # Backtest-parity risk state refreshed at each completed-bar analysis.
         self._current_loss_penalty = 0.0
-        # Daily log-file rotation: prune once per UTC day (and once at startup).
+        # Daily log-file rotation: prune once per local day (and once at startup).
         self._pruned_log_day: str | None = None
-        self._prune_old_logs(datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+        self._prune_old_logs(datetime.now().astimezone().strftime("%Y-%m-%d"))
         self._lock_handle = None
         # One-time compatibility migration from the pre-shared-state maker file.
         legacy = self._log_dir / "pending_orders.json"
@@ -728,10 +728,12 @@ class TradingScheduler:
             )
 
     # ------------------------------------------------------------------
-    # Logging: one file per UTC day, deleted after scheduling.log_retention_days.
-    # decisions-YYYY-MM-DD.jsonl is the structured stream used to evaluate the
-    # paper/live run offline (Grafana + live-vs-backtest drift); trading-*.log
-    # is the human-readable mirror.
+    # Logging: one file per LOCAL day, deleted after scheduling.log_retention_days
+    # (default 90). decisions-YYYY-MM-DD.jsonl is the structured stream used to
+    # evaluate the paper/live run offline (Grafana + live-vs-backtest drift);
+    # trading-*.log is the human-readable mirror. Timestamps are local time with
+    # UTC offset in the structured stream (decision BARS remain UTC-aligned —
+    # that is exchange reality, not a logging choice).
     # ------------------------------------------------------------------
 
     def _prune_old_logs(self, today: str) -> None:
@@ -740,27 +742,25 @@ class TradingScheduler:
             return
         self._pruned_log_day = today
         retention = timedelta(days=self.config.scheduling.log_retention_days)
-        cutoff = datetime.now(timezone.utc) - retention
+        cutoff_date = (datetime.now().astimezone() - retention).date()
         for pattern, prefix in (("trading-*.log", "trading-"),
                                 ("decisions-*.jsonl", "decisions-")):
             for path in self._log_dir.glob(pattern):
                 stamp = path.name[len(prefix):].split(".")[0]
                 try:
-                    file_day = datetime.strptime(stamp, "%Y-%m-%d").replace(
-                        tzinfo=timezone.utc
-                    )
+                    file_date = datetime.strptime(stamp, "%Y-%m-%d").date()
                 except ValueError:
                     continue  # not one of our dated files — never delete it
-                if file_day < cutoff:
+                if file_date < cutoff_date:
                     path.unlink(missing_ok=True)
 
     def _daily_log_path(self, prefix: str, suffix: str) -> Path:
-        day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        day = datetime.now().astimezone().strftime("%Y-%m-%d")
         self._prune_old_logs(day)
         return self._log_dir / f"{prefix}-{day}{suffix}"
 
     def _log(self, msg: str) -> None:
-        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")
         line = f"[{timestamp}] [{self.config.trading.symbol}] {msg}"
         print(line)
         with open(self._daily_log_path("trading", ".log"), "a") as f:
@@ -768,7 +768,8 @@ class TradingScheduler:
 
     def _log_decision(self, decision: dict) -> None:
         decision.setdefault("symbol", self.config.trading.symbol)
-        decision["timestamp"] = datetime.now(timezone.utc).isoformat()
+        # Local time with explicit UTC offset so records stay unambiguous.
+        decision["timestamp"] = datetime.now().astimezone().isoformat()
         self.decision_log.append(decision)
         # Append to the persistent structured log
         with open(self._daily_log_path("decisions", ".jsonl"), "a") as f:
