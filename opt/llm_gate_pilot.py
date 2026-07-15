@@ -150,6 +150,76 @@ def _query_ollama(base_url: str, model: str, prompt: str, timeout: int, *,
     }
 
 
+def _query_openai(base_url: str, model: str, prompt: str, timeout: int, *,
+                  think: bool = False, num_predict: int = 500) -> dict:
+    """Query an OpenAI-compatible endpoint (e.g. vLLM) for one gate decision.
+
+    vLLM does not expose Ollama's ``think``/``format`` fields. Native thinking is
+    requested via ``chat_template_kwargs={"enable_thinking": True}`` and we DO NOT
+    constrain output with a JSON schema — guided decoding would force JSON from the
+    first token and leave no room to reason. Instead the model thinks then emits a
+    JSON object, which ``_parse_llm_response`` extracts from the free-form content
+    (so ``num_predict`` must be large enough for thinking + JSON, e.g. ~2000).
+    """
+    started = time.time()
+    body = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are a cautious cryptocurrency trading gate. Use only the "
+                    "supplied frozen technical data. After reasoning, respond with a "
+                    "single JSON object with keys: decision (LONG/SHORT/WAIT), "
+                    "confidence (1-100), reasoning, entry, stop_loss, take_profit_1, "
+                    "take_profit_2."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "stream": False,
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": num_predict,
+        # Explicit both ways: a no-think run must actively DISABLE reasoning, not
+        # fall back to the model's default template (Qwen3.6 defaults to thinking).
+        "chat_template_kwargs": {"enable_thinking": bool(think)},
+    }
+    response = requests.post(
+        f"{base_url.rstrip('/')}/chat/completions", json=body, timeout=timeout
+    )
+    response.raise_for_status()
+    payload = response.json()
+    message = payload["choices"][0]["message"]
+    raw = message.get("content") or ""
+    parsed = _parse_llm_response(raw, model)
+    usage = payload.get("usage") or {}
+    return {
+        "decision": parsed.decision,
+        "confidence": parsed.confidence,
+        "reasoning": parsed.reasoning,
+        "parse_error": parsed.parse_error,
+        "raw_response": raw,
+        "thinking": message.get("reasoning_content", "") or "",
+        "prompt_eval_count": usage.get("prompt_tokens"),
+        "eval_count": usage.get("completion_tokens"),
+        "latency_s": round(time.time() - started, 3),
+    }
+
+
+def _query_backend(args, prompt: str) -> dict:
+    """Dispatch one gate query to the configured backend."""
+    if args.backend == "openai":
+        return _query_openai(
+            args.url, args.model, prompt, args.timeout,
+            think=args.think, num_predict=args.num_predict,
+        )
+    return _query_ollama(
+        args.url, args.model, prompt, args.timeout,
+        think=args.think, num_predict=args.num_predict,
+    )
+
+
 def _collect_candidates() -> list[dict]:
     candidates = []
     cfg = driver.build_config({})
@@ -217,10 +287,7 @@ def _query_items(items: list[dict], args, cached: dict[str, dict], label: str = 
             print(f"{prefix}[{number}/{len(items)}] {item['fold']} {item['expected']} "
                   f"score={item['score']:+.2f}", flush=True)
             try:
-                answer = _query_ollama(
-                    args.url, args.model, item["prompt"], args.timeout,
-                    think=args.think, num_predict=args.num_predict,
-                )
+                answer = _query_backend(args, item["prompt"])
             except Exception as exc:
                 answer = {
                     "decision": "WAIT", "confidence": 0, "reasoning": "",
@@ -246,6 +313,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample-size", type=int, default=12)
     parser.add_argument("--seed", type=int, default=36)
+    parser.add_argument("--backend", choices=("ollama", "openai"), default="ollama",
+                        help="ollama = /api/chat (native think/format); "
+                             "openai = /v1/chat/completions (vLLM etc.)")
     parser.add_argument("--url", default=DEFAULT_URL)
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
