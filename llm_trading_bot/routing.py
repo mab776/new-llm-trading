@@ -1,9 +1,9 @@
 """
 Signal routing — classifies scoring results and routes to appropriate handler.
 
-3-tier routing:
-  STRONG   → Deterministic template response (instant, free, no LLM)
-  MARGINAL → Send to LLM (via OpenWebUI) for multi-bot consensus
+3-tier routing (pure technical signal — no LLM):
+  STRONG   → Deterministic template response, execute
+  MARGINAL → Execute deterministically too (counted as a trade in the backtest)
   WAIT     → Skip trade
 """
 
@@ -24,7 +24,6 @@ from llm_trading_bot.scoring import (
     calculate_targets,
     compute_composite_score,
     detect_market_regime,
-    format_scoring_report,
 )
 
 
@@ -35,7 +34,6 @@ class RoutingDecision:
     scoring_result: ScoringResult
     targets: Optional[TradeTargets]
     template_response: Optional[str] = None
-    needs_llm: bool = False
     skip_reason: Optional[str] = None
 
 
@@ -88,39 +86,6 @@ KEY REASONS:
 {reasons_str}
 
 ACTION: Execute trade immediately. Strong conviction based on multi-factor analysis.
-""".strip()
-
-
-def build_llm_context(result: ScoringResult, targets: Optional[TradeTargets]) -> str:
-    """
-    Build the context payload to send to the LLM for marginal signals.
-    Contains all pre-calculated data — the LLM should NOT invent numbers.
-    """
-    report = format_scoring_report(result, targets)
-    return f"""
-[FINANCIAL DATA INJECTION — Pre-calculated indicators below. Do NOT invent or modify these numbers.]
-
-{report}
-
-[END FINANCIAL DATA]
-
-Based on the above pre-calculated technical analysis data, provide your trading recommendation.
-You MUST respond in this exact JSON format:
-{{
-  "decision": "LONG" | "SHORT" | "WAIT",
-  "confidence": <number 1-100>,
-  "reasoning": "<brief explanation>",
-  "entry": <price or null>,
-  "stop_loss": <price or null>,
-  "take_profit_1": <price or null>,
-  "take_profit_2": <price or null>
-}}
-
-Important:
-- Base your analysis ONLY on the provided data
-- Do not hallucinate price levels or indicator values
-- If you disagree with the suggested direction, explain why
-- A "WAIT" decision is perfectly valid if the setup isn't convincing
 """.strip()
 
 
@@ -201,12 +166,14 @@ def route_signal(
             template_response=template,
         )
 
-    elif signal == SignalStrength.MARGINAL:
+    elif signal == SignalStrength.MARGINAL and targets:
+        # Marginal setups are traded deterministically (the backtest counts them),
+        # so they carry the same template as STRONG — there is no LLM gate.
         return RoutingDecision(
             signal_strength=SignalStrength.MARGINAL,
             scoring_result=result,
             targets=targets,
-            needs_llm=True,
+            template_response=build_template_response(result, targets, tier),
         )
 
     else:

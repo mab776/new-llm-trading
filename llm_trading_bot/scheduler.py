@@ -30,7 +30,6 @@ from llm_trading_bot.exposure import (
     anti_martingale_multiplier, cap_risk_pct, outcome_streak,
 )
 from llm_trading_bot.live_state import SharedLiveState
-from llm_trading_bot.openwebui_client import run_consensus
 from llm_trading_bot.process_lock import acquire_account_lock, release_account_lock
 from llm_trading_bot.routing import RoutingDecision, route_signal
 from llm_trading_bot.scoring import Direction, SignalStrength, calculate_indicators
@@ -1095,51 +1094,12 @@ class TradingScheduler:
             return
 
         if decision.signal_strength == SignalStrength.MARGINAL:
-            if self.config.openwebui.marginal_execution == "deterministic":
-                self._log("MARGINAL signal — deterministic execution (backtest parity)")
-                self._execute_trade(decision)
-                return
-            self._log("MARGINAL signal — querying LLM consensus...")
-            consensus = run_consensus(
-                config=self.config.openwebui,
-                scoring_result=decision.scoring_result,
-                targets=decision.targets,
-            )
-
-            self._log(f"Consensus: {consensus.decision} ({consensus.agreement_pct:.0f}% agreement)")
-            self._log(consensus.reasoning_summary)
-
-            if consensus.decision in ("LONG", "SHORT"):
-                want = (Direction.BULLISH if consensus.decision == "LONG"
-                        else Direction.BEARISH)
-                # The SL/TP targets AND the pre-trade filters (category agreement,
-                # regime, etc.) were computed for the SCORED direction. If consensus
-                # flips to the opposite side we must NOT execute the old targets
-                # (that silently traded the wrong way) — and trading the reverse of
-                # the technical setup on LLM say-so, with mismatched targets and
-                # unverified filters, is unsafe. So only act when consensus AGREES
-                # with the scored setup; a disagreement is a WAIT.
-                if decision.targets is None or decision.targets.direction != want:
-                    self._log(
-                        f"Consensus {consensus.decision} disagrees with scored "
-                        f"{decision.scoring_result.direction.value} — not trading"
-                    )
-                    self._log_decision({
-                        "action": "LLM_DISAGREE",
-                        "consensus": consensus.decision,
-                        "scored": decision.scoring_result.direction.value,
-                        "agreement": consensus.agreement_pct,
-                    })
-                    return
-                decision.scoring_result.direction = want
-                self._execute_trade(decision)
-            else:
-                self._log("Consensus: WAIT — not trading")
-                self._log_decision({
-                    "action": "LLM_WAIT",
-                    "consensus": consensus.decision,
-                    "agreement": consensus.agreement_pct,
-                })
+            # MARGINAL entries are traded deterministically, exactly as the backtest
+            # counts them — they are part of the validated edge. This is a pure
+            # technical-signal bot; there is no LLM gate on marginal setups.
+            self._log("MARGINAL signal — deterministic execution (backtest parity)")
+            self._execute_trade(decision)
+            return
 
     def _execute_trade(self, decision: RoutingDecision) -> None:
         """Atomically check account exposure, size, and place one new order."""

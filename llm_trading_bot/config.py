@@ -13,16 +13,6 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
-class OpenWebUIConfig(BaseModel):
-    base_url: str = "http://localhost:3000"
-    api_key: str = ""
-    model_ids: list[str] = ["llama3.1:8b"]
-    timeout_seconds: int = Field(120, gt=0)
-    # deterministic matches the validated backtest: passed MARGINAL signals trade
-    # directly. consensus remains available for explicit experiments.
-    marginal_execution: Literal["deterministic", "consensus"] = "consensus"
-
-
 class LeverageTier(BaseModel):
     leverage: int = Field(20, ge=1, le=125)
     strong_threshold: float = Field(30, ge=0, le=100)
@@ -221,7 +211,6 @@ class DataSourceConfig(BaseModel):
 
 class AppConfig(BaseModel):
     """Root configuration — single source of truth."""
-    openwebui: OpenWebUIConfig = Field(default_factory=OpenWebUIConfig)
     trading: TradingConfig = Field(default_factory=TradingConfig)
     scoring: ScoringConfig = Field(default_factory=ScoringConfig)
     filters: FiltersConfig = Field(default_factory=FiltersConfig)

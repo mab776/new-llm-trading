@@ -173,9 +173,10 @@ class TestLoadConfig:
         "config-aggressive.json", "config-eth-aggressive.json",
         "config-sol-aggressive.json",
     ))
-    def test_shipped_profiles_use_deterministic_marginal_execution(self, name):
-        root = Path(__file__).resolve().parents[1]
-        assert load_config(root / name).openwebui.marginal_execution == "deterministic"
+    def test_shipped_profiles_have_no_llm_config(self, name):
+        # Pure technical-signal bot: no OpenWebUI/LLM config anywhere.
+        cfg = load_config(Path(__file__).resolve().parents[1] / name)
+        assert not hasattr(cfg, "openwebui")
 
 
 class TestFiltersConfig:

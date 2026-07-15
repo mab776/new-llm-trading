@@ -1,15 +1,4 @@
 {
-    "openwebui": {
-        "base_url": "http://localhost:3000",
-        "api_key": "",
-        "model_ids": [
-            "llama3.1:8b",
-            "deepseek-r1:14b",
-            "gemma2:9b"
-        ],
-        "timeout_seconds": 120,
-        "marginal_execution": "deterministic"
-    },
     "trading": {
         "symbol": "ETH-USDT",
         "yfinance_symbol": "ETH-USD",

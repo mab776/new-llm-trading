@@ -7,7 +7,6 @@ import pytest
 from llm_trading_bot.config import AppConfig, LeverageTier, load_config
 from llm_trading_bot.routing import (
     RoutingDecision,
-    build_llm_context,
     build_template_response,
     classify_signal,
     route_signal,
@@ -89,38 +88,6 @@ class TestBuildTemplateResponse:
         assert "TP1" in response
         assert "TP2" in response
         assert "STRONG" in response
-
-
-class TestBuildLLMContext:
-    def test_contains_data_injection_marker(self):
-        result = ScoringResult(
-            direction=Direction.BULLISH,
-            confidence=55,
-            signal_strength=SignalStrength.MARGINAL,
-            raw_score=50,
-        )
-        context = build_llm_context(result, None)
-
-        assert "FINANCIAL DATA INJECTION" in context
-        assert "Do NOT invent" in context
-        assert "JSON" in context
-        assert '"decision"' in context
-
-    def test_includes_target_data(self):
-        result = ScoringResult(
-            direction=Direction.BULLISH,
-            confidence=55,
-            signal_strength=SignalStrength.MARGINAL,
-            raw_score=50,
-        )
-        targets = TradeTargets(
-            entry=50000, stop_loss=49000, take_profit_1=52000,
-            take_profit_2=54000, risk_amount=1000, reward_1=2000,
-            reward_2=4000, direction=Direction.BULLISH,
-        )
-        context = build_llm_context(result, targets)
-        assert "Entry" in context
-        assert "Stop Loss" in context
 
 
 class TestRouteSignal:

@@ -1,5 +1,5 @@
 """
-LLM Trading Bot — main entry point.
+Signal Trading Bot — main entry point.
 
 Usage:
     python -m llm_trading_bot.main --config config.json
@@ -74,11 +74,6 @@ def run_analyze(config_path: str) -> None:
         print(decision.template_response)
     elif decision.skip_reason:
         print(f"Skip: {decision.skip_reason}")
-    elif decision.needs_llm:
-        if config.openwebui.marginal_execution == "deterministic":
-            print("→ Marginal signal — deterministic execution configured")
-        else:
-            print("→ Marginal signal — would send to LLM for consensus")
 
 
 def run_backtest(config_path: str) -> None:
@@ -151,7 +146,7 @@ def run_backtest(config_path: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="LLM Hybrid Trading Bot")
+    parser = argparse.ArgumentParser(description="Signal Trading Bot")
     parser.add_argument(
         "--config", "-c", default="config.json",
         help="Path to config file (default: config.json)"
@@ -178,7 +173,7 @@ def main() -> None:
         print(f"Error: Config file not found: {missing[0]}")
         sys.exit(1)
 
-    print(f"LLM Trading Bot — Mode: {args.mode}")
+    print(f"Signal Trading Bot — Mode: {args.mode}")
     print(f"Config: {', '.join(paths)}")
     print()
 

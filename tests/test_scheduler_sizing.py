@@ -99,21 +99,17 @@ class TestLiveSizing:
         restored = SharedLiveState(state_path)
         assert restored.last_analysis_bars[cfg.trading.symbol] == str(completed_primary)
 
-    def test_deterministic_marginal_mode_matches_backtest_without_llm(self, monkeypatch,
-                                                                     tmp_path):
+    def test_marginal_signal_executes_deterministically(self, monkeypatch, tmp_path):
+        # MARGINAL entries are traded directly (backtest parity) — this is a pure
+        # technical-signal bot with no LLM gate on marginal setups.
         monkeypatch.chdir(tmp_path)
         cfg = _config()
-        cfg.openwebui.marginal_execution = "deterministic"
         sched = TradingScheduler(cfg)
         decision = _decision()
         decision.signal_strength = SignalStrength.MARGINAL
         decision.scoring_result.signal_strength = SignalStrength.MARGINAL
         called = []
         monkeypatch.setattr(sched, "_execute_trade", lambda value: called.append(value))
-        monkeypatch.setattr(
-            "llm_trading_bot.scheduler.run_consensus",
-            lambda **kwargs: pytest.fail("deterministic marginal mode called the LLM"),
-        )
 
         sched.execute_decision(decision)
         assert called == [decision]
