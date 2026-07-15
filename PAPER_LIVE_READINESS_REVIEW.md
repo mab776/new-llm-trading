@@ -226,7 +226,8 @@ validated strategy is not yet what the live exchange path provably executes.
   (act 0.94% / cb 0.33%, ratchet once per completed 4h bar); pyramiding (max 3, same-direction);
   conviction sizing (exp 1.0); opposite-signal exit (threshold 20); DD circuit-breaker
   (25% → 1 slot, risk×0.5); lev 25 aggressive / 12 conservative tier; ATR stop 2.26×;
-  TP RR 2.02/3.34 (70% @ TP1). Maker entry shipped. LLM consensus is explicit opt-in only.
+  TP RR 2.02/3.34 (70% @ TP1). Maker entry shipped. Pure technical signal — no LLM in the loop
+  (the marginal-gate/consensus path was tested, rejected, and removed; tag `last-llm-consensus`).
 - **Non-negotiable methodology** (each rule caught a real bug): never trust an in-sample max (select
   on TRAIN, report held-out TEST + chrono); intrabar = worst case (SL before TP in one bar); trailing
   ratchets ONCE per completed 4h bar (hourly ratcheting collapses the edge ~84×→5×); after any engine
@@ -368,13 +369,14 @@ scheduling, cache TTL, market type, and invalid active-tier/timeframe references
 validator now rejects non-finite values, invalid sizes, and wrong-side targets. **A few remaining
 risk-management bounds are still open.**
 
-## Optional LLM consensus defects (not blockers — consensus disabled in shipped profiles)
+## LLM consensus / marginal-gate — REMOVED (2026-07-15)
 
-- Consensus flip mutates `scoring_result.direction` but leaves `targets.direction`; execution follows
-  the old targets.
-- A two-model 1-1 tie can pick LONG at exactly 50% despite the clear-majority rule.
-- LLM confidences clamped to `[0, 100]`, violating the global `[5, 95]` invariant.
-- `openwebui_client.py:86` / `:180` / `scheduler.py:339`.
+The optional LLM path (consensus + marginal gate) was re-tested (vLLM `qwen3.6-27b`,
+thinking and no-thinking) and confirmed net-negative in every mode, then **removed entirely**
+— this is now a pure technical-signal bot. Marginal signals trade deterministically (backtest
+parity). The three prior consensus defects (flip executed stale targets; a 1-1 tie picked the
+first-sorted side; confidence clamp `[0,100]` vs `[5,95]`) were fixed and then the whole path
+was deleted. The last commit containing the LLM code is tagged **`last-llm-consensus`**.
 
 ---
 

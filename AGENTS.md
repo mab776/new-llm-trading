@@ -4,8 +4,9 @@ This document is for AI agents and developers working on the LLM Trading Bot pro
 
 ## Project Overview
 
-An automated cryptocurrency trading bot using deterministic technical analysis scoring, with an
-optional LLM consensus mode retained for marginal-signal experiments.
+An automated cryptocurrency trading bot using deterministic technical analysis scoring — a pure
+technical-signal bot. The former optional LLM consensus / marginal-gate was tested, found
+net-negative, and removed (last commit with it: tag `last-llm-consensus`).
 
 ## Architecture
 
@@ -38,7 +39,7 @@ Market Data → Scoring Engine → Signal Router
 | **Funding** | `llm_trading_bot/funding.py` | Perp funding-rate history (Binance proxy) + per-bar settlement math for backtests |
 | **Timeframes** | `llm_trading_bot/timeframes.py` | Bar durations, completed-candle slicing, frozen live snapshots |
 | **Routing** | `llm_trading_bot/routing.py` | Signal classification and routing decisions |
-| **OpenWebUI Client** | `llm_trading_bot/openwebui_client.py` | API client + robust JSON parsing + consensus |
+| **Signal library** | `openwebui_filter.py` | Indicator math + category scoring (source of truth) |
 | **Exchange** | `llm_trading_bot/exchange.py` | Bitget API — orders, balance, stop updates, safety checks |
 | **Trailing** | `llm_trading_bot/trailing.py` | Shared trailing-stop math (backtest + live, no drift) |
 | **Live state** | `llm_trading_bot/live_state.py` | Atomic persisted account peak + pending/trailing lifecycle state |
@@ -66,9 +67,9 @@ bar trades back to the limit, otherwise cancel. A fill is immediately exposed to
 fill bar's adverse-first SL/TP checks. The pending order counts as a position slot and is
 placed with mandatory preset SL+TP. `"taker"` remains available for comparison/fallback.
 
-The shipped configs set `openwebui.marginal_execution: "deterministic"`, matching the backtest's
-auto-trade behavior and the rejected Round 8/8c per-entry LLM gate. `"consensus"` remains available
-only as an explicit experiment; do not enable it for paper/live while claiming backtest parity.
+Marginal signals are traded deterministically, matching the backtest's auto-trade behavior. The
+per-entry LLM gate (Round 8/8c, and re-tested 2026-07-15 with vLLM `qwen3.6-27b` in both
+thinking and no-thinking modes) was net-negative every time and has been removed entirely.
 
 `scoring.points` contains the nine OOS/cross-asset-validated overrides selected in Round 14.
 All other point awards come from `openwebui_filter.DEFAULT_SCORING_POINTS`. Never copy these
@@ -153,7 +154,6 @@ These rules must NEVER be violated. Any PR that breaks these must be rejected:
 
 All settings in `config.json`. Key sections:
 
-- `openwebui` — Connection to OpenWebUI for LLM consensus
 - `trading` — Symbol, timeframes, leverage tiers, SL strategy
 - `scoring` — Category weights, ATR multipliers, confidence bounds
 - `filters` — Pre-trade filter thresholds
@@ -355,7 +355,6 @@ new-llm-trading/
 │   ├── bitget_csv.py       # Bitget windowed history getter + disk cache
 │   ├── binance_csv.py      # Binance CSV archive downloader
 │   ├── routing.py          # Signal routing logic
-│   ├── openwebui_client.py # LLM consensus client (robust JSON parsing)
 │   ├── exchange.py         # Bitget API + safety + balance + stop updates
 │   ├── trailing.py         # Shared trailing-stop math
 │   ├── portfolio.py        # Portfolio simulation
@@ -367,7 +366,6 @@ new-llm-trading/
 │   ├── __init__.py
 │   ├── test_scoring.py
 │   ├── test_routing.py
-│   ├── test_consensus.py
 │   ├── test_portfolio.py
 │   ├── test_backtesting.py
 │   └── test_exchange.py

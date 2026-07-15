@@ -1,7 +1,9 @@
-# LLM Trading Bot
+# Signal Trading Bot
 
-An automated cryptocurrency trading bot using a hybrid intelligence approach:
-deterministic technical analysis scoring combined with LLM reasoning for marginal signals.
+An automated cryptocurrency trading bot driven purely by deterministic
+multi-timeframe technical-analysis scoring (no LLM in the decision loop). An LLM
+marginal-gate was tested and rejected — it lost to signal-only execution; the last
+commit containing that code is tagged `last-llm-consensus`.
 
 ## Quick Start
 
@@ -19,8 +21,8 @@ Market Data (Bitget futures — windowed history + disk cache; also binance/yfin
   Scoring Engine (indicators + weighted score)
         ↓
   Signal Router
-   ├── STRONG  → Template response (instant, free)
-   ├── MARGINAL → Deterministic execution by default (optional LLM consensus)
+   ├── STRONG  → Execute (deterministic template)
+   ├── MARGINAL → Execute (deterministic — counted as a trade in the backtest)
    └── WAIT    → Skip trade
         ↓
   Bitget Execution (futures + mandatory TP/SL + risk-based sizing + trailing stops)
@@ -47,7 +49,7 @@ and `yfinance` remain available.)
 | `bitget_csv` | Bitget windowed history getter + monthly disk cache |
 | `binance_csv` | Binance public CSV archive downloader |
 | `routing` | Signal classification and routing |
-| `openwebui` | Filter file + automation client |
+| `openwebui_filter` | Signal library — indicator math + category scoring (source of truth) |
 | `exchange` | Bitget futures integration (orders, balance, stop updates) |
 | `trailing` | Shared trailing-stop math (backtest + live) |
 | `live_state` | Atomic persisted portfolio peak, pending orders, and trailing context |
@@ -164,9 +166,8 @@ Structural changes vs the original design:
 **trailing stops ON** (activation 0.94%, callback 0.33%), **pyramiding** (up to 3
 same-direction positions), **conviction sizing** (risk scales with |score|), bounded
 **anti-martingale sizing**, portfolio-wide **margin/notional caps**, and an
-**opposite-signal exit** (close on a hard composite flip, threshold 20). The shipped configs use
-`openwebui.marginal_execution: "deterministic"` because the completed LLM-gate experiment lost to
-signal-only execution; `"consensus"` remains opt-in. A shared
+**opposite-signal exit** (close on a hard composite flip, threshold 20). Marginal signals are
+traded deterministically (the LLM-gate experiment lost to signal-only execution and was removed). A shared
 BTC+ETH+SOL portfolio harness and leakage-free annual retuning/scoring-point experiments
 live under `opt/`; see `opt/README.md` for validation results and caveats.
 
