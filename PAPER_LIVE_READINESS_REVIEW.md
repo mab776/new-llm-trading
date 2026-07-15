@@ -1,7 +1,8 @@
 # Paper/Live Trading Readiness Review
 
 **Original review:** 2026-07-13 (commit `8cc6912`, `main`)
-**Last updated:** 2026-07-14 — live-execution foundation landed; **380 tests pass**.
+**Last updated:** 2026-07-15 — all credential-free prerequisites done; **402 tests pass**.
+**Only remaining gate:** item 1, Bitget demo integration (needs Marc's demo API keys).
 **Scope:** Architecture, Bitget integration, order lifecycle, risk controls, historical data,
 backtest/live parity, testing, configuration, operational readiness, and the remaining work to
 reach paper trading.
@@ -24,7 +25,7 @@ Almost every critical execution blocker from the original review has been **fixe
 (authenticated signing, symbol canonicalization, contract precision, real TP1/TP2/break-even
 lifecycle, per-lot durable state, startup reconciliation, account preflight, fail-closed data
 routing, entry-fee accounting). **2026-07-15 update:** items 2–4 below (cache/report regeneration,
-risk/accounting parity, operational controls + log instrumentation) are **DONE** — 401 tests pass
+risk/accounting parity, operational controls + log instrumentation) are **DONE** — 402 tests pass
 and full/fast parity is exact at the new execution settings. The only gate left before paper
 trading is **item 1: running the lifecycle scenarios against the Bitget demo account** (plus the
 one-time demo account setup listed there).
@@ -73,16 +74,19 @@ scenario on the exchange:
 - Every cached Bitget month passed the strict gap-free validation on load (the caches had already
   been rebuilt by the fixed fetcher; nothing needed refetching).
 - `opt/completed_candle_results.json` and `opt/completed_candle_queue_results.json` regenerated
-  **with the full live execution model** (see item 3). New headline (gap-free, capped, sub-bar,
-  maker, funding, liquidation, 2bps slip, 2021-01→2025-06):
-  - **Standard:** continuous **1,053.88×**, 14.36% reported / 13.16% MTM maxDD; held-out TEST
-    153.65×; standalone BTC/ETH/SOL 139.87× / 262.27× / 485.11×; every annual fold green.
-    The huge former multiples (445k×) required per-trade margin beyond the shipped `$100`
-    `max_position_usd` cap and were never live-reproducible.
-  - **Aggressive:** continuous **5.20 billion×**, 35.03% reported / 34.82% MTM maxDD; TEST
-    1,486,262×; the $1B cap binds only in the extreme tail.
-  - **Queue stress:** harsh 5bps penetration + 70% fill retains **84.2%** median log growth,
+  **with the full live execution model** (see item 3). Headline (gap-free, sub-bar, maker,
+  funding, liquidation, 2bps slip, 66% per-trade margin rail, 2021-01→2025-06):
+  - **Standard:** continuous **338,592.06×**, 17.94% reported / 18.02% MTM maxDD; held-out TEST
+    153.65×; standalone BTC/ETH/SOL 199.54× / 1,789.35× / 126,351.99×; every annual fold green.
+  - **Aggressive:** continuous **4.67 trillion×**, 35.03% reported / 34.82% MTM maxDD; TEST
+    1,486,262×.
+  - **Queue stress:** harsh 5bps penetration + 70% fill retains **64.6%** median log growth,
     every annual fold green (worst +398.6%).
+  - Sizing-rail history: the first 2026-07-15 regeneration enforced the then-shipped absolute
+    `$100` `max_position_usd` (standard collapsed to 1,053.88× — proof the old 445k× headline
+    was never live-reproducible with that cap). Marc then replaced the absolute cap with the
+    scale-invariant `max_position_pct: 0.66`, which normal ~2-3% sizing never reaches, so the
+    strategy compounds unconstrained again and the rail only guards against sizing bugs.
 - `README.md` and `AGENTS.md` updated with the new numbers.
 - `opt/lower_timeframe_results.json` was NOT regenerated: it is a rejected research artifact
   (1h/5m transplants), not on the paper-trading path.
@@ -96,10 +100,11 @@ scenario on the exchange:
   conviction-sizing normalizer exactly like the engine, a losing SL-family close arms the
   cooldown, and `COOLDOWN_SKIP` blocks entries. Lot outcomes are classified with the same
   recorded-price/fee convention the backtest uses.
-- **`max_position_usd` enforced in every simulator** (full engine, fastbt, shared multi-asset
-  harness) via one shared `Portfolio` sizing point + `PendingEntry.max_margin_usd`, so live and
-  research sizing can no longer diverge. Fold-scale validation was unaffected; the continuous
-  headlines changed to the honest capped numbers above.
+- **Per-trade margin rail enforced in every simulator** (full engine, fastbt, shared
+  multi-asset harness) via one shared `Portfolio` sizing point + `PendingEntry.max_margin_pct`,
+  so live and research sizing can no longer diverge. The rail is `max_position_pct: 0.66`
+  (fraction of the sizing balance — replaced the absolute `max_position_usd`, which froze
+  compounding once equity outgrew it).
 - **Sizing basis aligned:** live now sizes and caps on **realized balance** (equity − open PnL,
   matching the backtests' realized `Portfolio.balance`), still bounded by available balance
   because reserved maker margin cannot be committed twice.
@@ -201,16 +206,16 @@ IP-restricted keys, monitoring, and the external kill switch.
 The strategy research is promising; the central problem was never the edge, it was that the
 validated strategy is not yet what the live exchange path provably executes.
 
-- **Standard capped profile (default):** BTC+ETH+SOL shared continuous **1,053.88×** at 14.36%
-  reported / 13.16% MTM maxDD (2026-07-15 regeneration with the full live execution model:
-  gap-free data, $100/trade margin cap, slippage, liquidation); held-out TEST 153.65×, every
+- **Standard capped profile (default):** BTC+ETH+SOL shared continuous **338,592.06×** at 17.94%
+  reported / 18.02% MTM maxDD (2026-07-15 regeneration with the full live execution model:
+  gap-free data, 66% per-trade margin rail, slippage, liquidation); held-out TEST 153.65×, every
   annual fold green; 4.4% equity-margin and 1.10× equity-notional caps. Configs: `config.json`,
   `config-eth.json`, `config-sol.json`. **Acceptance targets ~25% maxDD** — a research/selection
   target, NOT a live kill switch.
 - **Aggressive profile (explicit opt-in):** `config-aggressive.json` + ETH/SOL peers disable the
-  shared caps for the uncapped anti-martingale return path: continuous **5.20 billion×** at
+  shared caps for the uncapped anti-martingale return path: continuous **4.67 trillion×** at
   35.03% reported / 34.82% MTM maxDD, TEST 1,486,262×. The huge multiples are **path-dependent,
-  not forecasts**; live DD can be materially worse.
+  not forecasts** (no market-impact modeling); live DD can be materially worse.
 - The post-June-2025 holdout (standard ~6.25×, aggressive ~29.78×, pre-cap replay) stays frozen
   and untouched; it still relies on the backtest execution model.
 - **Strategy internals (unchanged, shipped):** 4h primary, score→route→trade; trailing stops
@@ -225,7 +230,7 @@ validated strategy is not yet what the live exchange path provably executes.
   sync; never mix risk profiles in one report.
 - **Harness:** `opt/fastbt.py` (causal, digit-equal to the engine, ~4000× faster) + `opt/driver.py`
   (`setup`/`evaluate`, folds). Run with `PYTHONPATH=. /tmp/tmlvenv/bin/python …`; the `/tmp/tmlvenv`
-  venv has all deps (system python has no pip). `pytest -q` → 401 tests pass. Parity checker:
+  venv has all deps (system python has no pip). `pytest -q` → 402 tests pass. Parity checker:
   `PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.validate_parity` (must stay exact).
 
 ---
@@ -325,8 +330,9 @@ freeze the new post-June-2025 period instead.
 
 - **Live risk controls — FIXED:** cooldown + consecutive-loss penalty + `max_holding_hours` now
   implemented in live with persisted per-symbol counters (see item 3).
-- **`max_position_usd` — FIXED:** enforced in the full engine, fastbt, and the shared harness;
-  headlines regenerated with it (standard continuous is now 1,053.88×, the honest number).
+- **Per-trade margin cap — FIXED:** now `max_position_pct: 0.66` (scale-invariant fraction),
+  enforced identically in live, the full engine, fastbt, and the shared harness; headlines
+  regenerated with it.
 - **Margin/liquidation — FIXED:** shipped configs now use isolated margin (harness model);
   `--mode backtest` models slippage + isolated-margin liquidation from config.
 - **Risk-capital — FIXED:** live sizes and caps on realized balance (equity − open PnL).
@@ -370,6 +376,13 @@ risk-management bounds are still open.**
 
 ## Change log
 
+- **2026-07-15 (later):** Replaced the absolute per-trade margin cap (`max_position_usd`, $100
+  standard / $1B aggressive) with the scale-invariant **`max_position_pct: 0.66`** everywhere
+  (live + all simulators + all configs; aggressive overrides deleted — they inherit the rail).
+  Normal ~2-3% sizing never reaches it, so compounding is unconstrained and the rail only stops
+  runaway size computations. Logs switched to LOCAL-day files with 90-day retention. Results
+  regenerated: standard 338,592.06× (17.94%/18.02% DD), aggressive 4.67T× (35.03%/34.82% DD),
+  queue harsh-case retention 64.6%; parity still exact; 402 tests pass.
 - **2026-07-15:** Completed every credential-free prerequisite (items 2–4). **Logging:** daily
   `trading-YYYY-MM-DD.log` + `decisions-YYYY-MM-DD.jsonl` with configurable 30-day retention,
   UTC timestamps, and evaluation-ready structured records (placements with sizing/account

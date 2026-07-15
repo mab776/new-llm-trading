@@ -1280,7 +1280,9 @@ class TradingScheduler:
             max_margin_pct=ps.global_max_margin_pct,
             max_notional_pct=ps.global_max_notional_pct,
         )
-        margin = min(realized_balance * risk_pct, balance, ps.max_position_usd)
+        margin = min(
+            realized_balance * min(risk_pct, ps.max_position_pct), balance,
+        )
         size = (margin * tier.leverage) / targets.entry if targets.entry > 0 else 0.0
         if size <= 0:
             self._log(

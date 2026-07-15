@@ -569,17 +569,17 @@
       }
     },
     "continuous": {
-      "compound_x": 5200900708.88,
+      "compound_x": 4669881733813.477,
       "reported_max_dd": 35.03,
       "mark_to_market_max_dd": 34.81509544491144,
-      "trades": 8801,
-      "maker_orders": 8804,
-      "maker_touches": 8801,
-      "maker_queue_eligible": 8801,
-      "maker_fills": 8801,
-      "touch_rate": 0.9996592457973649,
-      "queue_eligibility_rate": 0.9996592457973649,
-      "realized_fill_rate": 0.9996592457973649
+      "trades": 8604,
+      "maker_orders": 8607,
+      "maker_touches": 8604,
+      "maker_queue_eligible": 8604,
+      "maker_fills": 8604,
+      "touch_rate": 0.9996514464970373,
+      "queue_eligibility_rate": 0.9996514464970373,
+      "realized_fill_rate": 0.9996514464970373
     }
   },
   "aggregates": [
@@ -593,13 +593,13 @@
         419,
         887
       ],
-      "continuous_x_median": 1874703398.3098998,
-      "continuous_x_min": 564479171.0183,
-      "continuous_x_max": 2530920187.6158,
-      "log_growth_retention_median": 0.9543904474241008,
+      "continuous_x_median": 14538583336.9249,
+      "continuous_x_min": 639996943.6983,
+      "continuous_x_max": 27109286574.9608,
+      "log_growth_retention_median": 0.8021372429419882,
       "reported_max_dd_worst": 37.82,
       "mark_to_market_max_dd_worst": 38.00738917550953,
-      "realized_fill_rate_median": 0.6994490920220363,
+      "realized_fill_rate_median": 0.699948586118252,
       "held_out_test_x_median": 35397.60926065065,
       "held_out_test_worst_fold": 342.53,
       "chronological_x_median": 390.60501417999996,
@@ -615,13 +615,13 @@
         419,
         887
       ],
-      "continuous_x_median": 2409791412.9379,
-      "continuous_x_min": 2083851368.1964002,
-      "continuous_x_max": 3692979430.9201,
-      "log_growth_retention_median": 0.9656137907857516,
+      "continuous_x_median": 29367636646.863598,
+      "continuous_x_min": 17573499653.1333,
+      "continuous_x_max": 403905354288.5531,
+      "log_growth_retention_median": 0.8262385560529688,
       "reported_max_dd_worst": 36.46,
       "mark_to_market_max_dd_worst": 36.34599060929643,
-      "realized_fill_rate_median": 0.7971076137813696,
+      "realized_fill_rate_median": 0.7968935389925574,
       "held_out_test_x_median": 111390.78775109466,
       "held_out_test_worst_fold": 653.88,
       "chronological_x_median": 763.36614668,
@@ -637,13 +637,13 @@
         419,
         887
       ],
-      "continuous_x_median": 3991290203.129,
-      "continuous_x_min": 3838132621.4137,
-      "continuous_x_max": 4232175989.6031,
-      "log_growth_retention_median": 0.988167525011065,
+      "continuous_x_median": 318303451069.1175,
+      "continuous_x_min": 191038645188.40768,
+      "continuous_x_max": 772017837240.951,
+      "log_growth_retention_median": 0.9079298782724163,
       "reported_max_dd_worst": 37.7,
       "mark_to_market_max_dd_worst": 37.703775669156386,
-      "realized_fill_rate_median": 0.8967897447134875,
+      "realized_fill_rate_median": 0.8963312016156176,
       "held_out_test_x_median": 253777.7376577226,
       "held_out_test_worst_fold": 578.89,
       "chronological_x_median": 917.3241379199999,
@@ -659,13 +659,13 @@
         419,
         887
       ],
-      "continuous_x_median": 4581857065.2385,
-      "continuous_x_min": 3461460724.5129,
-      "continuous_x_max": 4809766701.1602,
-      "log_growth_retention_median": 0.994335469250508,
-      "reported_max_dd_worst": 37.76,
-      "mark_to_market_max_dd_worst": 37.92505768298129,
-      "realized_fill_rate_median": 0.9479317649682238,
+      "continuous_x_median": 726614056272.0468,
+      "continuous_x_min": 256388961319.6923,
+      "continuous_x_max": 1271104607260.6868,
+      "log_growth_retention_median": 0.9362236499302156,
+      "reported_max_dd_worst": 41.49,
+      "mark_to_market_max_dd_worst": 41.896532897746376,
+      "realized_fill_rate_median": 0.9472228624106938,
       "held_out_test_x_median": 389078.7337320616,
       "held_out_test_worst_fold": 684.18,
       "chronological_x_median": 1275.2353849200001,
@@ -677,13 +677,13 @@
       "seeds": [
         17
       ],
-      "continuous_x_median": 5200900708.88,
-      "continuous_x_min": 5200900708.88,
-      "continuous_x_max": 5200900708.88,
+      "continuous_x_median": 4669881733813.477,
+      "continuous_x_min": 4669881733813.477,
+      "continuous_x_max": 4669881733813.477,
       "log_growth_retention_median": 1.0,
       "reported_max_dd_worst": 35.03,
       "mark_to_market_max_dd_worst": 34.81509544491144,
-      "realized_fill_rate_median": 0.9996592457973649,
+      "realized_fill_rate_median": 0.9996514464970373,
       "held_out_test_x_median": 1486262.107164541,
       "held_out_test_worst_fold": 1877.67,
       "chronological_x_median": 1450.02876278,
@@ -695,13 +695,13 @@
       "seeds": [
         17
       ],
-      "continuous_x_median": 4185884123.7408004,
-      "continuous_x_min": 4185884123.7408004,
-      "continuous_x_max": 4185884123.7408004,
-      "log_growth_retention_median": 0.9902953274501302,
+      "continuous_x_median": 238970793168.9782,
+      "continuous_x_min": 238970793168.9782,
+      "continuous_x_max": 238970793168.9782,
+      "log_growth_retention_median": 0.8981032529298838,
       "reported_max_dd_worst": 35.38,
-      "mark_to_market_max_dd_worst": 35.168075035106455,
-      "realized_fill_rate_median": 0.9856040538984222,
+      "mark_to_market_max_dd_worst": 35.18842505685969,
+      "realized_fill_rate_median": 0.9859829878998443,
       "held_out_test_x_median": 497180.216916072,
       "held_out_test_worst_fold": 1603.43,
       "chronological_x_median": 388.76329314000003,
@@ -717,13 +717,13 @@
         419,
         887
       ],
-      "continuous_x_median": 2397574762.9562,
-      "continuous_x_min": 1785478116.0697,
-      "continuous_x_max": 2609019707.3689003,
-      "log_growth_retention_median": 0.9653866112793106,
+      "continuous_x_median": 7558239101.3591,
+      "continuous_x_min": 4889756310.9794,
+      "continuous_x_max": 40020361266.3756,
+      "log_growth_retention_median": 0.7797128523422644,
       "reported_max_dd_worst": 38.25,
       "mark_to_market_max_dd_worst": 38.29285588909296,
-      "realized_fill_rate_median": 0.8828695255474452,
+      "realized_fill_rate_median": 0.8832698302736405,
       "held_out_test_x_median": 63469.04383223258,
       "held_out_test_worst_fold": 509.99,
       "chronological_x_median": 238.79627664999998,
@@ -735,13 +735,13 @@
       "seeds": [
         17
       ],
-      "continuous_x_median": 4098423221.6158004,
-      "continuous_x_min": 4098423221.6158004,
-      "continuous_x_max": 4098423221.6158004,
-      "log_growth_retention_median": 0.9893514900659127,
+      "continuous_x_median": 182965389885.4493,
+      "continuous_x_min": 182965389885.4493,
+      "continuous_x_max": 182965389885.4493,
+      "log_growth_retention_median": 0.8889491697720969,
       "reported_max_dd_worst": 35.38,
-      "mark_to_market_max_dd_worst": 35.168075035106376,
-      "realized_fill_rate_median": 0.9830703673845446,
+      "mark_to_market_max_dd_worst": 35.25648376111198,
+      "realized_fill_rate_median": 0.9834671139331497,
       "held_out_test_x_median": 448781.71578739106,
       "held_out_test_worst_fold": 1572.86,
       "chronological_x_median": 355.42374090000004,
@@ -757,13 +757,13 @@
         419,
         887
       ],
-      "continuous_x_median": 833168028.0565,
+      "continuous_x_median": 1239818674.2774,
       "continuous_x_min": 41644069.6823,
-      "continuous_x_max": 2162845906.3252,
-      "log_growth_retention_median": 0.918141258168755,
+      "continuous_x_max": 22456540415.887596,
+      "log_growth_retention_median": 0.7177471487468378,
       "reported_max_dd_worst": 38.17,
       "mark_to_market_max_dd_worst": 37.58225396826472,
-      "realized_fill_rate_median": 0.781171866507229,
+      "realized_fill_rate_median": 0.7811308421396667,
       "held_out_test_x_median": 27886.428293043555,
       "held_out_test_worst_fold": 43.73,
       "chronological_x_median": 227.17269474,
@@ -775,13 +775,13 @@
       "seeds": [
         17
       ],
-      "continuous_x_median": 3282776186.7920003,
-      "continuous_x_min": 3282776186.7920003,
-      "continuous_x_max": 3282776186.7920003,
-      "log_growth_retention_median": 0.9794323103717979,
+      "continuous_x_median": 123607352377.1038,
+      "continuous_x_min": 123607352377.1038,
+      "continuous_x_max": 123607352377.1038,
+      "log_growth_retention_median": 0.8755052887154325,
       "reported_max_dd_worst": 35.38,
       "mark_to_market_max_dd_worst": 35.16807503510643,
-      "realized_fill_rate_median": 0.9781741375264023,
+      "realized_fill_rate_median": 0.9786089866156787,
       "held_out_test_x_median": 293670.89930535713,
       "held_out_test_worst_fold": 1303.96,
       "chronological_x_median": 410.24828995999997,
@@ -799,8 +799,8 @@
       ],
       "continuous_x_median": 153213777.28350002,
       "continuous_x_min": 12091615.348299999,
-      "continuous_x_max": 618701226.0507,
-      "log_growth_retention_median": 0.8424487067351253,
+      "continuous_x_max": 951627633.5734,
+      "log_growth_retention_median": 0.6460731073872169,
       "reported_max_dd_worst": 39.59,
       "mark_to_market_max_dd_worst": 38.85627740256178,
       "realized_fill_rate_median": 0.6747203579418345,
@@ -815,13 +815,13 @@
       "seeds": [
         17
       ],
-      "continuous_x_median": 2377073217.8795,
-      "continuous_x_min": 2377073217.8795,
-      "continuous_x_max": 2377073217.8795,
-      "log_growth_retention_median": 0.9650027527521035,
+      "continuous_x_median": 5777772483.1693,
+      "continuous_x_min": 5777772483.1693,
+      "continuous_x_max": 5777772483.1693,
+      "log_growth_retention_median": 0.7705047559107623,
       "reported_max_dd_worst": 36.8,
       "mark_to_market_max_dd_worst": 36.044093895025604,
-      "realized_fill_rate_median": 0.9629453681710214,
+      "realized_fill_rate_median": 0.9633353770692826,
       "held_out_test_x_median": 75529.59723298813,
       "held_out_test_worst_fold": 569.52,
       "chronological_x_median": 85.50228524999999,
@@ -833,13 +833,13 @@
       "seeds": [
         17
       ],
-      "continuous_x_median": 586732570.0669999,
-      "continuous_x_min": 586732570.0669999,
-      "continuous_x_max": 586732570.0669999,
-      "log_growth_retention_median": 0.902466992255054,
+      "continuous_x_median": 468303292.263,
+      "continuous_x_min": 468303292.263,
+      "continuous_x_max": 468303292.263,
+      "log_growth_retention_median": 0.6843727108398141,
       "reported_max_dd_worst": 35.43,
-      "mark_to_market_max_dd_worst": 35.63461321954702,
-      "realized_fill_rate_median": 0.9346541964065961,
+      "mark_to_market_max_dd_worst": 35.24831885744978,
+      "realized_fill_rate_median": 0.9343201890782435,
       "held_out_test_x_median": 24405.250883012824,
       "held_out_test_worst_fold": 426.92,
       "chronological_x_median": 27.36219258,
@@ -1416,17 +1416,17 @@
         }
       },
       "continuous": {
-        "compound_x": 5200900708.88,
+        "compound_x": 4669881733813.477,
         "reported_max_dd": 35.03,
         "mark_to_market_max_dd": 34.81509544491144,
-        "trades": 8801,
-        "maker_orders": 8804,
-        "maker_touches": 8801,
-        "maker_queue_eligible": 8801,
-        "maker_fills": 8801,
-        "touch_rate": 0.9996592457973649,
-        "queue_eligibility_rate": 0.9996592457973649,
-        "realized_fill_rate": 0.9996592457973649
+        "trades": 8604,
+        "maker_orders": 8607,
+        "maker_touches": 8604,
+        "maker_queue_eligible": 8604,
+        "maker_fills": 8604,
+        "touch_rate": 0.9996514464970373,
+        "queue_eligibility_rate": 0.9996514464970373,
+        "realized_fill_rate": 0.9996514464970373
       }
     },
     {
@@ -1998,17 +1998,17 @@
         }
       },
       "continuous": {
-        "compound_x": 3461460724.5129,
+        "compound_x": 256388961319.6923,
         "reported_max_dd": 37.76,
         "mark_to_market_max_dd": 37.92505768298129,
-        "trades": 8044,
-        "maker_orders": 8461,
-        "maker_touches": 8458,
-        "maker_queue_eligible": 8458,
-        "maker_fills": 8044,
-        "touch_rate": 0.9996454319820353,
-        "queue_eligibility_rate": 0.9996454319820353,
-        "realized_fill_rate": 0.9507150455028957
+        "trades": 8000,
+        "maker_orders": 8416,
+        "maker_touches": 8413,
+        "maker_queue_eligible": 8413,
+        "maker_fills": 8000,
+        "touch_rate": 0.999643536121673,
+        "queue_eligibility_rate": 0.999643536121673,
+        "realized_fill_rate": 0.9505703422053232
       }
     },
     {
@@ -2580,17 +2580,17 @@
         }
       },
       "continuous": {
-        "compound_x": 4415702623.674601,
-        "reported_max_dd": 33.48,
-        "mark_to_market_max_dd": 33.258370380602805,
-        "trades": 8469,
-        "maker_orders": 8963,
-        "maker_touches": 8960,
-        "maker_queue_eligible": 8960,
-        "maker_fills": 8469,
-        "touch_rate": 0.9996652906392949,
-        "queue_eligibility_rate": 0.9996652906392949,
-        "realized_fill_rate": 0.9448845252705568
+        "compound_x": 704863993310.0095,
+        "reported_max_dd": 35.54,
+        "mark_to_market_max_dd": 35.28280089714772,
+        "trades": 8297,
+        "maker_orders": 8789,
+        "maker_touches": 8786,
+        "maker_queue_eligible": 8786,
+        "maker_fills": 8297,
+        "touch_rate": 0.9996586642393901,
+        "queue_eligibility_rate": 0.9996586642393901,
+        "realized_fill_rate": 0.9440209352599841
       }
     },
     {
@@ -3162,17 +3162,17 @@
         }
       },
       "continuous": {
-        "compound_x": 4581857065.2385,
-        "reported_max_dd": 34.78,
-        "mark_to_market_max_dd": 34.608749986564455,
-        "trades": 8502,
-        "maker_orders": 8969,
-        "maker_touches": 8966,
-        "maker_queue_eligible": 8966,
-        "maker_fills": 8502,
-        "touch_rate": 0.9996655145501171,
-        "queue_eligibility_rate": 0.9996655145501171,
-        "realized_fill_rate": 0.9479317649682238
+        "compound_x": 726614056272.0468,
+        "reported_max_dd": 41.49,
+        "mark_to_market_max_dd": 41.896532897746376,
+        "trades": 8220,
+        "maker_orders": 8678,
+        "maker_touches": 8675,
+        "maker_queue_eligible": 8675,
+        "maker_fills": 8220,
+        "touch_rate": 0.9996542982253975,
+        "queue_eligibility_rate": 0.9996542982253975,
+        "realized_fill_rate": 0.9472228624106938
       }
     },
     {
@@ -3744,17 +3744,17 @@
         }
       },
       "continuous": {
-        "compound_x": 4675358244.4897995,
+        "compound_x": 1271104607260.6868,
         "reported_max_dd": 35.36,
         "mark_to_market_max_dd": 35.11060006663026,
-        "trades": 8572,
-        "maker_orders": 9054,
-        "maker_touches": 9051,
-        "maker_queue_eligible": 9051,
-        "maker_fills": 8572,
-        "touch_rate": 0.9996686547382373,
-        "queue_eligibility_rate": 0.9996686547382373,
-        "realized_fill_rate": 0.9467638612767837
+        "trades": 8350,
+        "maker_orders": 8826,
+        "maker_touches": 8823,
+        "maker_queue_eligible": 8823,
+        "maker_fills": 8350,
+        "touch_rate": 0.9996600951733514,
+        "queue_eligibility_rate": 0.9996600951733514,
+        "realized_fill_rate": 0.9460684341717652
       }
     },
     {
@@ -4326,17 +4326,17 @@
         }
       },
       "continuous": {
-        "compound_x": 4809766701.1602,
-        "reported_max_dd": 34.28,
-        "mark_to_market_max_dd": 33.57307378654288,
-        "trades": 8550,
-        "maker_orders": 8968,
-        "maker_touches": 8965,
-        "maker_queue_eligible": 8965,
-        "maker_fills": 8550,
-        "touch_rate": 0.9996654772524531,
-        "queue_eligibility_rate": 0.9996654772524531,
-        "realized_fill_rate": 0.9533898305084746
+        "compound_x": 1007844988934.5378,
+        "reported_max_dd": 36.14,
+        "mark_to_market_max_dd": 36.63017581039577,
+        "trades": 8334,
+        "maker_orders": 8739,
+        "maker_touches": 8736,
+        "maker_queue_eligible": 8736,
+        "maker_fills": 8334,
+        "touch_rate": 0.9996567112941984,
+        "queue_eligibility_rate": 0.9996567112941984,
+        "realized_fill_rate": 0.9536560247167868
       }
     },
     {
@@ -4908,17 +4908,17 @@
         }
       },
       "continuous": {
-        "compound_x": 3924318033.8624,
-        "reported_max_dd": 34.52,
-        "mark_to_market_max_dd": 34.26190940585821,
-        "trades": 8175,
-        "maker_orders": 9120,
-        "maker_touches": 9117,
-        "maker_queue_eligible": 9117,
-        "maker_fills": 8175,
-        "touch_rate": 0.999671052631579,
-        "queue_eligibility_rate": 0.999671052631579,
-        "realized_fill_rate": 0.8963815789473685
+        "compound_x": 318303451069.1175,
+        "reported_max_dd": 36.35,
+        "mark_to_market_max_dd": 37.401064227259916,
+        "trades": 7989,
+        "maker_orders": 8913,
+        "maker_touches": 8910,
+        "maker_queue_eligible": 8910,
+        "maker_fills": 7989,
+        "touch_rate": 0.9996634129922585,
+        "queue_eligibility_rate": 0.9996634129922585,
+        "realized_fill_rate": 0.8963312016156176
       }
     },
     {
@@ -5490,17 +5490,17 @@
         }
       },
       "continuous": {
-        "compound_x": 3838132621.4137,
-        "reported_max_dd": 33.52,
-        "mark_to_market_max_dd": 33.15916369268883,
-        "trades": 8172,
-        "maker_orders": 9096,
-        "maker_touches": 9092,
-        "maker_queue_eligible": 9092,
-        "maker_fills": 8172,
-        "touch_rate": 0.9995602462620933,
-        "queue_eligibility_rate": 0.9995602462620933,
-        "realized_fill_rate": 0.8984168865435356
+        "compound_x": 242043016448.3771,
+        "reported_max_dd": 35.66,
+        "mark_to_market_max_dd": 35.543814709077296,
+        "trades": 7962,
+        "maker_orders": 8870,
+        "maker_touches": 8866,
+        "maker_queue_eligible": 8866,
+        "maker_fills": 7962,
+        "touch_rate": 0.9995490417136415,
+        "queue_eligibility_rate": 0.9995490417136415,
+        "realized_fill_rate": 0.8976324689966179
       }
     },
     {
@@ -6072,17 +6072,17 @@
         }
       },
       "continuous": {
-        "compound_x": 4232175989.6031,
-        "reported_max_dd": 30.12,
-        "mark_to_market_max_dd": 29.687902898208243,
-        "trades": 8258,
-        "maker_orders": 9212,
-        "maker_touches": 9209,
-        "maker_queue_eligible": 9209,
-        "maker_fills": 8258,
-        "touch_rate": 0.9996743378202345,
-        "queue_eligibility_rate": 0.9996743378202345,
-        "realized_fill_rate": 0.8964394268345636
+        "compound_x": 772017837240.951,
+        "reported_max_dd": 35.55,
+        "mark_to_market_max_dd": 34.86074468631783,
+        "trades": 8042,
+        "maker_orders": 8973,
+        "maker_touches": 8970,
+        "maker_queue_eligible": 8970,
+        "maker_fills": 8042,
+        "touch_rate": 0.9996656636576395,
+        "queue_eligibility_rate": 0.9996656636576395,
+        "realized_fill_rate": 0.896244288420818
       }
     },
     {
@@ -6654,17 +6654,17 @@
         }
       },
       "continuous": {
-        "compound_x": 3991290203.129,
-        "reported_max_dd": 32.91,
-        "mark_to_market_max_dd": 32.64873837629897,
-        "trades": 8185,
-        "maker_orders": 9127,
-        "maker_touches": 9124,
-        "maker_queue_eligible": 9124,
-        "maker_fills": 8185,
-        "touch_rate": 0.9996713049194696,
-        "queue_eligibility_rate": 0.9996713049194696,
-        "realized_fill_rate": 0.8967897447134875
+        "compound_x": 191038645188.40768,
+        "reported_max_dd": 34.81,
+        "mark_to_market_max_dd": 33.96837711363694,
+        "trades": 7855,
+        "maker_orders": 8764,
+        "maker_touches": 8761,
+        "maker_queue_eligible": 8761,
+        "maker_fills": 7855,
+        "touch_rate": 0.9996576905522593,
+        "queue_eligibility_rate": 0.9996576905522593,
+        "realized_fill_rate": 0.8962802373345504
       }
     },
     {
@@ -7236,17 +7236,17 @@
         }
       },
       "continuous": {
-        "compound_x": 4209549194.4381,
+        "compound_x": 402044421498.78406,
         "reported_max_dd": 37.7,
         "mark_to_market_max_dd": 37.703775669156386,
-        "trades": 8243,
-        "maker_orders": 9130,
-        "maker_touches": 9127,
-        "maker_queue_eligible": 9127,
-        "maker_fills": 8243,
-        "touch_rate": 0.999671412924425,
-        "queue_eligibility_rate": 0.999671412924425,
-        "realized_fill_rate": 0.9028477546549836
+        "trades": 8039,
+        "maker_orders": 8903,
+        "maker_touches": 8900,
+        "maker_queue_eligible": 8900,
+        "maker_fills": 8039,
+        "touch_rate": 0.9996630349320453,
+        "queue_eligibility_rate": 0.9996630349320453,
+        "realized_fill_rate": 0.9029540604290689
       }
     },
     {
@@ -7818,17 +7818,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2083851368.1964002,
+        "compound_x": 21073987707.3783,
         "reported_max_dd": 36.09,
         "mark_to_market_max_dd": 35.30235532693666,
-        "trades": 7149,
-        "maker_orders": 9020,
-        "maker_touches": 9016,
-        "maker_queue_eligible": 9016,
-        "maker_fills": 7149,
-        "touch_rate": 0.9995565410199556,
-        "queue_eligibility_rate": 0.9995565410199556,
-        "realized_fill_rate": 0.7925720620842572
+        "trades": 7145,
+        "maker_orders": 9015,
+        "maker_touches": 9011,
+        "maker_queue_eligible": 9011,
+        "maker_fills": 7145,
+        "touch_rate": 0.9995562950637826,
+        "queue_eligibility_rate": 0.9995562950637826,
+        "realized_fill_rate": 0.7925679423183583
       }
     },
     {
@@ -8400,17 +8400,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2409791412.9379,
+        "compound_x": 17573499653.1333,
         "reported_max_dd": 36.46,
         "mark_to_market_max_dd": 36.34599060929643,
-        "trades": 7305,
-        "maker_orders": 9116,
-        "maker_touches": 9112,
-        "maker_queue_eligible": 9112,
-        "maker_fills": 7305,
-        "touch_rate": 0.9995612110574813,
-        "queue_eligibility_rate": 0.9995612110574813,
-        "realized_fill_rate": 0.8013383062746818
+        "trades": 7158,
+        "maker_orders": 8937,
+        "maker_touches": 8933,
+        "maker_queue_eligible": 8933,
+        "maker_fills": 7158,
+        "touch_rate": 0.9995524225131476,
+        "queue_eligibility_rate": 0.9995524225131476,
+        "realized_fill_rate": 0.8009399127223901
       }
     },
     {
@@ -8982,17 +8982,17 @@
         }
       },
       "continuous": {
-        "compound_x": 3692979430.9201,
-        "reported_max_dd": 32.59,
-        "mark_to_market_max_dd": 32.19737790733763,
-        "trades": 7694,
-        "maker_orders": 9658,
-        "maker_touches": 9654,
-        "maker_queue_eligible": 9654,
-        "maker_fills": 7694,
-        "touch_rate": 0.999585835576724,
-        "queue_eligibility_rate": 0.999585835576724,
-        "realized_fill_rate": 0.7966452681714641
+        "compound_x": 403905354288.5531,
+        "reported_max_dd": 33.75,
+        "mark_to_market_max_dd": 33.375972786501684,
+        "trades": 7590,
+        "maker_orders": 9533,
+        "maker_touches": 9529,
+        "maker_queue_eligible": 9529,
+        "maker_fills": 7590,
+        "touch_rate": 0.9995804049092626,
+        "queue_eligibility_rate": 0.9995804049092626,
+        "realized_fill_rate": 0.7961816846742893
       }
     },
     {
@@ -9564,17 +9564,17 @@
         }
       },
       "continuous": {
-        "compound_x": 3180976958.9940004,
-        "reported_max_dd": 35.49,
-        "mark_to_market_max_dd": 34.86454196547504,
-        "trades": 7496,
-        "maker_orders": 9404,
-        "maker_touches": 9401,
-        "maker_queue_eligible": 9401,
-        "maker_fills": 7496,
-        "touch_rate": 0.9996809868141217,
-        "queue_eligibility_rate": 0.9996809868141217,
-        "realized_fill_rate": 0.7971076137813696
+        "compound_x": 97390901325.9481,
+        "reported_max_dd": 34.65,
+        "mark_to_market_max_dd": 33.91664361714468,
+        "trades": 7388,
+        "maker_orders": 9271,
+        "maker_touches": 9268,
+        "maker_queue_eligible": 9268,
+        "maker_fills": 7388,
+        "touch_rate": 0.9996764103117247,
+        "queue_eligibility_rate": 0.9996764103117247,
+        "realized_fill_rate": 0.7968935389925574
       }
     },
     {
@@ -10146,17 +10146,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2361007034.6785,
+        "compound_x": 29367636646.863598,
         "reported_max_dd": 35.07,
         "mark_to_market_max_dd": 35.850282421953665,
-        "trades": 7541,
-        "maker_orders": 9436,
-        "maker_touches": 9433,
-        "maker_queue_eligible": 9433,
-        "maker_fills": 7541,
-        "touch_rate": 0.9996820686731666,
-        "queue_eligibility_rate": 0.9996820686731666,
-        "realized_fill_rate": 0.7991733785502332
+        "trades": 7514,
+        "maker_orders": 9404,
+        "maker_touches": 9401,
+        "maker_queue_eligible": 9401,
+        "maker_fills": 7514,
+        "touch_rate": 0.9996809868141217,
+        "queue_eligibility_rate": 0.9996809868141217,
+        "realized_fill_rate": 0.7990216928966397
       }
     },
     {
@@ -10728,7 +10728,7 @@
         }
       },
       "continuous": {
-        "compound_x": 1331241077.7868,
+        "compound_x": 3959053327.3422,
         "reported_max_dd": 37.74,
         "mark_to_market_max_dd": 38.00738917550953,
         "trades": 6627,
@@ -11310,17 +11310,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2530920187.6158,
+        "compound_x": 26897036510.7744,
         "reported_max_dd": 32.86,
         "mark_to_market_max_dd": 31.728385850416565,
-        "trades": 6972,
-        "maker_orders": 9946,
-        "maker_touches": 9942,
-        "maker_queue_eligible": 9942,
-        "maker_fills": 6972,
-        "touch_rate": 0.9995978282726724,
-        "queue_eligibility_rate": 0.9995978282726724,
-        "realized_fill_rate": 0.7009853207319525
+        "trades": 6800,
+        "maker_orders": 9704,
+        "maker_touches": 9700,
+        "maker_queue_eligible": 9700,
+        "maker_fills": 6800,
+        "touch_rate": 0.9995877988458368,
+        "queue_eligibility_rate": 0.9995877988458368,
+        "realized_fill_rate": 0.7007419620774938
       }
     },
     {
@@ -11892,7 +11892,7 @@
         }
       },
       "continuous": {
-        "compound_x": 1874703398.3098998,
+        "compound_x": 14538583336.9249,
         "reported_max_dd": 34.78,
         "mark_to_market_max_dd": 34.15619790845342,
         "trades": 6872,
@@ -12474,17 +12474,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2387301749.1983,
+        "compound_x": 27109286574.9608,
         "reported_max_dd": 37.82,
         "mark_to_market_max_dd": 36.80251214305351,
-        "trades": 6856,
-        "maker_orders": 9802,
-        "maker_touches": 9798,
-        "maker_queue_eligible": 9798,
-        "maker_fills": 6856,
-        "touch_rate": 0.9995919200163232,
-        "queue_eligibility_rate": 0.9995919200163232,
-        "realized_fill_rate": 0.6994490920220363
+        "trades": 6807,
+        "maker_orders": 9725,
+        "maker_touches": 9721,
+        "maker_queue_eligible": 9721,
+        "maker_fills": 6807,
+        "touch_rate": 0.9995886889460154,
+        "queue_eligibility_rate": 0.9995886889460154,
+        "realized_fill_rate": 0.699948586118252
       }
     },
     {
@@ -13056,7 +13056,7 @@
         }
       },
       "continuous": {
-        "compound_x": 564479171.0183,
+        "compound_x": 639996943.6983,
         "reported_max_dd": 34.6,
         "mark_to_market_max_dd": 35.35070784896448,
         "trades": 6598,
@@ -13638,17 +13638,17 @@
         }
       },
       "continuous": {
-        "compound_x": 4185884123.7408004,
+        "compound_x": 238970793168.9782,
         "reported_max_dd": 35.38,
-        "mark_to_market_max_dd": 35.168075035106455,
-        "trades": 8558,
-        "maker_orders": 8683,
-        "maker_touches": 8680,
-        "maker_queue_eligible": 8558,
-        "maker_fills": 8558,
-        "touch_rate": 0.9996544972935621,
-        "queue_eligibility_rate": 0.9856040538984222,
-        "realized_fill_rate": 0.9856040538984222
+        "mark_to_market_max_dd": 35.18842505685969,
+        "trades": 8230,
+        "maker_orders": 8347,
+        "maker_touches": 8344,
+        "maker_queue_eligible": 8230,
+        "maker_fills": 8230,
+        "touch_rate": 0.9996405894333293,
+        "queue_eligibility_rate": 0.9859829878998443,
+        "realized_fill_rate": 0.9859829878998443
       }
     },
     {
@@ -14220,17 +14220,17 @@
         }
       },
       "continuous": {
-        "compound_x": 4098423221.6158004,
+        "compound_x": 182965389885.4493,
         "reported_max_dd": 35.38,
-        "mark_to_market_max_dd": 35.168075035106376,
-        "trades": 8536,
-        "maker_orders": 8683,
-        "maker_touches": 8680,
-        "maker_queue_eligible": 8536,
-        "maker_fills": 8536,
-        "touch_rate": 0.9996544972935621,
-        "queue_eligibility_rate": 0.9830703673845446,
-        "realized_fill_rate": 0.9830703673845446
+        "mark_to_market_max_dd": 35.25648376111198,
+        "trades": 8209,
+        "maker_orders": 8347,
+        "maker_touches": 8344,
+        "maker_queue_eligible": 8209,
+        "maker_fills": 8209,
+        "touch_rate": 0.9996405894333293,
+        "queue_eligibility_rate": 0.9834671139331497,
+        "realized_fill_rate": 0.9834671139331497
       }
     },
     {
@@ -14802,17 +14802,17 @@
         }
       },
       "continuous": {
-        "compound_x": 3282776186.7920003,
+        "compound_x": 123607352377.1038,
         "reported_max_dd": 35.38,
         "mark_to_market_max_dd": 35.16807503510643,
-        "trades": 8336,
-        "maker_orders": 8522,
-        "maker_touches": 8519,
-        "maker_queue_eligible": 8336,
-        "maker_fills": 8336,
-        "touch_rate": 0.9996479699601033,
-        "queue_eligibility_rate": 0.9781741375264023,
-        "realized_fill_rate": 0.9781741375264023
+        "trades": 8189,
+        "maker_orders": 8368,
+        "maker_touches": 8365,
+        "maker_queue_eligible": 8189,
+        "maker_fills": 8189,
+        "touch_rate": 0.9996414913957935,
+        "queue_eligibility_rate": 0.9786089866156787,
+        "realized_fill_rate": 0.9786089866156787
       }
     },
     {
@@ -15384,17 +15384,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2377073217.8795,
+        "compound_x": 5777772483.1693,
         "reported_max_dd": 36.8,
         "mark_to_market_max_dd": 36.044093895025604,
-        "trades": 8108,
-        "maker_orders": 8420,
-        "maker_touches": 8417,
-        "maker_queue_eligible": 8108,
-        "maker_fills": 8108,
-        "touch_rate": 0.9996437054631829,
-        "queue_eligibility_rate": 0.9629453681710214,
-        "realized_fill_rate": 0.9629453681710214
+        "trades": 7856,
+        "maker_orders": 8155,
+        "maker_touches": 8152,
+        "maker_queue_eligible": 7856,
+        "maker_fills": 7856,
+        "touch_rate": 0.9996321275291232,
+        "queue_eligibility_rate": 0.9633353770692826,
+        "realized_fill_rate": 0.9633353770692826
       }
     },
     {
@@ -15966,17 +15966,17 @@
         }
       },
       "continuous": {
-        "compound_x": 586732570.0669999,
+        "compound_x": 468303292.263,
         "reported_max_dd": 35.43,
-        "mark_to_market_max_dd": 35.63461321954702,
-        "trades": 7595,
-        "maker_orders": 8126,
-        "maker_touches": 8123,
-        "maker_queue_eligible": 7595,
-        "maker_fills": 7595,
-        "touch_rate": 0.9996308146689639,
-        "queue_eligibility_rate": 0.9346541964065961,
-        "realized_fill_rate": 0.9346541964065961
+        "mark_to_market_max_dd": 35.24831885744978,
+        "trades": 7511,
+        "maker_orders": 8039,
+        "maker_touches": 8036,
+        "maker_queue_eligible": 7511,
+        "maker_fills": 7511,
+        "touch_rate": 0.9996268192561264,
+        "queue_eligibility_rate": 0.9343201890782435,
+        "realized_fill_rate": 0.9343201890782435
       }
     },
     {
@@ -16548,17 +16548,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2157943680.452,
+        "compound_x": 5101409870.5538,
         "reported_max_dd": 35.28,
         "mark_to_market_max_dd": 34.64999872562539,
-        "trades": 7703,
-        "maker_orders": 8731,
-        "maker_touches": 8728,
-        "maker_queue_eligible": 8586,
-        "maker_fills": 7703,
-        "touch_rate": 0.9996563967472225,
-        "queue_eligibility_rate": 0.9833925094490894,
-        "realized_fill_rate": 0.8822586187149238
+        "trades": 7525,
+        "maker_orders": 8525,
+        "maker_touches": 8522,
+        "maker_queue_eligible": 8387,
+        "maker_fills": 7525,
+        "touch_rate": 0.9996480938416422,
+        "queue_eligibility_rate": 0.9838123167155425,
+        "realized_fill_rate": 0.8826979472140762
       }
     },
     {
@@ -17130,17 +17130,17 @@
         }
       },
       "continuous": {
-        "compound_x": 1785478116.0697,
+        "compound_x": 4889756310.9794,
         "reported_max_dd": 34.96,
         "mark_to_market_max_dd": 34.5373005674349,
-        "trades": 7741,
-        "maker_orders": 8768,
-        "maker_touches": 8764,
-        "maker_queue_eligible": 8621,
-        "maker_fills": 7741,
-        "touch_rate": 0.9995437956204379,
-        "queue_eligibility_rate": 0.9832344890510949,
-        "realized_fill_rate": 0.8828695255474452
+        "trades": 7650,
+        "maker_orders": 8661,
+        "maker_touches": 8657,
+        "maker_queue_eligible": 8515,
+        "maker_fills": 7650,
+        "touch_rate": 0.99953815956587,
+        "queue_eligibility_rate": 0.9831428241542547,
+        "realized_fill_rate": 0.8832698302736405
       }
     },
     {
@@ -17712,17 +17712,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2609019707.3689003,
+        "compound_x": 40020361266.3756,
         "reported_max_dd": 37.17,
         "mark_to_market_max_dd": 37.2563079880348,
-        "trades": 7789,
-        "maker_orders": 8843,
-        "maker_touches": 8840,
-        "maker_queue_eligible": 8697,
-        "maker_fills": 7789,
-        "touch_rate": 0.9996607486147235,
-        "queue_eligibility_rate": 0.9834897659165441,
-        "realized_fill_rate": 0.8808096799728599
+        "trades": 7714,
+        "maker_orders": 8755,
+        "maker_touches": 8752,
+        "maker_queue_eligible": 8614,
+        "maker_fills": 7714,
+        "touch_rate": 0.9996573386636208,
+        "queue_eligibility_rate": 0.9838949171901771,
+        "realized_fill_rate": 0.8810965162764135
       }
     },
     {
@@ -18294,17 +18294,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2397574762.9562,
+        "compound_x": 7558239101.3591,
         "reported_max_dd": 38.25,
         "mark_to_market_max_dd": 38.29285588909296,
-        "trades": 7786,
-        "maker_orders": 8814,
-        "maker_touches": 8811,
-        "maker_queue_eligible": 8672,
-        "maker_fills": 7786,
-        "touch_rate": 0.9996596324029953,
-        "queue_eligibility_rate": 0.9838892670751078,
-        "realized_fill_rate": 0.8833673700930338
+        "trades": 7512,
+        "maker_orders": 8492,
+        "maker_touches": 8489,
+        "maker_queue_eligible": 8359,
+        "maker_fills": 7512,
+        "touch_rate": 0.9996467263306642,
+        "queue_eligibility_rate": 0.9843382006594442,
+        "realized_fill_rate": 0.8845972680169572
       }
     },
     {
@@ -18876,17 +18876,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2513513257.6401997,
+        "compound_x": 12289987011.059399,
         "reported_max_dd": 37.74,
         "mark_to_market_max_dd": 37.74044421622754,
-        "trades": 7871,
-        "maker_orders": 8864,
-        "maker_touches": 8861,
-        "maker_queue_eligible": 8713,
-        "maker_fills": 7871,
-        "touch_rate": 0.9996615523465704,
-        "queue_eligibility_rate": 0.9829648014440433,
-        "realized_fill_rate": 0.8879738267148014
+        "trades": 7654,
+        "maker_orders": 8612,
+        "maker_touches": 8609,
+        "maker_queue_eligible": 8469,
+        "maker_fills": 7654,
+        "touch_rate": 0.9996516488620529,
+        "queue_eligibility_rate": 0.9833952624245239,
+        "realized_fill_rate": 0.8887598699489085
       }
     },
     {
@@ -19458,7 +19458,7 @@
         }
       },
       "continuous": {
-        "compound_x": 745282611.5669999,
+        "compound_x": 954046770.9969001,
         "reported_max_dd": 33.57,
         "mark_to_market_max_dd": 32.41388759260837,
         "trades": 6989,
@@ -20040,17 +20040,17 @@
         }
       },
       "continuous": {
-        "compound_x": 833168028.0565,
+        "compound_x": 1239818674.2774,
         "reported_max_dd": 36.79,
         "mark_to_market_max_dd": 36.4407905656455,
-        "trades": 6848,
-        "maker_orders": 8727,
-        "maker_touches": 8723,
-        "maker_queue_eligible": 8543,
-        "maker_fills": 6848,
-        "touch_rate": 0.9995416523433024,
-        "queue_eligibility_rate": 0.9789160077919101,
-        "realized_fill_rate": 0.7846911882663
+        "trades": 6840,
+        "maker_orders": 8716,
+        "maker_touches": 8712,
+        "maker_queue_eligible": 8532,
+        "maker_fills": 6840,
+        "touch_rate": 0.9995410738871042,
+        "queue_eligibility_rate": 0.9788893988067922,
+        "realized_fill_rate": 0.7847636530518587
       }
     },
     {
@@ -20622,17 +20622,17 @@
         }
       },
       "continuous": {
-        "compound_x": 2162845906.3252,
+        "compound_x": 22456540415.887596,
         "reported_max_dd": 36.02,
         "mark_to_market_max_dd": 35.015021036109886,
-        "trades": 7348,
-        "maker_orders": 9430,
-        "maker_touches": 9426,
-        "maker_queue_eligible": 9223,
-        "maker_fills": 7348,
-        "touch_rate": 0.999575821845175,
-        "queue_eligibility_rate": 0.9780487804878049,
-        "realized_fill_rate": 0.7792152704135737
+        "trades": 7338,
+        "maker_orders": 9414,
+        "maker_touches": 9410,
+        "maker_queue_eligible": 9210,
+        "maker_fills": 7338,
+        "touch_rate": 0.9995751009135331,
+        "queue_eligibility_rate": 0.9783301465901848,
+        "realized_fill_rate": 0.7794773741236456
       }
     },
     {
@@ -21204,17 +21204,17 @@
         }
       },
       "continuous": {
-        "compound_x": 1493028582.0187,
+        "compound_x": 4806883964.9848995,
         "reported_max_dd": 36.32,
         "mark_to_market_max_dd": 35.50258223362037,
-        "trades": 7186,
-        "maker_orders": 9199,
-        "maker_touches": 9196,
-        "maker_queue_eligible": 9008,
-        "maker_fills": 7186,
-        "touch_rate": 0.9996738775953908,
-        "queue_eligibility_rate": 0.9792368735732144,
-        "realized_fill_rate": 0.781171866507229
+        "trades": 7170,
+        "maker_orders": 9179,
+        "maker_touches": 9176,
+        "maker_queue_eligible": 8990,
+        "maker_fills": 7170,
+        "touch_rate": 0.9996731670116571,
+        "queue_eligibility_rate": 0.9794095217343938,
+        "realized_fill_rate": 0.7811308421396667
       }
     },
     {
@@ -22950,7 +22950,7 @@
         }
       },
       "continuous": {
-        "compound_x": 348629425.6446,
+        "compound_x": 342503345.73330003,
         "reported_max_dd": 32.84,
         "mark_to_market_max_dd": 32.547195744096406,
         "trades": 6543,
@@ -24114,17 +24114,17 @@
         }
       },
       "continuous": {
-        "compound_x": 618701226.0507,
+        "compound_x": 951627633.5734,
         "reported_max_dd": 36.34,
         "mark_to_market_max_dd": 35.30556527704816,
-        "trades": 6486,
-        "maker_orders": 9630,
-        "maker_touches": 9626,
-        "maker_queue_eligible": 9271,
-        "maker_fills": 6486,
-        "touch_rate": 0.9995846313603323,
-        "queue_eligibility_rate": 0.9627206645898234,
-        "realized_fill_rate": 0.6735202492211838
+        "trades": 6531,
+        "maker_orders": 9699,
+        "maker_touches": 9695,
+        "maker_queue_eligible": 9336,
+        "maker_fills": 6531,
+        "touch_rate": 0.9995875863491082,
+        "queue_eligibility_rate": 0.9625734611815651,
+        "realized_fill_rate": 0.6733683884936591
       }
     },
     {

@@ -1,5 +1,5 @@
 """Paper-readiness operations: daily log rotation/retention, structured records,
-live cooldown/loss-penalty parity, max_position_usd in simulators, engine
+live cooldown/loss-penalty parity, max_position_pct in simulators, engine
 slippage/liquidation, the account-scoped process lock, and max-holding expiry."""
 
 from __future__ import annotations
@@ -220,32 +220,43 @@ class TestLiveRiskCounters:
 
 
 # ---------------------------------------------------------------------------
-# max_position_usd parity in the simulators
+# max_position_pct parity in the simulators (scale-invariant per-trade rail)
 # ---------------------------------------------------------------------------
 
-class TestMaxPositionUsd:
-    def test_portfolio_caps_margin_per_trade(self) -> None:
+class TestMaxPositionPct:
+    def test_portfolio_caps_margin_fraction_per_trade(self) -> None:
         port = Portfolio(initial_balance=10000)
         capped = port.open_trade(
             direction="LONG", entry_price=100.0, entry_time="t",
             stop_loss=95.0, take_profit_1=110.0, take_profit_2=120.0,
-            leverage=10, risk_pct=0.02, max_margin_usd=100.0,
+            leverage=10, risk_pct=0.90, max_margin_pct=0.66,
         )
-        # margin = min(10000 * 0.02, 100) = 100 -> notional 1000 -> size 10
-        assert capped.size == pytest.approx(10.0)
+        # margin = 10000 * min(0.90, 0.66) = 6600 -> notional 66000 -> size 660
+        assert capped.size == pytest.approx(660.0)
 
         uncapped = port.open_trade(
             direction="LONG", entry_price=100.0, entry_time="t",
             stop_loss=95.0, take_profit_1=110.0, take_profit_2=120.0,
-            leverage=10, risk_pct=0.02,
+            leverage=10, risk_pct=0.90,
         )
         assert uncapped.size > capped.size  # None preserves legacy sizing
 
-    def test_engine_passes_config_cap_to_fills(self) -> None:
+    def test_rail_never_binds_normal_sizing(self) -> None:
+        """The 66% rail is a bug-stopper: 2% risk sizing must be unaffected."""
+        port = Portfolio(initial_balance=10000)
+        trade = port.open_trade(
+            direction="LONG", entry_price=100.0, entry_time="t",
+            stop_loss=95.0, take_profit_1=110.0, take_profit_2=120.0,
+            leverage=10, risk_pct=0.02, max_margin_pct=0.66,
+        )
+        # margin = 10000 * min(0.02, 0.66) = 200 -> notional 2000 -> size 20
+        assert trade.size == pytest.approx(20.0)
+
+    def test_engine_passes_config_rail_to_fills(self) -> None:
         cfg = _config()
-        cfg.position_sizing.max_position_usd = 123.0
+        cfg.position_sizing.max_position_pct = 0.5
         engine = BacktestEngine(cfg)
-        assert engine.max_margin_usd == 123.0
+        assert engine.max_margin_pct == 0.5
 
 
 # ---------------------------------------------------------------------------

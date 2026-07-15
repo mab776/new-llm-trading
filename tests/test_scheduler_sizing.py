@@ -23,7 +23,6 @@ def _config() -> AppConfig:
     cfg.trading.leverage_tiers = {"aggressive": LeverageTier(leverage=10)}
     cfg.trading.active_tier = "aggressive"
     cfg.position_sizing.risk_pct_per_trade = 0.02
-    cfg.position_sizing.max_position_usd = 100
     return cfg
 
 
@@ -142,7 +141,7 @@ class TestLiveSizing:
 
         sched._execute_trade(_decision())
 
-        # margin = min(5000 * 0.02, 100) = 100; notional = 100 * 10 = 1000; size = 1000/50000
+        # margin = 5000 * min(0.02, 0.66) = 100; notional = 100 * 10 = 1000; size = 1000/50000
         assert captured["size"] == pytest.approx(1000 / 50000)
         assert captured["size"] != 0.001
         assert captured["client_oid"].startswith("llt-")
@@ -164,7 +163,6 @@ class TestLiveSizing:
     def test_exchange_wide_exposure_cap_scales_new_order(self, monkeypatch, tmp_path):
         monkeypatch.chdir(tmp_path)
         cfg = _config()
-        cfg.position_sizing.max_position_usd = 1000
         cfg.position_sizing.global_max_margin_pct = .01
         sched = TradingScheduler(cfg)
         monkeypatch.setattr(sched.exchange, "get_available_balance", lambda *a, **k: 5000.0)

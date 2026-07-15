@@ -100,7 +100,7 @@ class BacktestEngine:
         self.slippage = bt_cfg.slippage_pct
         self.model_liquidation = bt_cfg.model_liquidation
         self.maintenance_margin = bt_cfg.maintenance_margin
-        self.max_margin_usd = config.position_sizing.max_position_usd
+        self.max_margin_pct = config.position_sizing.max_position_pct
 
         # Risk management state (imported from predecessor project)
         self.risk_cfg = risk_cfg
@@ -366,7 +366,7 @@ class BacktestEngine:
                         risk_pct=pending.risk_pct,
                         tp1_exit_pct=pending.tp1_exit_pct,
                         order_type="maker",
-                        max_margin_usd=pending.max_margin_usd,
+                        max_margin_pct=pending.max_margin_pct,
                     )
                     trade._atr_entry = pending.atr_at_entry
                     self.decision_log.append({
@@ -555,13 +555,12 @@ class BacktestEngine:
                             t.remaining_size * t.entry_price for t in open_now
                         )
                         if self.pending_entry is not None:
-                            pending_margin = (
-                                self.portfolio.balance * self.pending_entry.risk_pct
-                            )
-                            if self.pending_entry.max_margin_usd is not None:
-                                pending_margin = min(
-                                    pending_margin, self.pending_entry.max_margin_usd
+                            pending_risk = self.pending_entry.risk_pct
+                            if self.pending_entry.max_margin_pct is not None:
+                                pending_risk = min(
+                                    pending_risk, self.pending_entry.max_margin_pct
                                 )
+                            pending_margin = self.portfolio.balance * pending_risk
                             committed_margin += pending_margin
                             committed_notional += (
                                 pending_margin * self.pending_entry.leverage
@@ -585,7 +584,7 @@ class BacktestEngine:
                                 tp1_exit_pct=self.tier.tp1_exit_pct,
                                 atr_at_entry=primary_ind.atr_14,
                                 decision_time=bar_time,
-                                max_margin_usd=self.max_margin_usd,
+                                max_margin_pct=self.max_margin_pct,
                             )
                             trade_action = f"PLACE_{direction_str}_MAKER"
                         else:
@@ -603,7 +602,7 @@ class BacktestEngine:
                                 risk_pct=risk_eff,
                                 tp1_exit_pct=self.tier.tp1_exit_pct,
                                 order_type="taker",
-                                max_margin_usd=self.max_margin_usd,
+                                max_margin_pct=self.max_margin_pct,
                             )
                             trade_action = f"OPEN_{direction_str}"
                         print(f"    >> {trade_action} @ ${bar_close:,.2f} | Score: {result.raw_score:+.1f} | SL: ${targets.stop_loss:,.2f} | TP1: ${targets.take_profit_1:,.2f} | TP2: ${targets.take_profit_2:,.2f}")

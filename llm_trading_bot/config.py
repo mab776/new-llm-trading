@@ -158,7 +158,11 @@ class RiskManagementConfig(BaseModel):
 class PositionSizingConfig(BaseModel):
     """How much capital to put behind each trade (used by live AND backtest)."""
     risk_pct_per_trade: float = Field(0.02, gt=0, le=1)
-    max_position_usd: float = Field(100, gt=0)
+    # Per-trade margin ceiling as a FRACTION of the sizing balance (scale-
+    # invariant sanity rail against sizing bugs — it never freezes compounding
+    # the way the old absolute max_position_usd did). Normal sizing (~2-3%)
+    # sits far below it; it only bites on a runaway size computation.
+    max_position_pct: float = Field(0.66, gt=0, le=1)
     max_positions: int = Field(1, ge=1)
     conviction_exponent: float = Field(0.0, ge=0)
     #                                    clamped to [0.5, 1.5] — bigger signals get bigger size

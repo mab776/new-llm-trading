@@ -164,7 +164,9 @@ class TestLoadConfig:
         assert config.position_sizing.anti_martingale_step == .05
         assert config.position_sizing.global_max_margin_pct == 0
         assert config.position_sizing.global_max_notional_pct == 0
-        assert config.position_sizing.max_position_usd == 1_000_000_000
+        # The per-trade rail is now a scale-invariant fraction inherited from
+        # the base config; normal sizing (~2-3%) never reaches it.
+        assert config.position_sizing.max_position_pct == 0.66
 
     @pytest.mark.parametrize("name", (
         "config.json", "config-eth.json", "config-sol.json",

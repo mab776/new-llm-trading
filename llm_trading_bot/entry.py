@@ -23,9 +23,9 @@ class PendingEntry:
     tp1_exit_pct: float
     atr_at_entry: float | None = None
     decision_time: str = ""
-    # Per-trade USD margin ceiling locked in at placement (live parity with
-    # position_sizing.max_position_usd); None = uncapped.
-    max_margin_usd: float | None = None
+    # Per-trade margin ceiling as a fraction of the sizing balance, locked in at
+    # placement (live parity with position_sizing.max_position_pct); None = uncapped.
+    max_margin_pct: float | None = None
 
 
 def maker_limit_touched(

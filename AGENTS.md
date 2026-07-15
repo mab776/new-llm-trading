@@ -99,23 +99,29 @@ Round 23 corrected shared continuous results (superseded 2026-07-15, kept for hi
 445,508.49× at 17.94%/18.03% maxDD; aggressive 4.976 trillion× at 38.47%/38.67% maxDD.
 
 **2026-07-15 paper-readiness execution parity (current headline).** The simulators now enforce
-the full live execution model: `max_position_usd` caps per-trade margin in the full engine,
-fastbt, and the shared multi-asset harness (it was live-only before, which made the huge
-compounding headlines unreproducible live); live sizing switched to realized balance (equity −
-open PnL, backtest parity); live gained the backtest's post-SL cooldown, consecutive-loss entry
-penalty, and `max_holding_hours` (persisted per symbol in live state v4); `--mode backtest`
-gained config-driven `slippage_pct`/`model_liquidation` matching fastbt semantics; and the
-shipped configs switched to **isolated margin** to match the harness's liquidation model.
-Full/fast 2024 maker parity remains exact at the new settings (+150.42%, 571 trades, 17.56%
-maxDD, zero mismatches — the drop from +223.04% is the now-modeled slippage/liquidation/cap).
+the full live execution model in the full engine, fastbt, and the shared multi-asset harness;
+live sizing switched to realized balance (equity − open PnL, backtest parity); live gained the
+backtest's post-SL cooldown, consecutive-loss entry penalty, and `max_holding_hours` (persisted
+per symbol in live state v4); `--mode backtest` gained config-driven
+`slippage_pct`/`model_liquidation` matching fastbt semantics; and the shipped configs switched
+to **isolated margin** to match the harness's liquidation model. Full/fast 2024 maker parity
+remains exact at the new settings (+150.42%, 571 trades, 17.56% maxDD, zero mismatches — the
+drop from +223.04% is the now-modeled slippage/liquidation).
+
+The per-trade margin rail is **`position_sizing.max_position_pct: 0.66`** — a FRACTION of the
+sizing balance (`margin = balance × min(risk_pct, 0.66)`), enforced identically in live and all
+simulators. It replaced the absolute `max_position_usd` (Marc: a fixed USD cap silently freezes
+compounding once the account grows; a fraction scales with equity). Normal sizing (~2-3%) never
+reaches 66% — the rail exists purely to stop a runaway size computation from betting most of
+the account on one trade.
 
 Regenerated gap-free completed-candle results (`opt/completed_candle_results.json`): standard
-**1,053.88×** continuous at 14.36% reported / 13.16% mark-to-market maxDD (the $100/trade margin
-cap binds once balance exceeds ~$5k — this is the honest live-reproducible expectation);
-aggressive **5,200,900,708.88×** at 35.03% reported / 34.82% mark-to-market maxDD (its $1B cap
-binds only in the extreme tail). Held-out TEST is unchanged (standard 153.65×, aggressive
-1,486,262.11× — the caps never bind at fold scale) and every annual fold stays green. These
-path-dependent multiples are robustness results, never forecasts.
+**338,592.06×** continuous at 17.94% reported / 18.02% mark-to-market maxDD; aggressive
+**4.67 trillion×** at 35.03% reported / 34.82% mark-to-market maxDD. Standalone standard
+BTC/ETH/SOL: 199.54× / 1,789.35× / 126,351.99×. Held-out TEST: standard 153.65×, aggressive
+1,486,262.11×; every annual fold green. Queue stress: the harsh 5bps-penetration/70%-fill case
+retains 64.6% of baseline log growth with every fold green. These path-dependent multiples are
+robustness results, never forecasts (no market-impact modeling).
 
 ### Key Design Principle: Single Source of Truth
 
@@ -295,15 +301,16 @@ exists for a reason — it's the last line of defense.
 ### Position Sizing & Trailing Stops
 
 - **Sizing** (`position_sizing` config): both live and backtest commit
-  `min(realized_balance × risk_pct_per_trade, max_position_usd)` as margin, leveraged to the
-  notional, converted to base size at entry. The `max_position_usd` ceiling is enforced in the
-  full engine, fastbt, AND the shared harness (since 2026-07-15; live-only before). Live
+  `realized_balance × min(risk_pct_per_trade, max_position_pct)` as margin, leveraged to the
+  notional, converted to base size at entry. `max_position_pct` (0.66) is a scale-invariant
+  per-trade rail enforced in the full engine, fastbt, AND the shared harness — normal ~2-3%
+  sizing never reaches it; it only stops a runaway size computation. Live
   realized balance = exchange equity − open unrealized PnL (backtest parity), additionally
   bounded by `get_available_balance()` because reserved maker margin can't be committed twice.
 - **Shared risk profiles**: the default capped profile targets natural realized shared-portfolio
-  maxDD of approximately 25%. Completed-candle validation realizes 17.94% reported / 18.03% 4h
+  maxDD of approximately 25%. Completed-candle validation realizes 17.94% reported / 18.02% 4h
   mark-to-market maxDD, so the existing caps remain. The explicit aggressive profile realizes
-  approximately 39% corrected historical maxDD in exchange for uncapped compounding; never present
+  approximately 35% corrected historical maxDD in exchange for uncapped compounding; never present
   that backtest as a forecast or assume live DD cannot be materially worse.
 - **Trailing stops**: `trailing.py::compute_trailing_stop` is the single source of truth,
   used by `backtesting.py::_update_trailing_stop` AND `scheduler.py::_maybe_trail_stop`

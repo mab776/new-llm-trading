@@ -111,9 +111,10 @@ def committed_exposure(port: Portfolio, pending: list[PendingEntry],
     )
     notional = sum(t.remaining_size * t.entry_price for t in port.open_trades)
     for order in pending:
-        order_margin = balance * order.risk_pct
-        if order.max_margin_usd is not None:
-            order_margin = min(order_margin, order.max_margin_usd)
+        order_risk = order.risk_pct
+        if order.max_margin_pct is not None:
+            order_risk = min(order_risk, order.max_margin_pct)
+        order_margin = balance * order_risk
         margin += order_margin
         notional += order_margin * order.leverage
     return slots, margin, notional
@@ -254,7 +255,7 @@ def simulate_multi(
                         p.take_profit_1, p.take_profit_2, leverage=p.leverage,
                         risk_pct=p.risk_pct, tp1_exit_pct=p.tp1_exit_pct,
                         order_type="maker", symbol=symbol,
-                        max_margin_usd=p.max_margin_usd,
+                        max_margin_pct=p.max_margin_pct,
                     )
                     fresh._atr_entry = p.atr_at_entry
                     symbol_trades.append(fresh)
@@ -435,7 +436,7 @@ def simulate_multi(
                             targets.take_profit_1, targets.take_profit_2,
                             leverage, risk_eff, tier.tp1_exit_pct,
                             prim.atr_14, bar_time,
-                            max_margin_usd=ps.max_position_usd,
+                            max_margin_pct=ps.max_position_pct,
                         )
                         maker_orders += 1
                     else:
@@ -447,7 +448,7 @@ def simulate_multi(
                             leverage=leverage, risk_pct=risk_eff,
                             tp1_exit_pct=tier.tp1_exit_pct, order_type="taker",
                             symbol=symbol,
-                            max_margin_usd=ps.max_position_usd,
+                            max_margin_pct=ps.max_position_pct,
                         )
                         trade._atr_entry = prim.atr_14
 

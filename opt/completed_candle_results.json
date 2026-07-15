@@ -394,47 +394,47 @@
       }
     },
     "annual": {
-      "geo_pct": 1206.3520980741512,
-      "compound_x": 380453.1949464575,
+      "geo_pct": 1170.5912750638677,
+      "compound_x": 331153.4957269957,
       "worst_fold": 146.74,
       "max_dd": 17.94,
-      "trades": 5433,
-      "maker_orders": 5440,
-      "maker_touches": 5433,
-      "maker_queue_eligible": 5433,
-      "maker_fills": 5433,
+      "trades": 5385,
+      "maker_orders": 5391,
+      "maker_touches": 5385,
+      "maker_queue_eligible": 5385,
+      "maker_fills": 5385,
       "per": {
         "2021": {
-          "return_pct": 6161.31,
-          "max_dd": 14.36,
-          "trades": 1384,
+          "return_pct": 5349.96,
+          "max_dd": 14.15,
+          "trades": 1336,
           "symbols": {
             "BTC": {
-              "trades": 564,
-              "win_rate": 76.95035460992908,
-              "net_pnl": 1867.6661650609876,
-              "fees": 309.363338143865,
-              "funding": 68.06764242497792
+              "trades": 551,
+              "win_rate": 77.31397459165154,
+              "net_pnl": 2019.2080126069259,
+              "fees": 308.889860564631,
+              "funding": 68.55476346296508
             },
             "ETH": {
-              "trades": 615,
-              "win_rate": 74.3089430894309,
-              "net_pnl": 2348.9316226224933,
-              "fees": 327.0435075735529,
-              "funding": 70.50326096706057
+              "trades": 601,
+              "win_rate": 74.20965058236273,
+              "net_pnl": 1970.5185430147521,
+              "fees": 315.6351677664183,
+              "funding": 73.92575337091158
             },
             "SOL": {
-              "trades": 205,
-              "win_rate": 71.21951219512195,
-              "net_pnl": 1944.7107332682183,
-              "fees": 290.0275069332494,
-              "funding": 12.305486091718938
+              "trades": 184,
+              "win_rate": 70.1086956521739,
+              "net_pnl": 1360.2291768913474,
+              "fees": 249.25002982450798,
+              "funding": 10.524460623104837
             }
           },
-          "maker_orders": 1389,
-          "maker_touches": 1384,
-          "maker_queue_eligible": 1384,
-          "maker_fills": 1384
+          "maker_orders": 1340,
+          "maker_touches": 1336,
+          "maker_queue_eligible": 1336,
+          "maker_fills": 1336
         },
         "2022": {
           "return_pct": 2495.95,
@@ -567,25 +567,25 @@
       }
     },
     "continuous": {
-      "compound_x": 1053.8824,
-      "final_balance": 105388.24,
-      "reported_max_dd": 14.36,
-      "trades": 8271,
-      "mark_to_market_max_dd": 13.162403592037387,
+      "compound_x": 338592.0589,
+      "final_balance": 33859205.89,
+      "reported_max_dd": 17.94,
+      "trades": 5393,
+      "mark_to_market_max_dd": 18.024435117319868,
       "top_episode_depths": [
-        13.162403592037387,
-        12.79902410579648,
-        12.165591163636394
+        18.024435117319868,
+        16.72693223161033,
+        15.674730921605153
       ],
       "thresholds": {
         "10": {
           "threshold_pct": 10,
-          "episodes": 4,
-          "bars": 104,
-          "time_pct": 1.075157655329267,
-          "weeks": 8,
-          "weeks_pct": 3.463203463203463,
-          "longest_days": 3.3333333333333335
+          "episodes": 19,
+          "bars": 817,
+          "time_pct": 8.446190426961646,
+          "weeks": 47,
+          "weeks_pct": 20.346320346320347,
+          "longest_days": 12.5
         },
         "20": {
           "threshold_pct": 20,
@@ -627,19 +627,19 @@
     },
     "standalone_continuous": {
       "BTC": {
-        "compound_x": 139.8651,
-        "max_dd": 16.72,
-        "trades": 2649
+        "compound_x": 199.5379,
+        "max_dd": 17.93,
+        "trades": 2477
       },
       "ETH": {
-        "compound_x": 262.27209999999997,
-        "max_dd": 11.68,
-        "trades": 3004
+        "compound_x": 1789.3463000000002,
+        "max_dd": 19.18,
+        "trades": 2798
       },
       "SOL": {
-        "compound_x": 485.1057,
-        "max_dd": 15.31,
-        "trades": 3063
+        "compound_x": 126351.9906,
+        "max_dd": 15.42,
+        "trades": 2897
       }
     }
   },
@@ -1209,51 +1209,51 @@
       }
     },
     "continuous": {
-      "compound_x": 5200900708.88,
-      "final_balance": 520090070888.0,
+      "compound_x": 4669881733813.477,
+      "final_balance": 466988173381347.7,
       "reported_max_dd": 35.03,
-      "trades": 8801,
+      "trades": 8604,
       "mark_to_market_max_dd": 34.81509544491144,
       "top_episode_depths": [
         34.81509544491144,
-        30.997845030391975,
-        27.67948166948978
+        32.272260854224584,
+        31.978344079630684
       ],
       "thresholds": {
         "10": {
           "threshold_pct": 10,
-          "episodes": 48,
-          "bars": 2339,
-          "time_pct": 24.180709190530344,
-          "weeks": 99,
-          "weeks_pct": 42.857142857142854,
+          "episodes": 80,
+          "bars": 4221,
+          "time_pct": 43.63692753023881,
+          "weeks": 177,
+          "weeks_pct": 76.62337662337663,
           "longest_days": 68.33333333333333
         },
         "20": {
           "threshold_pct": 20,
-          "episodes": 9,
-          "bars": 847,
-          "time_pct": 8.756332058306628,
-          "weeks": 34,
-          "weeks_pct": 14.718614718614718,
-          "longest_days": 36.0
+          "episodes": 18,
+          "bars": 1674,
+          "time_pct": 17.305903029049933,
+          "weeks": 69,
+          "weeks_pct": 29.87012987012987,
+          "longest_days": 40.5
         },
         "25": {
           "threshold_pct": 25,
-          "episodes": 3,
-          "bars": 601,
-          "time_pct": 6.213170681277783,
-          "weeks": 22,
-          "weeks_pct": 9.523809523809524,
+          "episodes": 8,
+          "bars": 1073,
+          "time_pct": 11.092732347772149,
+          "weeks": 40,
+          "weeks_pct": 17.316017316017316,
           "longest_days": 34.833333333333336
         },
         "30": {
           "threshold_pct": 30,
-          "episodes": 2,
-          "bars": 196,
-          "time_pct": 2.0262586581205415,
-          "weeks": 8,
-          "weeks_pct": 3.463203463203463,
+          "episodes": 4,
+          "bars": 275,
+          "time_pct": 2.842964953995658,
+          "weeks": 14,
+          "weeks_pct": 6.0606060606060606,
           "longest_days": 14.0
         },
         "33": {
