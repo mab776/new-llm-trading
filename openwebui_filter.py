@@ -132,13 +132,31 @@ def compute_obv(close: pd.Series, volume: pd.Series) -> pd.Series:
     return (volume * direction).cumsum()
 
 
+# Rolling VWAP window (bars). A cumulative-from-series-start VWAP is NOT
+# reproducible in live trading: its value depends on how much history happens to
+# be loaded (the live loader only fetches ~warmup_periods+30 candles, while the
+# backtest anchors at the first cached candle years earlier), so the same bar
+# scores differently live vs backtest. A fixed trailing window computes
+# identically on both paths. 100 bars stays comfortably within the live load on
+# every timeframe (warmup_periods+30) while remaining a slow VWAP baseline.
+VWAP_WINDOW = 100
+
+
 def compute_vwap(
-    high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series
+    high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series,
+    window: int = VWAP_WINDOW,
 ) -> pd.Series:
+    """Rolling volume-weighted average price over a fixed trailing window.
+
+    Causal (row i uses only bars i-window+1..i), so computing it once over the
+    full series (fast harness) and recomputing it on each expanding slice
+    (engine/live) yield identical values — and live reproduces the backtest
+    because the window no longer depends on the loaded history depth.
+    """
     tp = (high + low + close) / 3
-    cum_tp_vol = (tp * volume).cumsum()
-    cum_vol = volume.cumsum().replace(0, np.nan)
-    return cum_tp_vol / cum_vol
+    pv = (tp * volume).rolling(window=window, min_periods=window).sum()
+    vv = volume.rolling(window=window, min_periods=window).sum().replace(0, np.nan)
+    return pv / vv
 
 
 def compute_williams_r(

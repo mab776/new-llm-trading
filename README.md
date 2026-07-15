@@ -82,16 +82,16 @@ Two shared-portfolio risk profiles are available:
 - **Standard (default):** `config.json`, `config-eth.json`, and `config-sol.json`; portfolio-wide
   caps target approximately 25% historical shared max drawdown. With the live execution model
   enforced in the simulators (scale-invariant 66% per-trade margin rail, 2bps market-exit
-  slippage, isolated-margin liquidation), completed-candle validation produces **338,592×**
-  shared continuous growth at 17.94% reported / 18.02% 4h mark-to-market maxDD. Held-out TEST
-  (153.65×) and every annual fold stay green; the shipped 4.4% margin and 1.10× notional caps
+  slippage, isolated-margin liquidation), completed-candle validation produces **842,919×**
+  shared continuous growth at 18.77% reported / 18.85% 4h mark-to-market maxDD. Held-out TEST
+  (216.76×) and every annual fold stay green; the shipped 4.4% margin and 1.10× notional caps
   remain unchanged. (The per-trade rail is `position_sizing.max_position_pct: 0.66` — a
   fraction of the account, so it scales with equity and never freezes compounding; normal
   ~2-3% sizing sits far below it and it only stops a runaway size computation.)
 - **Aggressive:** `config-aggressive.json`, `config-eth-aggressive.json`, and
   `config-sol-aggressive.json`; these small profiles inherit their standard asset config and
   disable the portfolio margin/notional caps. They remain on testnet by inheritance.
-  Completed-candle validation produces **4.67 trillion×** with 35.03% reported / 34.82% 4h
+  Completed-candle validation produces **72.9 trillion×** with 36.17% reported / 35.32% 4h
   mark-to-market maxDD. This extreme path-dependent compounding is a robustness result, not a
   live-return forecast (no market-impact modeling); live drawdown can be materially worse than
   the approximately 35% history.

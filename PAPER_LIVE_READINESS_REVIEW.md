@@ -1,7 +1,8 @@
 # Paper/Live Trading Readiness Review
 
 **Original review:** 2026-07-13 (commit `8cc6912`, `main`)
-**Last updated:** 2026-07-15 — all credential-free prerequisites done; **402 tests pass**.
+**Last updated:** 2026-07-15 — all credential-free prerequisites done; rolling-VWAP
+reproducibility fix + LLM-consensus bug fixes applied; **403 tests pass**.
 **Only remaining gate:** item 1, Bitget demo integration (needs Marc's demo API keys).
 **Scope:** Architecture, Bitget integration, order lifecycle, risk controls, historical data,
 backtest/live parity, testing, configuration, operational readiness, and the remaining work to
@@ -25,7 +26,7 @@ Almost every critical execution blocker from the original review has been **fixe
 (authenticated signing, symbol canonicalization, contract precision, real TP1/TP2/break-even
 lifecycle, per-lot durable state, startup reconciliation, account preflight, fail-closed data
 routing, entry-fee accounting). **2026-07-15 update:** items 2–4 below (cache/report regeneration,
-risk/accounting parity, operational controls + log instrumentation) are **DONE** — 402 tests pass
+risk/accounting parity, operational controls + log instrumentation) are **DONE** — 403 tests pass
 and full/fast parity is exact at the new execution settings. The only gate left before paper
 trading is **item 1: running the lifecycle scenarios against the Bitget demo account** (plus the
 one-time demo account setup listed there).
@@ -76,10 +77,12 @@ scenario on the exchange:
 - `opt/completed_candle_results.json` and `opt/completed_candle_queue_results.json` regenerated
   **with the full live execution model** (see item 3). Headline (gap-free, sub-bar, maker,
   funding, liquidation, 2bps slip, 66% per-trade margin rail, 2021-01→2025-06):
-  - **Standard:** continuous **338,592.06×**, 17.94% reported / 18.02% MTM maxDD; held-out TEST
-    153.65×; standalone BTC/ETH/SOL 199.54× / 1,789.35× / 126,351.99×; every annual fold green.
-  - **Aggressive:** continuous **4.67 trillion×**, 35.03% reported / 34.82% MTM maxDD; TEST
-    1,486,262×.
+  - **Standard:** continuous **842,919.58×**, 18.77% reported / 18.85% MTM maxDD; held-out TEST
+    216.76×; standalone BTC/ETH/SOL 303.97× / 2,755.59× / 430,108.74× (the huge SOL dispersion
+    underlines that these are path-dependent, not a portable per-asset edge); every annual fold green.
+  - **Aggressive:** continuous **72.9 trillion×**, 36.17% reported / 35.32% MTM maxDD; TEST
+    3,348,599×.
+  - (2026-07-15 later: regenerated after the rolling-VWAP reproducibility fix — see change log.)
   - **Queue stress:** harsh 5bps penetration + 70% fill retains **64.6%** median log growth,
     every annual fold green (worst +398.6%).
   - Sizing-rail history: the first 2026-07-15 regeneration enforced the then-shipped absolute
@@ -116,8 +119,8 @@ scenario on the exchange:
   `config.json` ships 2bps + liquidation on. MTM drawdown reporting was already in snapshots.
 - **`max_holding_hours` implemented in live** (bar-floored force-close mirroring `time_expired`;
   shipped configs keep it disabled).
-- **Full/fast 2024 maker parity re-verified digit-equal at the new settings:** +150.42%, 571
-  trades, 17.56% maxDD, zero mismatches (`opt/validate_parity.py` now mirrors the config's
+- **Full/fast 2024 maker parity re-verified digit-equal (rolling-VWAP settings):** +177.54%, 590
+  trades, 16.74% maxDD, zero mismatches (`opt/validate_parity.py` now mirrors the config's
   execution settings into fastbt).
 - ⚠️ **One known, deliberate divergence remains:** live TP1/TP2 plans execute at **market**
   (taker fee + real execution price) while the backtest fills TPs at the exact target with
@@ -206,15 +209,16 @@ IP-restricted keys, monitoring, and the external kill switch.
 The strategy research is promising; the central problem was never the edge, it was that the
 validated strategy is not yet what the live exchange path provably executes.
 
-- **Standard capped profile (default):** BTC+ETH+SOL shared continuous **338,592.06×** at 17.94%
-  reported / 18.02% MTM maxDD (2026-07-15 regeneration with the full live execution model:
-  gap-free data, 66% per-trade margin rail, slippage, liquidation); held-out TEST 153.65×, every
+- **Standard capped profile (default):** BTC+ETH+SOL shared continuous **842,919.58×** at 18.77%
+  reported / 18.85% MTM maxDD (2026-07-15 regeneration with the full live execution model plus the
+  rolling-VWAP reproducibility fix: gap-free data, 66% per-trade margin rail, slippage, liquidation);
+  held-out TEST 216.76×, every
   annual fold green; 4.4% equity-margin and 1.10× equity-notional caps. Configs: `config.json`,
   `config-eth.json`, `config-sol.json`. **Acceptance targets ~25% maxDD** — a research/selection
   target, NOT a live kill switch.
 - **Aggressive profile (explicit opt-in):** `config-aggressive.json` + ETH/SOL peers disable the
-  shared caps for the uncapped anti-martingale return path: continuous **4.67 trillion×** at
-  35.03% reported / 34.82% MTM maxDD, TEST 1,486,262×. The huge multiples are **path-dependent,
+  shared caps for the uncapped anti-martingale return path: continuous **72.9 trillion×** at
+  36.17% reported / 35.32% MTM maxDD, TEST 3,348,599×. The huge multiples are **path-dependent,
   not forecasts** (no market-impact modeling); live DD can be materially worse.
 - The post-June-2025 holdout (standard ~6.25×, aggressive ~29.78×, pre-cap replay) stays frozen
   and untouched; it still relies on the backtest execution model.
@@ -230,7 +234,7 @@ validated strategy is not yet what the live exchange path provably executes.
   sync; never mix risk profiles in one report.
 - **Harness:** `opt/fastbt.py` (causal, digit-equal to the engine, ~4000× faster) + `opt/driver.py`
   (`setup`/`evaluate`, folds). Run with `PYTHONPATH=. /tmp/tmlvenv/bin/python …`; the `/tmp/tmlvenv`
-  venv has all deps (system python has no pip). `pytest -q` → 402 tests pass. Parity checker:
+  venv has all deps (system python has no pip). `pytest -q` → 403 tests pass. Parity checker:
   `PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.validate_parity` (must stay exact).
 
 ---
@@ -376,6 +380,32 @@ risk-management bounds are still open.**
 
 ## Change log
 
+- **2026-07-15 (pre-paper deep review — fixes applied):**
+  - **VWAP made live-reproducible (parity bug).** `openwebui_filter.compute_vwap` was a
+    cumulative-from-series-start VWAP whose value depends on how much history is loaded — the
+    backtest anchored it years back, but the live loader fetches only ~`warmup_periods+30`
+    candles, so the SAME bar scored differently live vs backtest (the `volume` category, weight
+    0.20, silently diverged on every decision). Replaced with a fixed 100-bar rolling VWAP
+    (causal; identical in engine, fast harness, and live). The edge survives and improves:
+    standard 338,592×→**842,919×** (TEST 153.65→**216.76×**), aggressive 4.67T→**72.9T×**;
+    every annual fold green; engine==fastbt parity re-verified **exact**. `opt/completed_candle_results.json`
+    + README/AGENTS regenerated. (`opt/queue_fill_sensitivity_results.json` predates this and
+    should be rerun.) Window is `openwebui_filter.VWAP_WINDOW` if it ever needs tuning.
+  - **LLM-consensus correctness fixes (opt-in path; shipped profiles use `deterministic`):**
+    (1) a consensus decision that *disagrees* with the scored direction now WAITs instead of
+    silently executing the old (opposite-direction) targets with unverified filters
+    (`scheduler.execute_decision`); (2) an even vote split (e.g. a two-model 1 LONG/1 SHORT tie =
+    exactly 50%) now resolves to WAIT, not whichever side sorts first (`build_consensus`, `<= 50`);
+    (3) parsed LLM confidence clamps to the system invariant `[5, 95]` instead of `[0, 100]`.
+    Regression tests added/updated; **403 tests pass**.
+  - **DD under-sampling: investigated, no change.** The continuous headline DD is already marked
+    every bar via the independent `equity_curve`/`analyze_drawdowns` (the 18.85%/35.32% MTM
+    figures). The every-10-bar `record_snapshot` cadence also drives `peak_balance` (hence the
+    DD-throttle), so changing it would alter trades and break parity — left as-is deliberately.
+  - **Still demo-gated (unchanged, need Bitget demo to calibrate):** maker fill rate (the sim
+    fills ~99.9% of touched limits), TP maker-fee-vs-live-market execution, and market-exit
+    slippage magnitude (2 bps is thin for 25× stop-outs). These remain the first drift metrics to
+    measure on demo before trusting any headline.
 - **2026-07-15 (later):** Replaced the absolute per-trade margin cap (`max_position_usd`, $100
   standard / $1B aggressive) with the scale-invariant **`max_position_pct: 0.66`** everywhere
   (live + all simulators + all configs; aggressive overrides deleted — they inherit the rail).

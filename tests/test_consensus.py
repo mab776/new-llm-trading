@@ -59,13 +59,14 @@ class TestParseResponse:
         assert resp.decision == "WAIT"
 
     def test_confidence_clamped(self):
+        # Clamped to the system-wide confidence invariant [5, 95].
         raw = json.dumps({"decision": "LONG", "confidence": 150, "reasoning": "test"})
         resp = _parse_llm_response(raw, "test-model")
-        assert resp.confidence == 100
+        assert resp.confidence == 95
 
         raw2 = json.dumps({"decision": "LONG", "confidence": -20, "reasoning": "test"})
         resp2 = _parse_llm_response(raw2, "test-model")
-        assert resp2.confidence == 0
+        assert resp2.confidence == 5
 
     def test_nested_object_not_truncated(self):
         """A non-greedy regex would truncate at the first inner brace; brace-matching won't."""
@@ -126,6 +127,17 @@ class TestBuildConsensus:
         result = build_consensus(responses)
         # Each has 33% — no majority for action
         assert result.decision == "WAIT"
+
+    def test_even_split_is_wait(self):
+        # A two-model 1 LONG / 1 SHORT tie is exactly 50% — no strict majority,
+        # so it must resolve to WAIT, not silently pick whichever sorts first.
+        responses = [
+            LLMResponse(model_id="m1", decision="LONG", confidence=80, reasoning="Bull"),
+            LLMResponse(model_id="m2", decision="SHORT", confidence=75, reasoning="Bear"),
+        ]
+        result = build_consensus(responses)
+        assert result.decision == "WAIT"
+        assert result.agreement_pct == 50
 
     def test_parse_errors_excluded(self):
         responses = [

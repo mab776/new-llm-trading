@@ -93,7 +93,7 @@ full engine, fastbt, one-shot analysis, and live scheduling. All indexes now mea
 row is visible only after `bar_open + duration <= decision_time`. Live snapshots exclude forming
 rows, are frozen at the completed primary close, and use a persisted at-most-once bar key across
 restarts. A one-minute poll detects UTC 4h closes promptly without repeated fetching/scoring.
-Corrected full/fast 2024 parity is exact (+223.04%, 571 trades, 20.97% maxDD).
+Corrected full/fast 2024 parity is exact (+177.54%, 590 trades, 16.74% maxDD; rolling VWAP).
 
 Round 23 corrected shared continuous results (superseded 2026-07-15, kept for history): standard
 445,508.49× at 17.94%/18.03% maxDD; aggressive 4.976 trillion× at 38.47%/38.67% maxDD.
@@ -115,13 +115,16 @@ compounding once the account grows; a fraction scales with equity). Normal sizin
 reaches 66% — the rail exists purely to stop a runaway size computation from betting most of
 the account on one trade.
 
-Regenerated gap-free completed-candle results (`opt/completed_candle_results.json`): standard
-**338,592.06×** continuous at 17.94% reported / 18.02% mark-to-market maxDD; aggressive
-**4.67 trillion×** at 35.03% reported / 34.82% mark-to-market maxDD. Standalone standard
-BTC/ETH/SOL: 199.54× / 1,789.35× / 126,351.99×. Held-out TEST: standard 153.65×, aggressive
-1,486,262.11×; every annual fold green. Queue stress: the harsh 5bps-penetration/70%-fill case
-retains 64.6% of baseline log growth with every fold green. These path-dependent multiples are
-robustness results, never forecasts (no market-impact modeling).
+Regenerated gap-free completed-candle results (`opt/completed_candle_results.json`, rolling
+reproducible VWAP): standard **842,919.58×** continuous at 18.77% reported / 18.85%
+mark-to-market maxDD; aggressive **72.9 trillion×** at 36.17% reported / 35.32% mark-to-market
+maxDD. Standalone standard BTC/ETH/SOL: 303.97× / 2,755.59× / 430,108.74× (the huge SOL
+dispersion underlines that these are path-dependent, not a portable per-asset edge). Held-out
+TEST: standard 216.76×, aggressive 3,348,599.63×; every annual fold green (standard worst
++162%). Queue stress (`opt/queue_fill_sensitivity_results.json`) predates the VWAP fix and
+should be rerun. These path-dependent multiples are robustness results, never forecasts (no
+market-impact modeling); the maker fill model fills ~99.9% of touched limits, which live will
+not.
 
 ### Key Design Principle: Single Source of Truth
 
@@ -308,7 +311,7 @@ exists for a reason — it's the last line of defense.
   realized balance = exchange equity − open unrealized PnL (backtest parity), additionally
   bounded by `get_available_balance()` because reserved maker margin can't be committed twice.
 - **Shared risk profiles**: the default capped profile targets natural realized shared-portfolio
-  maxDD of approximately 25%. Completed-candle validation realizes 17.94% reported / 18.02% 4h
+  maxDD of approximately 25%. Completed-candle validation realizes 18.77% reported / 18.85% 4h
   mark-to-market maxDD, so the existing caps remain. The explicit aggressive profile realizes
   approximately 35% corrected historical maxDD in exchange for uncapped compounding; never present
   that backtest as a forecast or assume live DD cannot be materially worse.

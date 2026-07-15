@@ -1110,11 +1110,28 @@ class TradingScheduler:
             self._log(consensus.reasoning_summary)
 
             if consensus.decision in ("LONG", "SHORT"):
-                # Update direction based on consensus
-                if consensus.decision == "LONG":
-                    decision.scoring_result.direction = Direction.BULLISH
-                else:
-                    decision.scoring_result.direction = Direction.BEARISH
+                want = (Direction.BULLISH if consensus.decision == "LONG"
+                        else Direction.BEARISH)
+                # The SL/TP targets AND the pre-trade filters (category agreement,
+                # regime, etc.) were computed for the SCORED direction. If consensus
+                # flips to the opposite side we must NOT execute the old targets
+                # (that silently traded the wrong way) — and trading the reverse of
+                # the technical setup on LLM say-so, with mismatched targets and
+                # unverified filters, is unsafe. So only act when consensus AGREES
+                # with the scored setup; a disagreement is a WAIT.
+                if decision.targets is None or decision.targets.direction != want:
+                    self._log(
+                        f"Consensus {consensus.decision} disagrees with scored "
+                        f"{decision.scoring_result.direction.value} — not trading"
+                    )
+                    self._log_decision({
+                        "action": "LLM_DISAGREE",
+                        "consensus": consensus.decision,
+                        "scored": decision.scoring_result.direction.value,
+                        "agreement": consensus.agreement_pct,
+                    })
+                    return
+                decision.scoring_result.direction = want
                 self._execute_trade(decision)
             else:
                 self._log("Consensus: WAIT — not trading")

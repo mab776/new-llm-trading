@@ -103,7 +103,10 @@ def _parse_llm_response(raw: str, model_id: str) -> LLMResponse:
             response.decision = "WAIT"
 
         response.confidence = float(data.get("confidence", 0))
-        response.confidence = max(0, min(100, response.confidence))
+        # Clamp to the system-wide confidence invariant [5, 95] (matches
+        # scoring.confidence_min/max) so LLM confidences can't fall outside the
+        # range the rest of the pipeline assumes.
+        response.confidence = max(5, min(95, response.confidence))
         response.reasoning = str(data.get("reasoning", ""))
         response.entry = data.get("entry")
         response.stop_loss = data.get("stop_loss")
@@ -209,8 +212,10 @@ def build_consensus(responses: list[LLMResponse]) -> ConsensusResult:
     winner = max(votes, key=votes.get)  # type: ignore
     agreement_pct = (votes[winner] / total_votes * 100) if total_votes else 0
 
-    # Need at least majority for action, else WAIT
-    if winner in ("LONG", "SHORT") and agreement_pct < 50:
+    # Need a STRICT majority (>50%) for action, else WAIT. Using `<= 50` makes an
+    # even split (e.g. a two-model 1 LONG / 1 SHORT tie = exactly 50%) resolve to
+    # WAIT instead of silently picking whichever direction sorts first.
+    if winner in ("LONG", "SHORT") and agreement_pct <= 50:
         winner = "WAIT"
 
     avg_conf = (
