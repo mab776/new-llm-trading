@@ -157,14 +157,20 @@ class Portfolio:
         return notional * rate
 
     def _calculate_position_size(
-        self, price: float, leverage: int, risk_pct: float = 0.02
+        self, price: float, leverage: int, risk_pct: float = 0.02,
+        max_margin_usd: float | None = None,
     ) -> float:
         """
         Calculate position size based on risk percentage of balance.
         Returns size in base currency.
+
+        max_margin_usd mirrors live position_sizing.max_position_usd: the margin
+        committed to one trade never exceeds this USD ceiling (None = uncapped).
         """
         risk_amount = self.balance * risk_pct
         margin = risk_amount  # The margin allocated to this trade
+        if max_margin_usd is not None:
+            margin = min(margin, max_margin_usd)
         notional = margin * leverage
         size = notional / price
         return size
@@ -182,11 +188,14 @@ class Portfolio:
         tp1_exit_pct: float = 0.5,
         order_type: str | None = None,
         symbol: str = "",
+        max_margin_usd: float | None = None,
     ) -> Trade:
         """Open a new trade."""
         self._trade_counter += 1
 
-        size = self._calculate_position_size(entry_price, leverage, risk_pct)
+        size = self._calculate_position_size(
+            entry_price, leverage, risk_pct, max_margin_usd
+        )
         entry_fee = self._calculate_fee(
             size, entry_price, leverage, order_type=order_type
         )

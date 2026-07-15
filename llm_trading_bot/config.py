@@ -186,11 +186,22 @@ class BacktestingConfig(BaseModel):
     enable_trailing_stops: bool = False
     include_funding: bool = True    # Model perp funding payments (every 8h on notional).
     #                                 Live trading ignores this — the exchange settles it.
+    # Execution realism (matches the research harness / opt/fastbt semantics).
+    # Per-side price slippage applied to MARKET fills only (taker entry, SL,
+    # signal-flip, time-expired); maker fills and TP limit exits are unslipped.
+    slippage_pct: float = Field(0.0, ge=0, lt=0.05)
+    # Cap stops at the isolated-margin liquidation price (a stop beyond it can
+    # never be reached — the position is force-closed at liquidation first).
+    model_liquidation: bool = False
+    maintenance_margin: float = Field(0.005, ge=0, lt=0.5)
 
 
 class SchedulingConfig(BaseModel):
     interval_minutes: int = Field(60, gt=0)
     check_positions_interval_minutes: int = Field(15, gt=0)
+    # Live logging: one trading-YYYY-MM-DD.log / decisions-YYYY-MM-DD.jsonl file
+    # per UTC day; files older than this many days are deleted automatically.
+    log_retention_days: int = Field(30, ge=1)
 
 
 class DataCacheConfig(BaseModel):

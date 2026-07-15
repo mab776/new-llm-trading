@@ -93,6 +93,15 @@ class BacktestEngine:
         self.warmup = bt_cfg.warmup_periods
         self.decision_log: list[dict] = []
 
+        # Execution realism (live parity): per-side slippage on market fills
+        # (taker entry, SL, signal-flip, time-expired), isolated-margin liquidation
+        # capping, and the per-trade USD margin ceiling live sizing enforces.
+        # Defaults (0.0 / False) reproduce the historical engine exactly.
+        self.slippage = bt_cfg.slippage_pct
+        self.model_liquidation = bt_cfg.model_liquidation
+        self.maintenance_margin = bt_cfg.maintenance_margin
+        self.max_margin_usd = config.position_sizing.max_position_usd
+
         # Risk management state (imported from predecessor project)
         self.risk_cfg = risk_cfg
         self.consecutive_losses = 0
@@ -123,24 +132,41 @@ class BacktestEngine:
             hours_per_bar = timeframe_hours(tf)
             max_bars = int(max_hours // hours_per_bar)
             if trade.bars_held >= max_bars:
-                self.portfolio.close_trade(trade, bar_close, bar_time, "time_expired")
-                print(f"    << TIME_EXPIRED {trade.direction} after {trade.bars_held} bars @ ${bar_close:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
+                fill = (bar_close * (1 - self.slippage) if is_long
+                        else bar_close * (1 + self.slippage))
+                self.portfolio.close_trade(trade, fill, bar_time, "time_expired")
+                print(f"    << TIME_EXPIRED {trade.direction} after {trade.bars_held} bars @ ${fill:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
                 self.decision_log.append({
                     "time": bar_time, "action": "TIME_EXPIRED",
-                    "price": bar_close, "trade_id": trade.trade_id,
+                    "price": fill, "trade_id": trade.trade_id,
                     "pnl": trade.net_pnl, "bars_held": trade.bars_held,
                 })
                 self._on_trade_closed(trade)
                 return
 
-        # Check Stop Loss first (conservative)
-        sl_hit = (bar_low <= trade.stop_loss) if is_long else (bar_high >= trade.stop_loss)
+        # Check Stop Loss first (conservative). A stop placed beyond the
+        # isolated-margin liquidation distance can never be reached — the position
+        # is force-closed at liquidation first, wiping ~the full margin (mirrors
+        # opt/fastbt._check_exits exactly).
+        eff_stop = trade.stop_loss
+        if self.model_liquidation and trade.leverage > 0:
+            liq_dist = (1.0 / trade.leverage) - self.maintenance_margin
+            if liq_dist > 0:
+                if is_long:
+                    liq_price = trade.entry_price * (1 - liq_dist)
+                    eff_stop = max(trade.stop_loss, liq_price)
+                else:
+                    liq_price = trade.entry_price * (1 + liq_dist)
+                    eff_stop = min(trade.stop_loss, liq_price)
+        sl_hit = (bar_low <= eff_stop) if is_long else (bar_high >= eff_stop)
         if sl_hit:
-            self.portfolio.close_trade(trade, trade.stop_loss, bar_time, "sl")
-            print(f"    << SL_HIT {trade.direction} @ ${trade.stop_loss:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
+            fill = (eff_stop * (1 - self.slippage) if is_long
+                    else eff_stop * (1 + self.slippage))
+            self.portfolio.close_trade(trade, fill, bar_time, "sl")
+            print(f"    << SL_HIT {trade.direction} @ ${fill:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
             self.decision_log.append({
                 "time": bar_time, "action": "SL_HIT",
-                "price": trade.stop_loss, "trade_id": trade.trade_id,
+                "price": fill, "trade_id": trade.trade_id,
                 "pnl": trade.net_pnl,
             })
             self._on_trade_closed(trade)
@@ -340,6 +366,7 @@ class BacktestEngine:
                         risk_pct=pending.risk_pct,
                         tp1_exit_pct=pending.tp1_exit_pct,
                         order_type="maker",
+                        max_margin_usd=pending.max_margin_usd,
                     )
                     trade._atr_entry = pending.atr_at_entry
                     self.decision_log.append({
@@ -445,11 +472,14 @@ class BacktestEngine:
                 want = "LONG" if result.direction == Direction.BULLISH else "SHORT"
                 for trade in list(self.portfolio.open_trades):
                     if trade.direction != want:
-                        self.portfolio.close_trade(trade, bar_close, bar_time, "signal_flip")
-                        print(f"    << SIGNAL_FLIP {trade.direction} @ ${bar_close:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
+                        fill = (bar_close * (1 - self.slippage)
+                                if trade.direction == "LONG"
+                                else bar_close * (1 + self.slippage))
+                        self.portfolio.close_trade(trade, fill, bar_time, "signal_flip")
+                        print(f"    << SIGNAL_FLIP {trade.direction} @ ${fill:,.2f} | PnL: ${trade.net_pnl:+,.2f}")
                         self.decision_log.append({
                             "time": bar_time, "action": "SIGNAL_FLIP",
-                            "price": bar_close, "trade_id": trade.trade_id,
+                            "price": fill, "trade_id": trade.trade_id,
                             "pnl": trade.net_pnl, "flip_score": result.raw_score,
                         })
                         self._on_trade_closed(trade)
@@ -528,6 +558,10 @@ class BacktestEngine:
                             pending_margin = (
                                 self.portfolio.balance * self.pending_entry.risk_pct
                             )
+                            if self.pending_entry.max_margin_usd is not None:
+                                pending_margin = min(
+                                    pending_margin, self.pending_entry.max_margin_usd
+                                )
                             committed_margin += pending_margin
                             committed_notional += (
                                 pending_margin * self.pending_entry.leverage
@@ -551,12 +585,16 @@ class BacktestEngine:
                                 tp1_exit_pct=self.tier.tp1_exit_pct,
                                 atr_at_entry=primary_ind.atr_14,
                                 decision_time=bar_time,
+                                max_margin_usd=self.max_margin_usd,
                             )
                             trade_action = f"PLACE_{direction_str}_MAKER"
                         else:
+                            entry_eff = (bar_close * (1 + self.slippage)
+                                         if direction_str == "LONG"
+                                         else bar_close * (1 - self.slippage))
                             trade = self.portfolio.open_trade(
                                 direction=direction_str,
-                                entry_price=bar_close,
+                                entry_price=entry_eff,
                                 entry_time=bar_time,
                                 stop_loss=targets.stop_loss,
                                 take_profit_1=targets.take_profit_1,
@@ -565,6 +603,7 @@ class BacktestEngine:
                                 risk_pct=risk_eff,
                                 tp1_exit_pct=self.tier.tp1_exit_pct,
                                 order_type="taker",
+                                max_margin_usd=self.max_margin_usd,
                             )
                             trade_action = f"OPEN_{direction_str}"
                         print(f"    >> {trade_action} @ ${bar_close:,.2f} | Score: {result.raw_score:+.1f} | SL: ${targets.stop_loss:,.2f} | TP1: ${targets.take_profit_1:,.2f} | TP2: ${targets.take_profit_2:,.2f}")

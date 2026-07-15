@@ -87,7 +87,9 @@
         "api_secret": "",
         "passphrase": "",
         "testnet": true,
-        "product_type": "USDT-FUTURES"
+        "product_type": "USDT-FUTURES",
+        "position_mode": "one_way",
+        "margin_mode": "isolated"
     },
     "backtesting": {
         "start_date": "2021-01-01",
@@ -95,11 +97,14 @@
         "initial_balance": 100,
         "warmup_periods": 200,
         "enable_partial_exits": true,
-        "enable_trailing_stops": true
+        "enable_trailing_stops": true,
+        "slippage_pct": 0.0002,
+        "model_liquidation": true
     },
     "scheduling": {
         "interval_minutes": 60,
-        "check_positions_interval_minutes": 15
+        "check_positions_interval_minutes": 15,
+        "log_retention_days": 30
     },
     "data_cache": {
         "ttl_seconds": 300

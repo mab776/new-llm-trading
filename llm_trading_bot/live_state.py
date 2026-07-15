@@ -15,7 +15,7 @@ class LiveStateError(RuntimeError):
 class SharedLiveState:
     """Thread-safe state persisted with atomic file replacement."""
 
-    VERSION = 3
+    VERSION = 4
 
     def __init__(self, path: str | Path):
         self.path = Path(path)
@@ -27,6 +27,10 @@ class SharedLiveState:
         self.lots: dict[str, dict] = {}
         self.tracked_trades = self.lots
         self.last_analysis_bars: dict[str, str] = {}
+        # Per-symbol backtest-parity risk counters (cooldown after SL, consecutive
+        # losses for the entry-threshold penalty). Added in version 4; older files
+        # load with empty counters.
+        self.risk_counters: dict[str, dict] = {}
         self._load()
 
     @staticmethod
@@ -76,6 +80,16 @@ class SharedLiveState:
                 (str(symbol), str(timestamp))
                 for symbol, timestamp in analysis.items()
             )
+            counters = payload.get("risk_counters", {})
+            if counters is None:
+                counters = {}
+            if not isinstance(counters, dict) or not all(
+                isinstance(value, dict) for value in counters.values()
+            ):
+                raise LiveStateError("Persisted risk counters must be objects")
+            self.risk_counters.update(
+                (str(symbol), dict(value)) for symbol, value in counters.items()
+            )
         except LiveStateError:
             raise
         except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
@@ -93,6 +107,7 @@ class SharedLiveState:
                 "pending_orders": self.pending_orders,
                 "lots": self.lots,
                 "last_analysis_bars": self.last_analysis_bars,
+                "risk_counters": self.risk_counters,
             }
             temp = self.path.with_name(f".{self.path.name}.tmp")
             temp.write_text(json.dumps(payload, indent=2, sort_keys=True))

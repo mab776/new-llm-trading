@@ -25,9 +25,12 @@ history/
 *.log
 *.csv
 
-# Secrets / local overrides
+# Secrets / local overrides (covers per-symbol local configs with credentials)
 .env
 config.local.json
+config-*.local.json
+*.local.json
+*.secret.json
 
 # OS
 Thumbs.db

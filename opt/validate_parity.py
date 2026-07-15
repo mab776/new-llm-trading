@@ -41,8 +41,13 @@ def run(config_path: str, start: str, end: str, entry_mode: str) -> dict:
         funding_by_pos = aggregate_funding_to_bars(
             funding, data[cfg.trading.primary_timeframe].index, hours
         )
+    # Mirror the engine's configured execution realism exactly so parity is
+    # checked at the settings `--mode backtest` actually runs with.
     fast = simulate(
-        fast_pre, cfg, start, end, model_liquidation=False,
+        fast_pre, cfg, start, end,
+        slip=cfg.backtesting.slippage_pct,
+        model_liquidation=cfg.backtesting.model_liquidation,
+        maintenance_margin=cfg.backtesting.maintenance_margin,
         funding_by_pos=funding_by_pos,
     )
     engine_values = {

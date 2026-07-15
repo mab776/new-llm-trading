@@ -28,6 +28,11 @@ def _engine(trailing=False, activation=1.0, callback=1.0):
     cfg.trading.trailing_stop.enabled = trailing
     cfg.trading.trailing_stop.activation_pct = activation
     cfg.trading.trailing_stop.callback_pct = callback
+    # These tests prove exit ORDERING (adverse extreme first), not execution
+    # costs — pin the shipped slippage/liquidation realism off so the asserted
+    # fill prices stay the raw stop levels.
+    cfg.backtesting.slippage_pct = 0.0
+    cfg.backtesting.model_liquidation = False
     return BacktestEngine(cfg)
 
 

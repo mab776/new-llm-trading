@@ -13,12 +13,14 @@ from __future__ import annotations
 import json
 import hashlib
 import re
+import shutil
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
+import pandas as pd
 import schedule
 
 from llm_trading_bot.config import AppConfig
@@ -29,11 +31,13 @@ from llm_trading_bot.exposure import (
 )
 from llm_trading_bot.live_state import SharedLiveState
 from llm_trading_bot.openwebui_client import run_consensus
+from llm_trading_bot.process_lock import acquire_account_lock, release_account_lock
 from llm_trading_bot.routing import RoutingDecision, route_signal
 from llm_trading_bot.scoring import Direction, SignalStrength, calculate_indicators
 from llm_trading_bot.trailing import compute_trailing_stop
 from llm_trading_bot.timeframes import (
     completed_market_snapshot, latest_completed_bar_open, timeframe_delta,
+    timeframe_hours,
 )
 
 
@@ -69,6 +73,12 @@ class TradingScheduler:
         self._pending_orders = self._live_state.pending_orders
         self._candidate_analysis_bar: str | None = None
         self._startup_reconciled = False
+        # Backtest-parity risk state refreshed at each completed-bar analysis.
+        self._current_loss_penalty = 0.0
+        # Daily log-file rotation: prune once per UTC day (and once at startup).
+        self._pruned_log_day: str | None = None
+        self._prune_old_logs(datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+        self._lock_handle = None
         # One-time compatibility migration from the pre-shared-state maker file.
         legacy = self._log_dir / "pending_orders.json"
         if migrate_legacy and not self._pending_orders and legacy.exists():
@@ -322,6 +332,8 @@ class TradingScheduler:
         self._log_decision({
             "action": "MAKER_FILL", "order_id": order_id,
             "lot_id": lot_id, "entry": lot["entry"], "side": pending["direction"],
+            "size": lot["original_size"], "entry_fee": lot["entry_fee"],
+            "filled_at_ms": lot["filled_at_ms"],
             "protection_verified": protected,
         })
 
@@ -462,8 +474,18 @@ class TradingScheduler:
                     if plan_id in active_ids:
                         plan_type = "loss_plan" if action == "sl" else "profit_plan"
                         self.exchange.cancel_tpsl_order(lot["symbol"], plan_id, plan_type)
+                reason = str(lot.get("close_reason") or "signal_flip")
+                exit_price = float(detail.get("priceAvg") or 0) or float(lot["entry"])
+                net_est = self._apply_close_outcome(lot, exit_price, reason)
                 self._tracked_trades.pop(lot_id, None)
                 self._save_live_state()
+                self._log_decision({
+                    "action": "LOT_CLOSED", "lot_id": lot_id,
+                    "reason": reason, "exit_price": exit_price,
+                    "filled_size": float(lot.get("remaining_size") or 0),
+                    "entry": lot.get("entry"), "direction": lot.get("direction"),
+                    "net_pnl_est": net_est,
+                })
                 continue
             if not lot.get("protection_verified"):
                 self._ensure_lot_protection(lot_id, active)
@@ -482,12 +504,19 @@ class TradingScheduler:
                     if plan_id in active_ids:
                         plan_type = "loss_plan" if action == "sl" else "profit_plan"
                         self.exchange.cancel_tpsl_order(lot["symbol"], plan_id, plan_type)
+                reason = "sl" if terminal.order_id == ids.get("sl") else "tp2"
+                exit_price = (float(lot.get("current_sl") or 0) if reason == "sl"
+                              else float(lot.get("take_profit_2") or 0))
+                net_est = self._apply_close_outcome(lot, exit_price, reason)
                 self._tracked_trades.pop(lot_id, None)
                 self._save_live_state()
                 self._log_decision({
                     "action": "LOT_CLOSED", "lot_id": lot_id,
-                    "reason": "sl" if terminal.order_id == ids.get("sl") else "tp2",
+                    "reason": reason,
+                    "exit_price": exit_price,
                     "filled_size": terminal.filled_size,
+                    "entry": lot.get("entry"), "direction": lot.get("direction"),
+                    "net_pnl_est": net_est,
                     "execute_order_id": terminal.execute_order_id,
                 })
                 continue
@@ -518,8 +547,10 @@ class TradingScheduler:
                 self._save_live_state()
                 self._log_decision({
                     "action": "TP1_PARTIAL", "lot_id": lot_id,
+                    "price": lot["take_profit_1"],
                     "filled_size": actual_tp1, "remaining_size": remaining,
                     "break_even_sl": lot["entry"],
+                    "entry": lot.get("entry"), "direction": lot.get("direction"),
                 })
                 continue
 
@@ -696,20 +727,164 @@ class TradingScheduler:
                 f"clock drift {result['clock_drift_ms']}ms)"
             )
 
+    # ------------------------------------------------------------------
+    # Logging: one file per UTC day, deleted after scheduling.log_retention_days.
+    # decisions-YYYY-MM-DD.jsonl is the structured stream used to evaluate the
+    # paper/live run offline (Grafana + live-vs-backtest drift); trading-*.log
+    # is the human-readable mirror.
+    # ------------------------------------------------------------------
+
+    def _prune_old_logs(self, today: str) -> None:
+        """Delete dated log files older than the retention window (once a day)."""
+        if today == self._pruned_log_day:
+            return
+        self._pruned_log_day = today
+        retention = timedelta(days=self.config.scheduling.log_retention_days)
+        cutoff = datetime.now(timezone.utc) - retention
+        for pattern, prefix in (("trading-*.log", "trading-"),
+                                ("decisions-*.jsonl", "decisions-")):
+            for path in self._log_dir.glob(pattern):
+                stamp = path.name[len(prefix):].split(".")[0]
+                try:
+                    file_day = datetime.strptime(stamp, "%Y-%m-%d").replace(
+                        tzinfo=timezone.utc
+                    )
+                except ValueError:
+                    continue  # not one of our dated files — never delete it
+                if file_day < cutoff:
+                    path.unlink(missing_ok=True)
+
+    def _daily_log_path(self, prefix: str, suffix: str) -> Path:
+        day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        self._prune_old_logs(day)
+        return self._log_dir / f"{prefix}-{day}{suffix}"
+
     def _log(self, msg: str) -> None:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        line = f"[{timestamp}] {msg}"
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        line = f"[{timestamp}] [{self.config.trading.symbol}] {msg}"
         print(line)
-        with open(self._log_dir / "trading.log", "a") as f:
+        with open(self._daily_log_path("trading", ".log"), "a") as f:
             f.write(line + "\n")
 
     def _log_decision(self, decision: dict) -> None:
-        decision["timestamp"] = datetime.now().isoformat()
+        decision.setdefault("symbol", self.config.trading.symbol)
+        decision["timestamp"] = datetime.now(timezone.utc).isoformat()
         self.decision_log.append(decision)
-        # Append to persistent log
-        log_file = self._log_dir / "decisions.jsonl"
-        with open(log_file, "a") as f:
+        # Append to the persistent structured log
+        with open(self._daily_log_path("decisions", ".jsonl"), "a") as f:
             f.write(json.dumps(decision, default=str) + "\n")
+
+    # ------------------------------------------------------------------
+    # Backtest-parity risk state: post-SL cooldown, consecutive-loss entry
+    # penalty (persisted per symbol so restarts cannot soften risk behavior).
+    # Semantics mirror BacktestEngine/_on_trade_closed + fastbt exactly:
+    # counters tick once per completed primary bar, a losing close bumps the
+    # penalty, an SL-family loss also arms the cooldown, and a win resets both.
+    # ------------------------------------------------------------------
+
+    def _risk_state(self) -> dict:
+        counters = self._live_state.risk_counters.setdefault(
+            self.config.trading.symbol, {}
+        )
+        counters.setdefault("consecutive_losses", 0)
+        counters.setdefault("candles_since_last_loss", 999)
+        counters.setdefault("cooldown_remaining", 0)
+        counters.setdefault("last_counter_bar", "")
+        return counters
+
+    def _tick_risk_counters(self, analysis_bar: str) -> None:
+        """Advance per-bar counters exactly once per completed primary bar.
+
+        Downtime is handled by counting the number of primary bars elapsed since
+        the last tick, so a restarted bot does not carry a stale cooldown.
+        """
+        counters = self._risk_state()
+        if counters["last_counter_bar"] == analysis_bar:
+            return
+        elapsed = 1
+        if counters["last_counter_bar"]:
+            try:
+                delta = pd.Timestamp(analysis_bar) - pd.Timestamp(
+                    counters["last_counter_bar"]
+                )
+                bar_seconds = self._timeframe_seconds(
+                    self.config.trading.primary_timeframe
+                )
+                elapsed = max(1, int(delta.total_seconds() // bar_seconds))
+            except (ValueError, TypeError):
+                elapsed = 1
+        for _ in range(min(elapsed, 1000)):
+            counters["candles_since_last_loss"] = min(
+                999, counters["candles_since_last_loss"] + 1
+            )
+            if counters["cooldown_remaining"] > 0:
+                counters["cooldown_remaining"] -= 1
+        counters["last_counter_bar"] = analysis_bar
+        self._save_live_state()
+
+    def _loss_penalty(self) -> float:
+        """Entry-threshold penalty from consecutive losses (engine parity)."""
+        counters = self._risk_state()
+        if counters["consecutive_losses"] == 0:
+            return 0.0
+        rm = self.config.risk_management
+        base = min(
+            counters["consecutive_losses"] * rm.consecutive_loss_penalty,
+            rm.max_consecutive_loss_penalty,
+        )
+        decay = rm.loss_penalty_decay_candles
+        since = counters["candles_since_last_loss"]
+        if decay > 0 and since > decay:
+            return base * max(0.0, 1.0 - (since - decay) / decay)
+        return base
+
+    def _lot_realized_pnl(self, lot: dict, exit_price: float,
+                          exit_reason: str) -> float:
+        """Estimate a closed lot's realized net PnL from its recorded lifecycle.
+
+        Uses the same convention as the backtest Trade: recorded target prices,
+        actual entry fee, maker fee for TP exits when configured, taker fee for
+        market exits. Funding is settled by the exchange and not attributed here.
+        """
+        sign = 1.0 if lot.get("direction") == "LONG" else -1.0
+        entry = float(lot.get("entry") or 0.0)
+        fees = self.config.fees
+
+        def exit_fee_rate(reason: str) -> float:
+            if self.config.risk_management.use_maker_fee_for_tp and reason in (
+                "tp1", "tp2",
+            ):
+                return fees.maker
+            return fees.taker
+
+        net = -abs(float(lot.get("entry_fee") or 0.0))
+        tp1_size = float(lot.get("tp1_fill_size") or 0.0)
+        if tp1_size > 0:
+            tp1 = float(lot.get("take_profit_1") or 0.0)
+            net += (tp1 - entry) * sign * tp1_size
+            net -= tp1 * tp1_size * exit_fee_rate("tp1")
+        size = float(lot.get("remaining_size") or 0.0)
+        net += (exit_price - entry) * sign * size
+        net -= exit_price * size * exit_fee_rate(exit_reason)
+        return net
+
+    def _apply_close_outcome(self, lot: dict, exit_price: float,
+                             exit_reason: str) -> float:
+        """Update cooldown/penalty counters for one fully closed lot."""
+        net = self._lot_realized_pnl(lot, exit_price, exit_reason)
+        counters = self._risk_state()
+        if net <= 0:
+            counters["consecutive_losses"] += 1
+            counters["candles_since_last_loss"] = 0
+            if exit_reason == "sl":
+                counters["cooldown_remaining"] = (
+                    self.config.risk_management.cooldown_candles_after_sl
+                )
+        else:
+            counters["consecutive_losses"] = 0
+            counters["candles_since_last_loss"] = 999
+        self._save_live_state()
+        return net
 
     def analyze_market(self) -> Optional[RoutingDecision]:
         """Fetch data, score, and route the signal."""
@@ -761,6 +936,10 @@ class TradingScheduler:
             self._log(f"Primary candle {analysis_bar} already analyzed")
             return None
 
+        # Per-bar risk-counter tick (cooldown decay, penalty decay) — mirrors the
+        # backtest, which ticks once per completed primary bar before scoring.
+        self._tick_risk_counters(analysis_bar)
+
         # Calculate indicators for each timeframe
         indicators_by_tf = {}
         for tf, df in data_by_tf.items():
@@ -778,11 +957,30 @@ class TradingScheduler:
         decision = route_signal(indicators_by_tf, self.config)
         self._candidate_analysis_bar = analysis_bar
 
+        # Consecutive-loss penalty raises the effective entry thresholds exactly
+        # like the backtest engine (classification with penalty-shifted bounds).
+        penalty = self._loss_penalty()
+        self._current_loss_penalty = penalty
+        if penalty > 0 and decision.signal_strength != SignalStrength.WAIT:
+            tier = self.config.trading.active_leverage_tier
+            abs_score = abs(decision.scoring_result.raw_score)
+            if abs_score < tier.marginal_threshold_low + penalty:
+                decision.signal_strength = SignalStrength.WAIT
+                decision.scoring_result.signal_strength = SignalStrength.WAIT
+                decision.skip_reason = (
+                    f"Consecutive-loss penalty +{penalty:.1f} raised the entry "
+                    f"threshold to {tier.marginal_threshold_low + penalty:.1f}"
+                )
+            elif abs_score < tier.strong_threshold + penalty:
+                decision.signal_strength = SignalStrength.MARGINAL
+                decision.scoring_result.signal_strength = SignalStrength.MARGINAL
+
         self._log(
             f"Signal: {decision.signal_strength.value} | "
             f"Direction: {decision.scoring_result.direction.value} | "
             f"Score: {decision.scoring_result.raw_score:+.1f} | "
             f"Confidence: {decision.scoring_result.confidence:.0f}%"
+            + (f" | Loss penalty: +{penalty:.1f}" if penalty > 0 else "")
         )
 
         return decision
@@ -847,6 +1045,7 @@ class TradingScheduler:
                     close_order_id = str((response.get("data", {}) or {}).get("orderId", ""))
                     for _lot_id, lot in self._lots_for_symbol(pos.symbol, pos.side.lower()):
                         lot["lifecycle"] = "closing"
+                        lot["close_reason"] = "signal_flip"
                         lot["close_client_oid"] = close_client_oid
                         lot["close_order_id"] = close_order_id
                     self._save_live_state()
@@ -854,6 +1053,8 @@ class TradingScheduler:
                         "action": "SIGNAL_FLIP_CLOSE",
                         "side": pos.side, "size": pos.size,
                         "score": decision.scoring_result.raw_score,
+                        "close_order_id": close_order_id,
+                        "bar": self._candidate_analysis_bar,
                     })
                 except Exception as e:
                     self._log(f"ERROR closing position on signal flip: {e}")
@@ -869,6 +1070,20 @@ class TradingScheduler:
                 "action": "WAIT",
                 "reason": decision.skip_reason,
                 "score": decision.scoring_result.raw_score,
+                "bar": self._candidate_analysis_bar,
+            })
+            return
+
+        # Post-SL cooldown blocks new entries for N completed primary bars,
+        # mirroring the backtest (opposite-signal exits above still run).
+        cooldown = self._risk_state()["cooldown_remaining"]
+        if cooldown > 0:
+            self._log(f"COOLDOWN — skipping entry ({cooldown} bar(s) remaining)")
+            self._log_decision({
+                "action": "COOLDOWN_SKIP",
+                "cooldown_remaining": cooldown,
+                "score": decision.scoring_result.raw_score,
+                "bar": self._candidate_analysis_bar,
             })
             return
 
@@ -1010,9 +1225,11 @@ class TradingScheduler:
         # Risk-based position sizing: commit min(balance * risk_pct, max_usd) as margin,
         # leverage it up to the notional, then convert to base-currency size at entry.
         risk_pct = ps.risk_pct_per_trade * throttle_risk_mult
-        # Conviction sizing: scale risk with signal strength (mirrors backtest engine)
-        if ps.conviction_exponent > 0 and tier.strong_threshold > 0:
-            m = (abs(decision.scoring_result.raw_score) / tier.strong_threshold) ** ps.conviction_exponent
+        # Conviction sizing: scale risk with signal strength (mirrors backtest
+        # engine, which normalizes by the penalty-raised STRONG threshold).
+        eff_strong = tier.strong_threshold + self._current_loss_penalty
+        if ps.conviction_exponent > 0 and eff_strong > 0:
+            m = (abs(decision.scoring_result.raw_score) / eff_strong) ** ps.conviction_exponent
             risk_pct *= max(0.5, min(1.5, m))
         if ps.anti_martingale_step > 0:
             try:
@@ -1051,14 +1268,18 @@ class TradingScheduler:
             committed_notional += pending_notional
             if leverage > 0:
                 committed_margin += pending_notional / leverage
+        # Size and cap on the REALIZED balance (equity minus open PnL), matching
+        # the backtests, which size on the portfolio's realized balance. The
+        # available-balance bound remains as an exchange reality: reserved maker
+        # margin cannot be committed twice.
         risk_pct = cap_risk_pct(
-            risk_pct, tier.leverage, equity,
+            risk_pct, tier.leverage, realized_balance,
             committed_margin, committed_notional,
             risk_multiplier=ps.portfolio_risk_multiplier,
             max_margin_pct=ps.global_max_margin_pct,
             max_notional_pct=ps.global_max_notional_pct,
         )
-        margin = min(equity * risk_pct, balance, ps.max_position_usd)
+        margin = min(realized_balance * risk_pct, balance, ps.max_position_usd)
         size = (margin * tier.leverage) / targets.entry if targets.entry > 0 else 0.0
         if size <= 0:
             self._log(
@@ -1132,13 +1353,22 @@ class TradingScheduler:
                            else f"TRADE_{side.upper()}"),
                 "order_id": result.order_id,
                 "client_oid": client_oid,
+                "bar": self._candidate_analysis_bar,
                 "entry": targets.entry,
                 "sl": targets.stop_loss,
                 "tp1": targets.take_profit_1,
                 "tp2": targets.take_profit_2,
+                "size": result.size,
+                "margin": margin,
+                "risk_pct": risk_pct,
                 "leverage": tier.leverage,
                 "score": decision.scoring_result.raw_score,
                 "confidence": decision.scoring_result.confidence,
+                "loss_penalty": self._current_loss_penalty,
+                "equity": equity,
+                "available_balance": balance,
+                "realized_balance": realized_balance,
+                "peak_balance": peak_balance,
             })
 
         except SafetyViolation as e:
@@ -1161,6 +1391,8 @@ class TradingScheduler:
                 position.unrealized_pnl for position in global_positions
             )
             self._peak_balance = self._live_state.update_peak(realized_balance)
+            self._heartbeat(equity, realized_balance, len(positions))
+            self._maybe_expire_lots()
             if not positions:
                 return
 
@@ -1173,6 +1405,79 @@ class TradingScheduler:
 
         except Exception as e:
             self._log(f"Position check error: {e}")
+
+    def _heartbeat(self, equity: float, realized_balance: float,
+                   position_count: int) -> None:
+        """Structured liveness/equity record on every position check.
+
+        This is the evaluation stream's account snapshot AND the operational
+        heartbeat: its absence from decisions-*.jsonl signals a dead process,
+        and it carries a disk-space check so logging/state can't silently fill
+        the volume.
+        """
+        try:
+            disk_free_mb = shutil.disk_usage(self._log_dir).free // (1024 * 1024)
+        except OSError:
+            disk_free_mb = -1
+        if 0 <= disk_free_mb < 200:
+            self._log(f"ERROR: low disk space — {disk_free_mb} MB free in {self._log_dir}")
+        counters = self._risk_state()
+        self._log_decision({
+            "action": "HEARTBEAT",
+            "equity": equity,
+            "realized_balance": realized_balance,
+            "peak_balance": self._live_state.peak_balance,
+            "open_lots": len(self._lots_for_symbol(self.config.trading.symbol)),
+            "pending_orders": len(self._pending_orders),
+            "positions": position_count,
+            "cooldown_remaining": counters["cooldown_remaining"],
+            "consecutive_losses": counters["consecutive_losses"],
+            "disk_free_mb": disk_free_mb,
+        })
+
+    def _maybe_expire_lots(self) -> None:
+        """Force-close lots older than risk_management.max_holding_hours.
+
+        Mirrors the backtest's time_expired exit (bar-counted, so the deadline is
+        max_holding_hours floored to whole primary bars). Disabled when 0.
+        """
+        max_hours = self.config.risk_management.max_holding_hours
+        if max_hours <= 0:
+            return
+        tf_hours = timeframe_hours(self.config.trading.primary_timeframe)
+        max_bars = int(max_hours // tf_hours)
+        if max_bars <= 0:
+            return
+        deadline_ms = max_bars * tf_hours * 3_600_000
+        now_ms = time.time() * 1000
+        for lot_id, lot in self._lots_for_symbol(self.config.trading.symbol):
+            if lot.get("lifecycle") == "closing":
+                continue
+            filled_ms = float(lot.get("filled_at_ms") or 0)
+            if filled_ms <= 0 or now_ms - filled_ms < deadline_ms:
+                continue
+            side = "long" if lot.get("direction") == "LONG" else "short"
+            size = float(lot.get("remaining_size") or 0)
+            if size <= 0:
+                continue
+            try:
+                close_client_oid = self._plan_client_oid(lot_id, "time-expired-close")
+                response = self.exchange.close_position(
+                    lot["symbol"], side, size, client_oid=close_client_oid,
+                )
+                close_order_id = str((response.get("data", {}) or {}).get("orderId", ""))
+                lot["lifecycle"] = "closing"
+                lot["close_reason"] = "time_expired"
+                lot["close_client_oid"] = close_client_oid
+                lot["close_order_id"] = close_order_id
+                self._save_live_state()
+                self._log(f"TIME EXPIRED — closing lot {lot_id} ({size} after {max_bars} bars)")
+                self._log_decision({
+                    "action": "TIME_EXPIRED_CLOSE", "lot_id": lot_id,
+                    "size": size, "close_order_id": close_order_id,
+                })
+            except Exception as e:
+                self._log(f"ERROR closing time-expired lot {lot_id}: {e}")
 
     def _maybe_trail_stop(self, pos) -> None:
         """Ratchet the position's stop — ONLY on completed primary-timeframe bars.
@@ -1270,6 +1575,13 @@ class TradingScheduler:
                 self._log(
                     f"Trailing stop moved to ${new_sl:,.2f} ({tracked['direction']}, lot {lot_id})"
                 )
+                self._log_decision({
+                    "action": "TRAIL_RATCHET", "lot_id": lot_id,
+                    "new_sl": new_sl, "bar": str(last_ts),
+                    "favorable_extreme": favorable,
+                    "direction": tracked["direction"],
+                    "entry": tracked.get("entry"),
+                })
             except Exception as e:
                 self._log(f"Failed to update trailing stop for lot {lot_id}: {e}")
 
@@ -1301,24 +1613,34 @@ class TradingScheduler:
         interval = self.config.scheduling.interval_minutes
         pos_interval = self.config.scheduling.check_positions_interval_minutes
 
-        # Paper/live is never allowed to degrade silently into credential-free dry run.
-        self.reconcile_startup()
-        poll_interval = 1
-        self._log(
-            f"Starting scheduler — completed-bar analysis poll every {poll_interval}min "
-            f"(configured cadence {interval}min), position checks every {pos_interval}min"
-        )
-
-        # Run immediately
-        self.run_cycle()
-
-        # Schedule recurring
-        schedule.every(poll_interval).minutes.do(self.run_cycle)
-        schedule.every(pos_interval).minutes.do(self.check_positions)
-
+        # One live process per exchange account — the shared caps, DD throttle,
+        # and lot lifecycle all assume a single writer.
+        self._lock_handle = acquire_account_lock(self.config.bitget)
         try:
+            # Paper/live is never allowed to degrade silently into credential-free
+            # dry run; a startup reconciliation failure must abort loudly here.
+            self.reconcile_startup()
+            poll_interval = 1
+            self._log(
+                f"Starting scheduler — completed-bar analysis poll every {poll_interval}min "
+                f"(configured cadence {interval}min), position checks every {pos_interval}min"
+            )
+
+            # Run immediately
+            self.run_cycle()
+
+            # Schedule recurring
+            schedule.every(poll_interval).minutes.do(self.run_cycle)
+            schedule.every(pos_interval).minutes.do(self.check_positions)
+
             while True:
-                schedule.run_pending()
+                try:
+                    schedule.run_pending()
+                except Exception as e:  # a job crash must not kill the loop
+                    self._log(f"ERROR: scheduled job crashed: {e}")
                 time.sleep(1)
         except KeyboardInterrupt:
             self._log("Scheduler stopped by user")
+        finally:
+            release_account_lock(self._lock_handle)
+            self._lock_handle = None

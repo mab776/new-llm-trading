@@ -80,15 +80,19 @@ All settings live in `config.json`. See `AGENTS.md` for full documentation.
 Two shared-portfolio risk profiles are available:
 
 - **Standard (default):** `config.json`, `config-eth.json`, and `config-sol.json`; portfolio-wide
-  caps target approximately 25% historical shared max drawdown. Completed-candle validation
-  produced 445,508.49× shared continuous growth at 17.94% reported / 18.03% 4h mark-to-market
-  maxDD. The shipped 4.4% margin and 1.10× notional caps remain unchanged.
+  caps target approximately 25% historical shared max drawdown. With the full live execution
+  model now enforced in the simulators (per-trade $100 margin cap, 2bps market-exit slippage,
+  isolated-margin liquidation), completed-candle validation produces **1,053.88×** shared
+  continuous growth at 14.36% reported / 13.16% 4h mark-to-market maxDD — the honest
+  live-reproducible expectation. Held-out TEST (153.65×) and every annual fold stay green; the
+  shipped 4.4% margin and 1.10× notional caps remain unchanged.
 - **Aggressive:** `config-aggressive.json`, `config-eth-aggressive.json`, and
   `config-sol-aggressive.json`; these small profiles inherit their standard asset config and
-  disable the portfolio margin/notional caps. They remain on testnet by inheritance. Completed-
-  candle validation produced 4.976 trillion× with 38.47% reported / 38.67% 4h mark-to-market
-  maxDD. This extreme path-dependent compounding is a robustness result, not a live-return
-  forecast; live drawdown can be materially worse than the corrected approximately 39% history.
+  disable the portfolio margin/notional caps (their $1B per-trade cap almost never binds).
+  They remain on testnet by inheritance. Completed-candle validation produces **5.20 billion×**
+  with 35.03% reported / 34.82% 4h mark-to-market maxDD. This extreme path-dependent compounding
+  is a robustness result, not a live-return forecast; live drawdown can be materially worse than
+  the approximately 35% history.
 
 Reproduce the shared aggressive study with:
 
@@ -96,9 +100,10 @@ Reproduce the shared aggressive study with:
 python -m opt.multi_portfolio --profile aggressive --entry-mode maker --exit-granularity sub
 ```
 
-Corrected queue sensitivity is recorded in `opt/completed_candle_queue_results.json`. The combined
-5bps-penetration/70%-fill scenario retained 62.8% of baseline log growth across five deterministic
-seeds, kept every annual fold green, and had 39.2% worst reported / 38.61% mark-to-market DD.
+Corrected queue sensitivity is recorded in `opt/completed_candle_queue_results.json` (regenerated
+2026-07-15 with the full execution model). The combined 5bps-penetration/70%-fill scenario retains
+84.2% of baseline log growth across five deterministic seeds and keeps every annual fold green
+(worst fold +398.6%).
 
 ### Lower-timeframe research and completed-candle audit
 
@@ -146,8 +151,9 @@ The current `config.json` is the output of an out-of-sample-validated optimizati
 uncovered (backtests must assume the adverse extreme hits first), and full results.
 The current configuration uses a post-only maker limit at the completed decision bar's
 close, good for the following primary bar. Honest 1h sub-bar replay (2021-01→2025-06,
-2bps market-exit slippage, liquidation and perp funding modeled) remains profitable in
-every yearly fold on standalone **BTC (204.21×), ETH (1,680.87×), and SOL (143,881.86×)** with the shipped
+2bps market-exit slippage, liquidation, perp funding, and the per-trade margin cap modeled)
+remains profitable in every yearly fold on standalone
+**BTC (139.87×), ETH (262.27×), and SOL (485.11×)** with the shipped
 standard portfolio exposure controls after a constrained
 scoring-point search selected on BTC TRAIN and validated on BTC TEST plus untouched ETH/SOL.
 These multiples are robustness signals, not forecasts. Queue/penetration stress tests are

@@ -3,15 +3,15 @@
   "supersedes": "opt/cadence_correction_results.json",
   "standard": {
     "train": {
-      "geo_pct": 399.75548417940973,
-      "compound_x": 3117.366350450988,
-      "worst_fold": 166.42,
+      "geo_pct": 378.72356412769,
+      "compound_x": 2514.340124718017,
+      "worst_fold": 146.74,
       "max_dd": 14.33,
-      "trades": 2980,
-      "maker_orders": 2984,
-      "maker_touches": 2980,
-      "maker_queue_eligible": 2980,
-      "maker_fills": 2980,
+      "trades": 2975,
+      "maker_orders": 2979,
+      "maker_touches": 2975,
+      "maker_queue_eligible": 2975,
+      "maker_fills": 2975,
       "per": {
         "21H1": {
           "return_pct": 1198.45,
@@ -21,14 +21,14 @@
             "BTC": {
               "trades": 317,
               "win_rate": 77.28706624605678,
-              "net_pnl": 461.36677878047976,
+              "net_pnl": 451.1100712636446,
               "fees": 40.98901266729739,
               "funding": 15.228979821100502
             },
             "ETH": {
               "trades": 349,
               "win_rate": 71.91977077363897,
-              "net_pnl": 761.5719861151794,
+              "net_pnl": 747.3415138190618,
               "fees": 56.788696127946544,
               "funding": 14.876216658588536
             },
@@ -52,22 +52,22 @@
           "symbols": {
             "BTC": {
               "trades": 179,
-              "win_rate": 79.88826815642459,
-              "net_pnl": 113.31880368212616,
+              "win_rate": 79.32960893854748,
+              "net_pnl": 109.0695296981219,
               "fees": 16.907526379344514,
               "funding": 0.48377494094512896
             },
             "ETH": {
               "trades": 204,
               "win_rate": 79.90196078431373,
-              "net_pnl": 159.6586959845352,
+              "net_pnl": 155.37449119817518,
               "fees": 17.113984007751732,
               "funding": 0.8055999329524635
             },
             "SOL": {
               "trades": 231,
               "win_rate": 78.78787878787878,
-              "net_pnl": 345.70365521687773,
+              "net_pnl": 340.30978442245885,
               "fees": 21.40176022195233,
               "funding": 0.5031796294324659
             }
@@ -78,113 +78,113 @@
           "maker_fills": 614
         },
         "23H1": {
-          "return_pct": 232.85,
+          "return_pct": 197.87,
           "max_dd": 14.33,
-          "trades": 551,
+          "trades": 553,
           "symbols": {
             "BTC": {
               "trades": 197,
               "win_rate": 81.7258883248731,
-              "net_pnl": 121.75405169135679,
-              "fees": 14.119560091619771,
-              "funding": 1.0723786680510365
+              "net_pnl": 106.98947725246603,
+              "fees": 13.170543638586544,
+              "funding": 0.966374968828631
             },
             "ETH": {
-              "trades": 166,
-              "win_rate": 74.09638554216868,
-              "net_pnl": 54.455788235445006,
-              "fees": 10.002446983401407,
-              "funding": 1.5941667957172365
+              "trades": 173,
+              "win_rate": 75.72254335260115,
+              "net_pnl": 41.43612043776546,
+              "fees": 9.653589731568447,
+              "funding": 1.5822827650598903
             },
             "SOL": {
-              "trades": 188,
-              "win_rate": 77.65957446808511,
-              "net_pnl": 65.46037051894365,
-              "fees": 11.053886265621253,
-              "funding": -0.11081673301437849
+              "trades": 183,
+              "win_rate": 77.04918032786885,
+              "net_pnl": 49.44452577418354,
+              "fees": 10.044597515166597,
+              "funding": -0.12516790576033873
             }
           },
-          "maker_orders": 552,
-          "maker_touches": 551,
-          "maker_queue_eligible": 551,
-          "maker_fills": 551
+          "maker_orders": 554,
+          "maker_touches": 553,
+          "maker_queue_eligible": 553,
+          "maker_fills": 553
         },
         "24H1": {
-          "return_pct": 284.16,
-          "max_dd": 10.77,
-          "trades": 674,
+          "return_pct": 273.85,
+          "max_dd": 11.17,
+          "trades": 664,
           "symbols": {
             "BTC": {
-              "trades": 198,
-              "win_rate": 75.75757575757575,
-              "net_pnl": 61.681907049931155,
-              "fees": 14.622327483830192,
-              "funding": 3.3483168019561766
+              "trades": 192,
+              "win_rate": 75.0,
+              "net_pnl": 58.32461706059867,
+              "fees": 13.962175994493977,
+              "funding": 3.2068953173330903
             },
             "ETH": {
-              "trades": 207,
-              "win_rate": 81.15942028985508,
-              "net_pnl": 129.42529228330793,
-              "fees": 14.385992791600174,
-              "funding": 1.1625819668681632
+              "trades": 202,
+              "win_rate": 80.6930693069307,
+              "net_pnl": 123.45736254273336,
+              "fees": 14.114488791475573,
+              "funding": 1.1388195064529605
             },
             "SOL": {
-              "trades": 269,
-              "win_rate": 77.32342007434944,
-              "net_pnl": 104.87658403073183,
-              "fees": 18.196808752021052,
-              "funding": 0.11362591420362429
+              "trades": 270,
+              "win_rate": 77.03703703703704,
+              "net_pnl": 92.06494448447432,
+              "fees": 17.678407829238843,
+              "funding": 0.28585587490766295
             }
           },
-          "maker_orders": 674,
-          "maker_touches": 674,
-          "maker_queue_eligible": 674,
-          "maker_fills": 674
+          "maker_orders": 664,
+          "maker_touches": 664,
+          "maker_queue_eligible": 664,
+          "maker_fills": 664
         },
         "25H1": {
-          "return_pct": 166.42,
-          "max_dd": 14.0,
-          "trades": 475,
+          "return_pct": 146.74,
+          "max_dd": 14.19,
+          "trades": 478,
           "symbols": {
             "BTC": {
-              "trades": 161,
-              "win_rate": 70.80745341614907,
-              "net_pnl": 33.05715871374191,
-              "fees": 10.19005669941538,
-              "funding": 0.5024532919059767
+              "trades": 163,
+              "win_rate": 71.77914110429448,
+              "net_pnl": 29.58876351654949,
+              "fees": 9.62769360628417,
+              "funding": 0.477092729626217
             },
             "ETH": {
-              "trades": 157,
-              "win_rate": 76.43312101910828,
-              "net_pnl": 68.11929625236858,
-              "fees": 9.164883072969998,
-              "funding": 0.10418985434523123
+              "trades": 158,
+              "win_rate": 75.9493670886076,
+              "net_pnl": 59.10760597463516,
+              "fees": 8.434047969704558,
+              "funding": 0.07989191764239817
             },
             "SOL": {
               "trades": 157,
               "win_rate": 75.1592356687898,
-              "net_pnl": 72.25705853424758,
-              "fees": 8.673665636231142,
-              "funding": 0.2236814828549469
+              "net_pnl": 58.03978586868975,
+              "fees": 8.150410681521057,
+              "funding": 0.22674932852339752
             }
           },
-          "maker_orders": 476,
-          "maker_touches": 475,
-          "maker_queue_eligible": 475,
-          "maker_fills": 475
+          "maker_orders": 479,
+          "maker_touches": 478,
+          "maker_queue_eligible": 478,
+          "maker_fills": 478
         }
       }
     },
     "held_out_test": {
-      "geo_pct": 249.95107612871647,
-      "compound_x": 149.97861315166645,
-      "worst_fold": 150.81,
-      "max_dd": 17.94,
-      "trades": 2375,
-      "maker_orders": 2380,
-      "maker_touches": 2375,
-      "maker_queue_eligible": 2375,
-      "maker_fills": 2375,
+      "geo_pct": 252.0721298501316,
+      "compound_x": 153.64788629498403,
+      "worst_fold": 165.07,
+      "max_dd": 18.09,
+      "trades": 2397,
+      "maker_orders": 2402,
+      "maker_touches": 2397,
+      "maker_queue_eligible": 2397,
+      "maker_fills": 2397,
       "per": {
         "21H2": {
           "return_pct": 331.85,
@@ -194,21 +194,21 @@
             "BTC": {
               "trades": 234,
               "win_rate": 77.35042735042735,
-              "net_pnl": 126.66632716935334,
+              "net_pnl": 121.57258202179341,
               "fees": 20.460762006023835,
               "funding": 4.038762399400475
             },
             "ETH": {
               "trades": 251,
               "win_rate": 77.29083665338645,
-              "net_pnl": 97.2967946755768,
+              "net_pnl": 92.31664755158356,
               "fees": 19.921364828867443,
               "funding": 4.51312480325099
             },
             "SOL": {
               "trades": 181,
               "win_rate": 69.61325966850829,
-              "net_pnl": 122.948331810307,
+              "net_pnl": 117.95686797984749,
               "fees": 19.992573417054096,
               "funding": 0.8322438104958237
             }
@@ -219,248 +219,248 @@
           "maker_fills": 666
         },
         "22H2": {
-          "return_pct": 281.53,
-          "max_dd": 17.94,
-          "trades": 578,
+          "return_pct": 279.37,
+          "max_dd": 18.09,
+          "trades": 579,
           "symbols": {
             "BTC": {
-              "trades": 159,
-              "win_rate": 76.72955974842768,
-              "net_pnl": 44.05534603305596,
-              "fees": 12.465605135096716,
-              "funding": 0.4508366352369825
+              "trades": 160,
+              "win_rate": 76.875,
+              "net_pnl": 45.091756940273235,
+              "fees": 12.5596070754744,
+              "funding": 0.4027161887210532
             },
             "ETH": {
-              "trades": 213,
-              "win_rate": 76.52582159624413,
-              "net_pnl": 125.3323380937676,
-              "fees": 17.40847197374371,
-              "funding": 0.3564377899064943
+              "trades": 215,
+              "win_rate": 76.74418604651163,
+              "net_pnl": 118.4730045008192,
+              "fees": 17.176240074456516,
+              "funding": 0.3589195641361811
             },
             "SOL": {
-              "trades": 206,
-              "win_rate": 73.30097087378641,
-              "net_pnl": 123.08477738424787,
-              "fees": 13.8297252814381,
-              "funding": 6.978506395320297
+              "trades": 204,
+              "win_rate": 73.03921568627452,
+              "net_pnl": 115.80118884032248,
+              "fees": 13.811995383071013,
+              "funding": 6.935687892992806
             }
           },
-          "maker_orders": 578,
-          "maker_touches": 578,
-          "maker_queue_eligible": 578,
-          "maker_fills": 578
+          "maker_orders": 579,
+          "maker_touches": 579,
+          "maker_queue_eligible": 579,
+          "maker_fills": 579
         },
         "23H2": {
-          "return_pct": 150.81,
+          "return_pct": 165.07,
           "max_dd": 13.21,
-          "trades": 528,
+          "trades": 542,
           "symbols": {
             "BTC": {
-              "trades": 167,
-              "win_rate": 76.04790419161677,
-              "net_pnl": 59.266398445626905,
-              "fees": 10.415797923963357,
-              "funding": 2.2269507557051265
+              "trades": 171,
+              "win_rate": 76.60818713450293,
+              "net_pnl": 55.03550300298774,
+              "fees": 10.644816663674746,
+              "funding": 2.3378683926478385
             },
             "ETH": {
-              "trades": 119,
-              "win_rate": 62.18487394957983,
-              "net_pnl": -5.48739387949351,
-              "fees": 6.333842899584568,
-              "funding": 1.8372525512181397
+              "trades": 123,
+              "win_rate": 63.41463414634146,
+              "net_pnl": -7.005065947291701,
+              "fees": 6.590005044568318,
+              "funding": 1.9262626585458682
             },
             "SOL": {
-              "trades": 242,
-              "win_rate": 78.09917355371901,
-              "net_pnl": 103.95437957106081,
-              "fees": 10.815482014229287,
-              "funding": 0.5434023612560628
+              "trades": 248,
+              "win_rate": 78.62903225806451,
+              "net_pnl": 117.04372202670217,
+              "fees": 11.611329869007955,
+              "funding": 0.5279182087463129
             }
           },
-          "maker_orders": 528,
-          "maker_touches": 528,
-          "maker_queue_eligible": 528,
-          "maker_fills": 528
+          "maker_orders": 542,
+          "maker_touches": 542,
+          "maker_queue_eligible": 542,
+          "maker_fills": 542
         },
         "24H2": {
-          "return_pct": 262.93,
-          "max_dd": 9.05,
-          "trades": 603,
+          "return_pct": 253.81,
+          "max_dd": 9.44,
+          "trades": 610,
           "symbols": {
             "BTC": {
-              "trades": 223,
-              "win_rate": 77.57847533632287,
-              "net_pnl": 110.46375977770246,
-              "fees": 16.69820233199441,
-              "funding": 2.616532447811169
+              "trades": 216,
+              "win_rate": 77.77777777777777,
+              "net_pnl": 107.09542299926375,
+              "fees": 15.49919687005382,
+              "funding": 2.4313040044531604
             },
             "ETH": {
-              "trades": 157,
-              "win_rate": 73.88535031847134,
-              "net_pnl": 10.635010647531267,
-              "fees": 10.733978869773418,
-              "funding": 1.4334631821333297
+              "trades": 176,
+              "win_rate": 75.56818181818181,
+              "net_pnl": 13.338354809126333,
+              "fees": 11.094293433565033,
+              "funding": 1.3572175634475125
             },
             "SOL": {
-              "trades": 223,
-              "win_rate": 81.16591928251121,
-              "net_pnl": 152.50631349360825,
-              "fees": 15.306809569554916,
-              "funding": 0.6442223837362393
+              "trades": 218,
+              "win_rate": 81.19266055045871,
+              "net_pnl": 133.37851063713876,
+              "fees": 14.55107903238687,
+              "funding": 0.6211217756013412
             }
           },
-          "maker_orders": 604,
-          "maker_touches": 603,
-          "maker_queue_eligible": 603,
-          "maker_fills": 603
+          "maker_orders": 611,
+          "maker_touches": 610,
+          "maker_queue_eligible": 610,
+          "maker_fills": 610
         }
       }
     },
     "chronological": {
-      "geo_pct": 479.890213574949,
-      "compound_x": 33.627265980000004,
-      "worst_fold": 166.42,
-      "max_dd": 14.0,
-      "trades": 1761,
-      "maker_orders": 1763,
-      "maker_touches": 1761,
-      "maker_queue_eligible": 1761,
-      "maker_fills": 1761,
+      "geo_pct": 439.74387499998545,
+      "compound_x": 29.132345060000002,
+      "worst_fold": 146.74,
+      "max_dd": 14.19,
+      "trades": 1747,
+      "maker_orders": 1749,
+      "maker_touches": 1747,
+      "maker_queue_eligible": 1747,
+      "maker_fills": 1747,
       "per": {
         "2024": {
-          "return_pct": 1162.19,
+          "return_pct": 1080.69,
           "max_dd": 12.48,
-          "trades": 1286,
+          "trades": 1269,
           "symbols": {
             "BTC": {
-              "trades": 424,
-              "win_rate": 76.65094339622641,
-              "net_pnl": 448.6120158403307,
-              "fees": 73.02069125067332,
-              "funding": 12.545195729472843
+              "trades": 411,
+              "win_rate": 76.15571776155718,
+              "net_pnl": 402.1249431082209,
+              "fees": 66.35269289077345,
+              "funding": 11.405685091540185
             },
             "ETH": {
-              "trades": 370,
-              "win_rate": 78.10810810810811,
-              "net_pnl": 150.22683251348445,
-              "fees": 51.630967096023696,
-              "funding": 6.085514410600954
+              "trades": 369,
+              "win_rate": 78.04878048780488,
+              "net_pnl": 148.8439367523781,
+              "fees": 51.07333902296419,
+              "funding": 5.716207248198605
             },
             "SOL": {
-              "trades": 492,
-              "win_rate": 78.2520325203252,
-              "net_pnl": 612.3644787120153,
-              "fees": 71.4420000397168,
-              "funding": 2.326579326411069
+              "trades": 489,
+              "win_rate": 78.52760736196319,
+              "net_pnl": 529.7245567996719,
+              "fees": 67.12743603199178,
+              "funding": 2.361138976991172
             }
           },
-          "maker_orders": 1287,
-          "maker_touches": 1286,
-          "maker_queue_eligible": 1286,
-          "maker_fills": 1286
+          "maker_orders": 1270,
+          "maker_touches": 1269,
+          "maker_queue_eligible": 1269,
+          "maker_fills": 1269
         },
         "2025H1": {
-          "return_pct": 166.42,
-          "max_dd": 14.0,
-          "trades": 475,
+          "return_pct": 146.74,
+          "max_dd": 14.19,
+          "trades": 478,
           "symbols": {
             "BTC": {
-              "trades": 161,
-              "win_rate": 70.80745341614907,
-              "net_pnl": 33.05715871374191,
-              "fees": 10.19005669941538,
-              "funding": 0.5024532919059767
+              "trades": 163,
+              "win_rate": 71.77914110429448,
+              "net_pnl": 29.58876351654949,
+              "fees": 9.62769360628417,
+              "funding": 0.477092729626217
             },
             "ETH": {
-              "trades": 157,
-              "win_rate": 76.43312101910828,
-              "net_pnl": 68.11929625236858,
-              "fees": 9.164883072969998,
-              "funding": 0.10418985434523123
+              "trades": 158,
+              "win_rate": 75.9493670886076,
+              "net_pnl": 59.10760597463516,
+              "fees": 8.434047969704558,
+              "funding": 0.07989191764239817
             },
             "SOL": {
               "trades": 157,
               "win_rate": 75.1592356687898,
-              "net_pnl": 72.25705853424758,
-              "fees": 8.673665636231142,
-              "funding": 0.2236814828549469
+              "net_pnl": 58.03978586868975,
+              "fees": 8.150410681521057,
+              "funding": 0.22674932852339752
             }
           },
-          "maker_orders": 476,
-          "maker_touches": 475,
-          "maker_queue_eligible": 475,
-          "maker_fills": 475
+          "maker_orders": 479,
+          "maker_touches": 478,
+          "maker_queue_eligible": 478,
+          "maker_fills": 478
         }
       }
     },
     "annual": {
-      "geo_pct": 1220.4901903548648,
-      "compound_x": 401491.07578258787,
-      "worst_fold": 166.42,
+      "geo_pct": 1206.3520980741512,
+      "compound_x": 380453.1949464575,
+      "worst_fold": 146.74,
       "max_dd": 17.94,
-      "trades": 5379,
-      "maker_orders": 5385,
-      "maker_touches": 5379,
-      "maker_queue_eligible": 5379,
-      "maker_fills": 5379,
+      "trades": 5433,
+      "maker_orders": 5440,
+      "maker_touches": 5433,
+      "maker_queue_eligible": 5433,
+      "maker_fills": 5433,
       "per": {
         "2021": {
-          "return_pct": 5349.96,
-          "max_dd": 14.15,
-          "trades": 1336,
+          "return_pct": 6161.31,
+          "max_dd": 14.36,
+          "trades": 1384,
           "symbols": {
             "BTC": {
-              "trades": 551,
-              "win_rate": 77.31397459165154,
-              "net_pnl": 2096.168196797664,
-              "fees": 308.889860564631,
-              "funding": 68.55476346296508
+              "trades": 564,
+              "win_rate": 76.95035460992908,
+              "net_pnl": 1867.6661650609876,
+              "fees": 309.363338143865,
+              "funding": 68.06764242497792
             },
             "ETH": {
-              "trades": 601,
-              "win_rate": 74.20965058236273,
-              "net_pnl": 2049.4516497787895,
-              "fees": 315.6351677664183,
-              "funding": 73.92575337091158
+              "trades": 615,
+              "win_rate": 74.3089430894309,
+              "net_pnl": 2348.9316226224933,
+              "fees": 327.0435075735529,
+              "funding": 70.50326096706057
             },
             "SOL": {
-              "trades": 184,
-              "win_rate": 70.1086956521739,
-              "net_pnl": 1422.48302613191,
-              "fees": 249.25002982450798,
-              "funding": 10.524460623104837
+              "trades": 205,
+              "win_rate": 71.21951219512195,
+              "net_pnl": 1944.7107332682183,
+              "fees": 290.0275069332494,
+              "funding": 12.305486091718938
             }
           },
-          "maker_orders": 1340,
-          "maker_touches": 1336,
-          "maker_queue_eligible": 1336,
-          "maker_fills": 1336
+          "maker_orders": 1389,
+          "maker_touches": 1384,
+          "maker_queue_eligible": 1384,
+          "maker_fills": 1384
         },
         "2022": {
-          "return_pct": 2510.76,
+          "return_pct": 2495.95,
           "max_dd": 17.94,
           "trades": 1197,
           "symbols": {
             "BTC": {
-              "trades": 341,
-              "win_rate": 78.59237536656892,
-              "net_pnl": 425.7658004420575,
-              "fees": 102.7545854571398,
-              "funding": 3.594767554125276
+              "trades": 343,
+              "win_rate": 78.71720116618076,
+              "net_pnl": 428.4695903443646,
+              "fees": 103.39782784485146,
+              "funding": 3.2654859372746525
             },
             "ETH": {
               "trades": 416,
               "win_rate": 77.88461538461539,
-              "net_pnl": 996.6840717545105,
-              "fees": 135.62064279830935,
-              "funding": 3.2145814396570933
+              "net_pnl": 945.6192378746028,
+              "fees": 134.03151175696982,
+              "funding": 3.231563880390244
             },
             "SOL": {
-              "trades": 440,
-              "win_rate": 76.13636363636364,
-              "net_pnl": 1177.2429673425825,
-              "fees": 116.63107964114066,
-              "funding": 48.27524140295658
+              "trades": 438,
+              "win_rate": 76.02739726027397,
+              "net_pnl": 1121.8603478840928,
+              "fees": 116.50975637787913,
+              "funding": 47.982240263142685
             }
           },
           "maker_orders": 1197,
@@ -469,123 +469,123 @@
           "maker_fills": 1197
         },
         "2023": {
-          "return_pct": 739.12,
+          "return_pct": 703.46,
           "max_dd": 14.33,
-          "trades": 1085,
+          "trades": 1105,
           "symbols": {
             "BTC": {
-              "trades": 364,
-              "win_rate": 78.57142857142857,
-              "net_pnl": 311.1374047727003,
-              "fees": 49.15496476410124,
-              "funding": 8.539672184170035
+              "trades": 368,
+              "win_rate": 78.80434782608695,
+              "net_pnl": 268.9056476151734,
+              "fees": 45.50239986020325,
+              "funding": 8.028144162586496
             },
             "ETH": {
-              "trades": 288,
-              "win_rate": 69.44444444444444,
-              "net_pnl": 41.1298182841003,
-              "fees": 31.409885488623495,
-              "funding": 7.745220487086027
+              "trades": 295,
+              "win_rate": 70.16949152542372,
+              "net_pnl": 17.205488875551,
+              "fees": 29.600850240717037,
+              "funding": 7.326854471934386
             },
             "SOL": {
-              "trades": 433,
-              "win_rate": 77.82909930715935,
-              "net_pnl": 418.9975006206228,
-              "fees": 47.46405182639207,
-              "funding": 1.7087331724517443
+              "trades": 442,
+              "win_rate": 78.05429864253394,
+              "net_pnl": 417.3503206935467,
+              "fees": 46.16251362374932,
+              "funding": 1.5690103379026346
             }
           },
-          "maker_orders": 1085,
-          "maker_touches": 1085,
-          "maker_queue_eligible": 1085,
-          "maker_fills": 1085
+          "maker_orders": 1105,
+          "maker_touches": 1105,
+          "maker_queue_eligible": 1105,
+          "maker_fills": 1105
         },
         "2024": {
-          "return_pct": 1162.19,
+          "return_pct": 1080.69,
           "max_dd": 12.48,
-          "trades": 1286,
+          "trades": 1269,
           "symbols": {
             "BTC": {
-              "trades": 424,
-              "win_rate": 76.65094339622641,
-              "net_pnl": 448.6120158403307,
-              "fees": 73.02069125067332,
-              "funding": 12.545195729472843
+              "trades": 411,
+              "win_rate": 76.15571776155718,
+              "net_pnl": 402.1249431082209,
+              "fees": 66.35269289077345,
+              "funding": 11.405685091540185
             },
             "ETH": {
-              "trades": 370,
-              "win_rate": 78.10810810810811,
-              "net_pnl": 150.22683251348445,
-              "fees": 51.630967096023696,
-              "funding": 6.085514410600954
+              "trades": 369,
+              "win_rate": 78.04878048780488,
+              "net_pnl": 148.8439367523781,
+              "fees": 51.07333902296419,
+              "funding": 5.716207248198605
             },
             "SOL": {
-              "trades": 492,
-              "win_rate": 78.2520325203252,
-              "net_pnl": 612.3644787120153,
-              "fees": 71.4420000397168,
-              "funding": 2.326579326411069
+              "trades": 489,
+              "win_rate": 78.52760736196319,
+              "net_pnl": 529.7245567996719,
+              "fees": 67.12743603199178,
+              "funding": 2.361138976991172
             }
           },
-          "maker_orders": 1287,
-          "maker_touches": 1286,
-          "maker_queue_eligible": 1286,
-          "maker_fills": 1286
+          "maker_orders": 1270,
+          "maker_touches": 1269,
+          "maker_queue_eligible": 1269,
+          "maker_fills": 1269
         },
         "2025": {
-          "return_pct": 166.42,
-          "max_dd": 14.0,
-          "trades": 475,
+          "return_pct": 146.74,
+          "max_dd": 14.19,
+          "trades": 478,
           "symbols": {
             "BTC": {
-              "trades": 161,
-              "win_rate": 70.80745341614907,
-              "net_pnl": 33.05715871374191,
-              "fees": 10.19005669941538,
-              "funding": 0.5024532919059767
+              "trades": 163,
+              "win_rate": 71.77914110429448,
+              "net_pnl": 29.58876351654949,
+              "fees": 9.62769360628417,
+              "funding": 0.477092729626217
             },
             "ETH": {
-              "trades": 157,
-              "win_rate": 76.43312101910828,
-              "net_pnl": 68.11929625236858,
-              "fees": 9.164883072969998,
-              "funding": 0.10418985434523123
+              "trades": 158,
+              "win_rate": 75.9493670886076,
+              "net_pnl": 59.10760597463516,
+              "fees": 8.434047969704558,
+              "funding": 0.07989191764239817
             },
             "SOL": {
               "trades": 157,
               "win_rate": 75.1592356687898,
-              "net_pnl": 72.25705853424758,
-              "fees": 8.673665636231142,
-              "funding": 0.2236814828549469
+              "net_pnl": 58.03978586868975,
+              "fees": 8.150410681521057,
+              "funding": 0.22674932852339752
             }
           },
-          "maker_orders": 476,
-          "maker_touches": 475,
-          "maker_queue_eligible": 475,
-          "maker_fills": 475
+          "maker_orders": 479,
+          "maker_touches": 478,
+          "maker_queue_eligible": 478,
+          "maker_fills": 478
         }
       }
     },
     "continuous": {
-      "compound_x": 445508.492,
-      "final_balance": 44550849.2,
-      "reported_max_dd": 17.94,
-      "trades": 5384,
-      "mark_to_market_max_dd": 18.026691382394873,
+      "compound_x": 1053.8824,
+      "final_balance": 105388.24,
+      "reported_max_dd": 14.36,
+      "trades": 8271,
+      "mark_to_market_max_dd": 13.162403592037387,
       "top_episode_depths": [
-        18.026691382394873,
-        16.726932231610277,
-        15.071840793372655
+        13.162403592037387,
+        12.79902410579648,
+        12.165591163636394
       ],
       "thresholds": {
         "10": {
           "threshold_pct": 10,
-          "episodes": 17,
-          "bars": 787,
-          "time_pct": 8.136048795616665,
-          "weeks": 44,
-          "weeks_pct": 19.047619047619047,
-          "longest_days": 12.5
+          "episodes": 4,
+          "bars": 104,
+          "time_pct": 1.075157655329267,
+          "weeks": 8,
+          "weeks_pct": 3.463203463203463,
+          "longest_days": 3.3333333333333335
         },
         "20": {
           "threshold_pct": 20,
@@ -627,50 +627,50 @@
     },
     "standalone_continuous": {
       "BTC": {
-        "compound_x": 204.2133,
-        "max_dd": 17.93,
-        "trades": 2486
+        "compound_x": 139.8651,
+        "max_dd": 16.72,
+        "trades": 2649
       },
       "ETH": {
-        "compound_x": 1680.871,
-        "max_dd": 19.18,
-        "trades": 2801
+        "compound_x": 262.27209999999997,
+        "max_dd": 11.68,
+        "trades": 3004
       },
       "SOL": {
-        "compound_x": 143881.8626,
-        "max_dd": 16.3,
-        "trades": 2906
+        "compound_x": 485.1057,
+        "max_dd": 15.31,
+        "trades": 3063
       }
     }
   },
   "aggressive": {
     "train": {
-      "geo_pct": 2254.094399181713,
-      "compound_x": 7229684.916510549,
-      "worst_fold": 647.36,
-      "max_dd": 38.47,
-      "trades": 4609,
-      "maker_orders": 4612,
-      "maker_touches": 4609,
-      "maker_queue_eligible": 4609,
-      "maker_fills": 4609,
+      "geo_pct": 2119.6209373801935,
+      "compound_x": 5387584.118180709,
+      "worst_fold": 699.51,
+      "max_dd": 30.78,
+      "trades": 4613,
+      "maker_orders": 4616,
+      "maker_touches": 4613,
+      "maker_queue_eligible": 4613,
+      "maker_fills": 4613,
       "per": {
         "21H1": {
           "return_pct": 10200.44,
-          "max_dd": 24.96,
+          "max_dd": 25.33,
           "trades": 944,
           "symbols": {
             "BTC": {
               "trades": 450,
               "win_rate": 79.11111111111111,
-              "net_pnl": 3609.926375365982,
+              "net_pnl": 3508.1640482162625,
               "fees": 406.0493032843614,
               "funding": 138.63134376680932
             },
             "ETH": {
               "trades": 494,
               "win_rate": 74.89878542510121,
-              "net_pnl": 6821.319825240158,
+              "net_pnl": 6692.2710509369235,
               "fees": 514.9259306275293,
               "funding": 123.53259327850272
             },
@@ -689,27 +689,27 @@
         },
         "22H1": {
           "return_pct": 8169.15,
-          "max_dd": 24.05,
+          "max_dd": 24.87,
           "trades": 928,
           "symbols": {
             "BTC": {
               "trades": 260,
-              "win_rate": 80.38461538461539,
-              "net_pnl": 905.4954453409979,
+              "win_rate": 80.0,
+              "net_pnl": 863.156613855185,
               "fees": 168.18778233091103,
               "funding": 2.516467292663504
             },
             "ETH": {
               "trades": 302,
               "win_rate": 79.47019867549669,
-              "net_pnl": 1483.5167428694867,
+              "net_pnl": 1430.2653682271693,
               "fees": 212.98048814208047,
               "funding": 6.96513343508326
             },
             "SOL": {
               "trades": 366,
               "win_rate": 80.05464480874316,
-              "net_pnl": 5954.0525642752455,
+              "net_pnl": 5875.723240302116,
               "fees": 311.2058787130881,
               "funding": 8.89115940354649
             }
@@ -720,113 +720,113 @@
           "maker_fills": 928
         },
         "23H1": {
-          "return_pct": 647.36,
-          "max_dd": 38.47,
-          "trades": 889,
+          "return_pct": 699.51,
+          "max_dd": 30.78,
+          "trades": 929,
           "symbols": {
             "BTC": {
-              "trades": 273,
-              "win_rate": 78.3882783882784,
-              "net_pnl": 404.39264499902555,
-              "fees": 79.99202507786208,
-              "funding": 8.264354445683255
+              "trades": 282,
+              "win_rate": 76.95035460992908,
+              "net_pnl": 334.308037079524,
+              "fees": 80.80256224854395,
+              "funding": 9.590079757807212
             },
             "ETH": {
-              "trades": 285,
-              "win_rate": 76.14035087719299,
-              "net_pnl": 211.74204322490522,
-              "fees": 82.73961870745953,
-              "funding": 11.927242347421485
+              "trades": 298,
+              "win_rate": 76.84563758389261,
+              "net_pnl": 256.97111591598826,
+              "fees": 83.87809524751555,
+              "funding": 13.277331600696874
             },
             "SOL": {
-              "trades": 331,
-              "win_rate": 70.69486404833837,
-              "net_pnl": 93.84322916742452,
-              "fees": 87.61237645218935,
-              "funding": 2.727324923979933
+              "trades": 349,
+              "win_rate": 71.06017191977077,
+              "net_pnl": 108.22603204700802,
+              "fees": 88.10073735305764,
+              "funding": 0.9577628398559973
             }
           },
-          "maker_orders": 891,
-          "maker_touches": 889,
-          "maker_queue_eligible": 889,
-          "maker_fills": 889
+          "maker_orders": 931,
+          "maker_touches": 929,
+          "maker_queue_eligible": 929,
+          "maker_fills": 929
         },
         "24H1": {
-          "return_pct": 776.06,
+          "return_pct": 730.21,
           "max_dd": 27.28,
-          "trades": 1075,
+          "trades": 1067,
           "symbols": {
             "BTC": {
-              "trades": 316,
-              "win_rate": 77.53164556962025,
-              "net_pnl": 295.20918861350935,
-              "fees": 65.50548088006396,
-              "funding": 16.557849945221733
+              "trades": 315,
+              "win_rate": 77.46031746031746,
+              "net_pnl": 264.4925538685613,
+              "fees": 63.312087311374995,
+              "funding": 16.30542726330987
             },
             "ETH": {
-              "trades": 344,
-              "win_rate": 78.19767441860465,
-              "net_pnl": 362.00938165617293,
-              "fees": 67.8635255802566,
-              "funding": 11.779539226793638
+              "trades": 339,
+              "win_rate": 78.46607669616519,
+              "net_pnl": 320.6900857255391,
+              "fees": 65.02449822000936,
+              "funding": 11.142118954254391
             },
             "SOL": {
-              "trades": 415,
-              "win_rate": 74.4578313253012,
-              "net_pnl": 172.61639575404058,
-              "fees": 81.17165574953626,
-              "funding": 8.810387053627524
+              "trades": 413,
+              "win_rate": 74.33414043583535,
+              "net_pnl": 145.02276808233745,
+              "fees": 78.37971497813916,
+              "funding": 8.750827395044245
             }
           },
-          "maker_orders": 1075,
-          "maker_touches": 1075,
-          "maker_queue_eligible": 1075,
-          "maker_fills": 1075
+          "maker_orders": 1067,
+          "maker_touches": 1067,
+          "maker_queue_eligible": 1067,
+          "maker_fills": 1067
         },
         "25H1": {
-          "return_pct": 1196.4,
+          "return_pct": 852.94,
           "max_dd": 27.2,
-          "trades": 773,
+          "trades": 745,
           "symbols": {
             "BTC": {
-              "trades": 231,
-              "win_rate": 74.45887445887446,
-              "net_pnl": 156.18066109290973,
-              "fees": 55.42964890933758,
-              "funding": 5.2065619763142434
+              "trades": 225,
+              "win_rate": 74.22222222222223,
+              "net_pnl": 94.12284174200467,
+              "fees": 41.48346959290804,
+              "funding": 4.1348974800919756
             },
             "ETH": {
-              "trades": 249,
-              "win_rate": 73.49397590361446,
-              "net_pnl": 451.4758535739114,
-              "fees": 66.82811856068388,
-              "funding": 3.710829727795879
+              "trades": 239,
+              "win_rate": 72.38493723849372,
+              "net_pnl": 300.68274141961194,
+              "fees": 48.85013201717872,
+              "funding": 2.836156976867532
             },
             "SOL": {
-              "trades": 293,
-              "win_rate": 78.15699658703072,
-              "net_pnl": 636.3016810319759,
-              "fees": 68.49856302604933,
-              "funding": 3.107904962124488
+              "trades": 281,
+              "win_rate": 77.58007117437722,
+              "net_pnl": 458.13859300205894,
+              "fees": 51.0205800685173,
+              "funding": 2.3552491084983953
             }
           },
-          "maker_orders": 773,
-          "maker_touches": 773,
-          "maker_queue_eligible": 773,
-          "maker_fills": 773
+          "maker_orders": 745,
+          "maker_touches": 745,
+          "maker_queue_eligible": 745,
+          "maker_fills": 745
         }
       }
     },
     "held_out_test": {
-      "geo_pct": 3284.279746770663,
-      "compound_x": 1311792.1257931804,
-      "worst_fold": 1897.63,
-      "max_dd": 34.92,
-      "trades": 4086,
-      "maker_orders": 4091,
-      "maker_touches": 4086,
-      "maker_queue_eligible": 4086,
-      "maker_fills": 4086,
+      "geo_pct": 3391.5949071361324,
+      "compound_x": 1486262.107164541,
+      "worst_fold": 1877.67,
+      "max_dd": 35.04,
+      "trades": 4092,
+      "maker_orders": 4097,
+      "maker_touches": 4092,
+      "maker_queue_eligible": 4092,
+      "maker_fills": 4092,
       "per": {
         "21H2": {
           "return_pct": 6447.07,
@@ -836,21 +836,21 @@
             "BTC": {
               "trades": 365,
               "win_rate": 77.26027397260275,
-              "net_pnl": 856.5505058852954,
+              "net_pnl": 770.7147648290078,
               "fees": 343.90784666021494,
               "funding": 120.30938322493598
             },
             "ETH": {
               "trades": 425,
               "win_rate": 78.3529411764706,
-              "net_pnl": 1494.9706820801032,
+              "net_pnl": 1392.536786830806,
               "fees": 410.12767867771527,
               "funding": 96.88581278129222
             },
             "SOL": {
               "trades": 327,
               "win_rate": 73.39449541284404,
-              "net_pnl": 4417.7703860272995,
+              "net_pnl": 4283.817691848711,
               "fees": 537.9204635886836,
               "funding": 39.17468558727159
             }
@@ -861,214 +861,214 @@
           "maker_fills": 1117
         },
         "22H2": {
-          "return_pct": 1897.63,
-          "max_dd": 34.92,
-          "trades": 891,
+          "return_pct": 1877.67,
+          "max_dd": 35.04,
+          "trades": 893,
           "symbols": {
             "BTC": {
-              "trades": 227,
-              "win_rate": 78.41409691629956,
-              "net_pnl": 175.2496026722258,
-              "fees": 78.7222369504694,
-              "funding": 3.781667316317509
+              "trades": 229,
+              "win_rate": 78.60262008733625,
+              "net_pnl": 158.2448856789452,
+              "fees": 78.70568191232161,
+              "funding": 3.529797006988113
             },
             "ETH": {
               "trades": 320,
               "win_rate": 78.4375,
-              "net_pnl": 544.2917710932837,
-              "fees": 123.36200865283902,
-              "funding": 2.7899710154065582
+              "net_pnl": 518.5931834020786,
+              "fees": 122.87308562325865,
+              "funding": 2.6853989410853174
             },
             "SOL": {
               "trades": 344,
               "win_rate": 77.03488372093024,
-              "net_pnl": 1261.1228632486398,
-              "fees": 129.13128109168994,
-              "funding": 61.12547843513089
+              "net_pnl": 1200.8367501520822,
+              "fees": 129.15878607582283,
+              "funding": 60.452905633076796
             }
           },
-          "maker_orders": 891,
-          "maker_touches": 891,
-          "maker_queue_eligible": 891,
-          "maker_fills": 891
+          "maker_orders": 893,
+          "maker_touches": 893,
+          "maker_queue_eligible": 893,
+          "maker_fills": 893
         },
         "23H2": {
-          "return_pct": 4744.24,
+          "return_pct": 5184.9,
           "max_dd": 31.74,
-          "trades": 986,
+          "trades": 993,
           "symbols": {
             "BTC": {
-              "trades": 256,
-              "win_rate": 71.875,
-              "net_pnl": -518.8971199109141,
-              "fees": 204.6858040556361,
-              "funding": 81.69200358932156
+              "trades": 258,
+              "win_rate": 72.09302325581395,
+              "net_pnl": -620.1450442643319,
+              "fees": 222.76935024968643,
+              "funding": 89.06112166747383
             },
             "ETH": {
               "trades": 247,
               "win_rate": 68.01619433198381,
-              "net_pnl": -386.97129585005143,
-              "fees": 239.69585754438705,
-              "funding": 105.7939667051284
+              "net_pnl": -484.9677463789038,
+              "fees": 260.8232948091191,
+              "funding": 115.39263936150842
             },
             "SOL": {
-              "trades": 483,
-              "win_rate": 79.71014492753623,
-              "net_pnl": 5849.940972713222,
-              "fees": 355.169164005513,
-              "funding": 34.14805997294707
+              "trades": 488,
+              "win_rate": 79.91803278688525,
+              "net_pnl": 6290.016157180253,
+              "fees": 386.469183422568,
+              "funding": 37.125895779018215
             }
           },
-          "maker_orders": 986,
-          "maker_touches": 986,
-          "maker_queue_eligible": 986,
-          "maker_fills": 986
+          "maker_orders": 993,
+          "maker_touches": 993,
+          "maker_queue_eligible": 993,
+          "maker_fills": 993
         },
         "24H2": {
-          "return_pct": 1970.51,
-          "max_dd": 27.51,
-          "trades": 1092,
+          "return_pct": 2071.99,
+          "max_dd": 26.56,
+          "trades": 1089,
           "symbols": {
             "BTC": {
-              "trades": 334,
-              "win_rate": 76.94610778443113,
-              "net_pnl": 526.8582074798686,
-              "fees": 118.13059044575074,
-              "funding": 30.658557800720207
+              "trades": 329,
+              "win_rate": 76.89969604863222,
+              "net_pnl": 507.91705751419516,
+              "fees": 120.3190977038367,
+              "funding": 32.01773991379724
             },
             "ETH": {
-              "trades": 338,
-              "win_rate": 77.51479289940828,
-              "net_pnl": 593.1136749237664,
-              "fees": 127.48736612200447,
-              "funding": 24.469874539156656
+              "trades": 341,
+              "win_rate": 77.71260997067449,
+              "net_pnl": 605.5991261229617,
+              "fees": 134.79575711840005,
+              "funding": 25.839890463687937
             },
             "SOL": {
-              "trades": 420,
-              "win_rate": 80.23809523809524,
-              "net_pnl": 943.5013191794269,
-              "fees": 126.74961695804994,
-              "funding": 12.344178011970717
+              "trades": 419,
+              "win_rate": 80.1909307875895,
+              "net_pnl": 958.4727183619864,
+              "fees": 132.8345367181584,
+              "funding": 13.045879482482247
             }
           },
-          "maker_orders": 1093,
-          "maker_touches": 1092,
-          "maker_queue_eligible": 1092,
-          "maker_fills": 1092
+          "maker_orders": 1090,
+          "maker_touches": 1089,
+          "maker_queue_eligible": 1089,
+          "maker_fills": 1089
         }
       }
     },
     "chronological": {
-      "geo_pct": 4354.616243853111,
-      "compound_x": 1984.3605880000002,
-      "worst_fold": 1196.4,
-      "max_dd": 27.51,
-      "trades": 2929,
-      "maker_orders": 2930,
-      "maker_touches": 2929,
-      "maker_queue_eligible": 2929,
-      "maker_fills": 2929,
+      "geo_pct": 3707.924320125071,
+      "compound_x": 1450.02876278,
+      "worst_fold": 852.94,
+      "max_dd": 27.28,
+      "trades": 2890,
+      "maker_orders": 2891,
+      "maker_touches": 2890,
+      "maker_queue_eligible": 2890,
+      "maker_fills": 2890,
       "per": {
         "2024": {
-          "return_pct": 15206.7,
-          "max_dd": 27.51,
-          "trades": 2156,
+          "return_pct": 15116.37,
+          "max_dd": 27.28,
+          "trades": 2145,
           "symbols": {
             "BTC": {
-              "trades": 647,
-              "win_rate": 77.12519319938175,
-              "net_pnl": 4139.126033915565,
-              "fees": 937.554564453877,
-              "funding": 242.96565111771335
+              "trades": 641,
+              "win_rate": 77.06708268330733,
+              "net_pnl": 3774.7909595764754,
+              "fees": 905.0441907795755,
+              "funding": 240.38354455369506
             },
             "ETH": {
-              "trades": 676,
-              "win_rate": 77.81065088757397,
-              "net_pnl": 4729.997713577608,
-              "fees": 1007.7615452785005,
-              "funding": 192.29770168499644
+              "trades": 674,
+              "win_rate": 78.04154302670624,
+              "net_pnl": 4548.106325421881,
+              "fees": 1006.9223853710909,
+              "funding": 191.80867703484688
             },
             "SOL": {
-              "trades": 833,
-              "win_rate": 77.07082833133254,
-              "net_pnl": 7077.16516274375,
-              "fees": 1016.3165002581637,
-              "funding": 99.90167415886741
+              "trades": 830,
+              "win_rate": 76.98795180722891,
+              "net_pnl": 6793.473294805491,
+              "fees": 1007.2019302635932,
+              "funding": 99.98969913918425
             }
           },
-          "maker_orders": 2157,
-          "maker_touches": 2156,
-          "maker_queue_eligible": 2156,
-          "maker_fills": 2156
+          "maker_orders": 2146,
+          "maker_touches": 2145,
+          "maker_queue_eligible": 2145,
+          "maker_fills": 2145
         },
         "2025H1": {
-          "return_pct": 1196.4,
+          "return_pct": 852.94,
           "max_dd": 27.2,
-          "trades": 773,
+          "trades": 745,
           "symbols": {
             "BTC": {
-              "trades": 231,
-              "win_rate": 74.45887445887446,
-              "net_pnl": 156.18066109290973,
-              "fees": 55.42964890933758,
-              "funding": 5.2065619763142434
+              "trades": 225,
+              "win_rate": 74.22222222222223,
+              "net_pnl": 94.12284174200467,
+              "fees": 41.48346959290804,
+              "funding": 4.1348974800919756
             },
             "ETH": {
-              "trades": 249,
-              "win_rate": 73.49397590361446,
-              "net_pnl": 451.4758535739114,
-              "fees": 66.82811856068388,
-              "funding": 3.710829727795879
+              "trades": 239,
+              "win_rate": 72.38493723849372,
+              "net_pnl": 300.68274141961194,
+              "fees": 48.85013201717872,
+              "funding": 2.836156976867532
             },
             "SOL": {
-              "trades": 293,
-              "win_rate": 78.15699658703072,
-              "net_pnl": 636.3016810319759,
-              "fees": 68.49856302604933,
-              "funding": 3.107904962124488
+              "trades": 281,
+              "win_rate": 77.58007117437722,
+              "net_pnl": 458.13859300205894,
+              "fees": 51.0205800685173,
+              "funding": 2.3552491084983953
             }
           },
-          "maker_orders": 773,
-          "maker_touches": 773,
-          "maker_queue_eligible": 773,
-          "maker_fills": 773
+          "maker_orders": 745,
+          "maker_touches": 745,
+          "maker_queue_eligible": 745,
+          "maker_fills": 745
         }
       }
     },
     "annual": {
-      "geo_pct": 36442.81139169548,
-      "compound_x": 6516430714099.568,
-      "worst_fold": 1196.4,
-      "max_dd": 38.47,
-      "trades": 8652,
-      "maker_orders": 8657,
-      "maker_touches": 8652,
-      "maker_queue_eligible": 8652,
-      "maker_fills": 8652,
+      "geo_pct": 35826.30827955328,
+      "compound_x": 5984983549524.126,
+      "worst_fold": 852.94,
+      "max_dd": 35.03,
+      "trades": 8682,
+      "maker_orders": 8687,
+      "maker_touches": 8682,
+      "maker_queue_eligible": 8682,
+      "maker_fills": 8682,
       "per": {
         "2021": {
           "return_pct": 672149.78,
-          "max_dd": 24.96,
+          "max_dd": 25.33,
           "trades": 2061,
           "symbols": {
             "BTC": {
               "trades": 813,
               "win_rate": 78.22878228782288,
-              "net_pnl": 91337.40361639536,
+              "net_pnl": 82424.87970715616,
               "fees": 35707.046468742104,
               "funding": 12491.788516020288
             },
             "ETH": {
               "trades": 921,
               "win_rate": 76.54723127035831,
-              "net_pnl": 160514.72206868583,
+              "net_pnl": 149864.65203640875,
               "fees": 42639.392310226845,
               "funding": 10073.144609837162
             },
             "SOL": {
               "trades": 327,
               "win_rate": 73.39449541284404,
-              "net_pnl": 453614.4427280113,
+              "net_pnl": 439860.2474185584,
               "fees": 55233.402825672885,
               "funding": 4022.437025681449
             }
@@ -1079,209 +1079,209 @@
           "maker_fills": 2061
         },
         "2022": {
-          "return_pct": 166007.65,
-          "max_dd": 34.92,
-          "trades": 1821,
+          "return_pct": 164348.04,
+          "max_dd": 35.03,
+          "trades": 1823,
           "symbols": {
             "BTC": {
-              "trades": 487,
-              "win_rate": 79.46611909650925,
-              "net_pnl": 15731.789650642893,
-              "fees": 6715.044673783027,
-              "funding": 317.0183703618095
+              "trades": 489,
+              "win_rate": 79.55010224948876,
+              "net_pnl": 14275.200609985199,
+              "fees": 6713.668085720733,
+              "funding": 296.0747966912343
             },
             "ETH": {
               "trades": 623,
               "win_rate": 78.81219903691814,
-              "net_pnl": 46700.80677035786,
-              "fees": 10468.492359024249,
-              "funding": 238.99041083863528
+              "net_pnl": 44511.245517139265,
+              "fees": 10427.837327009862,
+              "funding": 230.29501141556355
             },
             "SOL": {
               "trades": 711,
               "win_rate": 78.48101265822785,
-              "net_pnl": 110653.1918443472,
-              "fees": 11050.24322364584,
-              "funding": 5091.446408446608
+              "net_pnl": 105561.59216419981,
+              "fees": 11052.530323951652,
+              "funding": 5035.520491389724
             }
           },
-          "maker_orders": 1821,
-          "maker_touches": 1821,
-          "maker_queue_eligible": 1821,
-          "maker_fills": 1821
+          "maker_orders": 1823,
+          "maker_touches": 1823,
+          "maker_queue_eligible": 1823,
+          "maker_fills": 1823
         },
         "2023": {
-          "return_pct": 29308.23,
-          "max_dd": 38.47,
-          "trades": 1841,
+          "return_pct": 37235.93,
+          "max_dd": 31.74,
+          "trades": 1908,
           "symbols": {
             "BTC": {
-              "trades": 519,
-              "win_rate": 74.95183044315992,
-              "net_pnl": -2763.4302432131094,
-              "fees": 1318.1995481205577,
-              "funding": 502.8974834952232
+              "trades": 536,
+              "win_rate": 74.44029850746269,
+              "net_pnl": -4072.987196209104,
+              "fees": 1652.5317889142195,
+              "funding": 637.5193764429405
             },
             "ETH": {
-              "trades": 522,
-              "win_rate": 72.22222222222223,
-              "net_pnl": -2150.7752195030953,
-              "fees": 1534.4308304874653,
-              "funding": 653.1534196215542
+              "trades": 543,
+              "win_rate": 72.74401473296501,
+              "net_pnl": -3159.5279714252943,
+              "fees": 1925.8416365098278,
+              "funding": 827.4462840125956
             },
             "SOL": {
-              "trades": 800,
-              "win_rate": 76.125,
-              "net_pnl": 35494.160608318074,
-              "fees": 2235.3544209369074,
-              "funding": 209.73086132907193
+              "trades": 829,
+              "win_rate": 76.11580217129071,
+              "net_pnl": 44468.44466901714,
+              "fees": 2812.3833342472553,
+              "funding": 262.870842897077
             }
           },
-          "maker_orders": 1841,
-          "maker_touches": 1841,
-          "maker_queue_eligible": 1841,
-          "maker_fills": 1841
+          "maker_orders": 1908,
+          "maker_touches": 1908,
+          "maker_queue_eligible": 1908,
+          "maker_fills": 1908
         },
         "2024": {
-          "return_pct": 15206.7,
-          "max_dd": 27.51,
-          "trades": 2156,
+          "return_pct": 15116.37,
+          "max_dd": 27.28,
+          "trades": 2145,
           "symbols": {
             "BTC": {
-              "trades": 647,
-              "win_rate": 77.12519319938175,
-              "net_pnl": 4139.126033915565,
-              "fees": 937.554564453877,
-              "funding": 242.96565111771335
+              "trades": 641,
+              "win_rate": 77.06708268330733,
+              "net_pnl": 3774.7909595764754,
+              "fees": 905.0441907795755,
+              "funding": 240.38354455369506
             },
             "ETH": {
-              "trades": 676,
-              "win_rate": 77.81065088757397,
-              "net_pnl": 4729.997713577608,
-              "fees": 1007.7615452785005,
-              "funding": 192.29770168499644
+              "trades": 674,
+              "win_rate": 78.04154302670624,
+              "net_pnl": 4548.106325421881,
+              "fees": 1006.9223853710909,
+              "funding": 191.80867703484688
             },
             "SOL": {
-              "trades": 833,
-              "win_rate": 77.07082833133254,
-              "net_pnl": 7077.16516274375,
-              "fees": 1016.3165002581637,
-              "funding": 99.90167415886741
+              "trades": 830,
+              "win_rate": 76.98795180722891,
+              "net_pnl": 6793.473294805491,
+              "fees": 1007.2019302635932,
+              "funding": 99.98969913918425
             }
           },
-          "maker_orders": 2157,
-          "maker_touches": 2156,
-          "maker_queue_eligible": 2156,
-          "maker_fills": 2156
+          "maker_orders": 2146,
+          "maker_touches": 2145,
+          "maker_queue_eligible": 2145,
+          "maker_fills": 2145
         },
         "2025": {
-          "return_pct": 1196.4,
+          "return_pct": 852.94,
           "max_dd": 27.2,
-          "trades": 773,
+          "trades": 745,
           "symbols": {
             "BTC": {
-              "trades": 231,
-              "win_rate": 74.45887445887446,
-              "net_pnl": 156.18066109290973,
-              "fees": 55.42964890933758,
-              "funding": 5.2065619763142434
+              "trades": 225,
+              "win_rate": 74.22222222222223,
+              "net_pnl": 94.12284174200467,
+              "fees": 41.48346959290804,
+              "funding": 4.1348974800919756
             },
             "ETH": {
-              "trades": 249,
-              "win_rate": 73.49397590361446,
-              "net_pnl": 451.4758535739114,
-              "fees": 66.82811856068388,
-              "funding": 3.710829727795879
+              "trades": 239,
+              "win_rate": 72.38493723849372,
+              "net_pnl": 300.68274141961194,
+              "fees": 48.85013201717872,
+              "funding": 2.836156976867532
             },
             "SOL": {
-              "trades": 293,
-              "win_rate": 78.15699658703072,
-              "net_pnl": 636.3016810319759,
-              "fees": 68.49856302604933,
-              "funding": 3.107904962124488
+              "trades": 281,
+              "win_rate": 77.58007117437722,
+              "net_pnl": 458.13859300205894,
+              "fees": 51.0205800685173,
+              "funding": 2.3552491084983953
             }
           },
-          "maker_orders": 773,
-          "maker_touches": 773,
-          "maker_queue_eligible": 773,
-          "maker_fills": 773
+          "maker_orders": 745,
+          "maker_touches": 745,
+          "maker_queue_eligible": 745,
+          "maker_fills": 745
         }
       }
     },
     "continuous": {
-      "compound_x": 4976346702419.551,
-      "final_balance": 497634670241955.06,
-      "reported_max_dd": 38.47,
-      "trades": 8564,
-      "mark_to_market_max_dd": 38.66952932928598,
+      "compound_x": 5200900708.88,
+      "final_balance": 520090070888.0,
+      "reported_max_dd": 35.03,
+      "trades": 8801,
+      "mark_to_market_max_dd": 34.81509544491144,
       "top_episode_depths": [
-        38.66952932928598,
-        34.70608364351068,
-        32.51731207177982
+        34.81509544491144,
+        30.997845030391975,
+        27.67948166948978
       ],
       "thresholds": {
         "10": {
           "threshold_pct": 10,
-          "episodes": 79,
-          "bars": 4075,
-          "time_pct": 42.127571591026566,
-          "weeks": 173,
-          "weeks_pct": 74.89177489177489,
-          "longest_days": 68.66666666666667
+          "episodes": 48,
+          "bars": 2339,
+          "time_pct": 24.180709190530344,
+          "weeks": 99,
+          "weeks_pct": 42.857142857142854,
+          "longest_days": 68.33333333333333
         },
         "20": {
           "threshold_pct": 20,
-          "episodes": 18,
-          "bars": 1652,
-          "time_pct": 17.07846583273028,
-          "weeks": 65,
-          "weeks_pct": 28.138528138528137,
-          "longest_days": 68.5
+          "episodes": 9,
+          "bars": 847,
+          "time_pct": 8.756332058306628,
+          "weeks": 34,
+          "weeks_pct": 14.718614718614718,
+          "longest_days": 36.0
         },
         "25": {
           "threshold_pct": 25,
-          "episodes": 8,
-          "bars": 1105,
-          "time_pct": 11.423550087873462,
-          "weeks": 37,
-          "weeks_pct": 16.017316017316016,
-          "longest_days": 43.666666666666664
+          "episodes": 3,
+          "bars": 601,
+          "time_pct": 6.213170681277783,
+          "weeks": 22,
+          "weeks_pct": 9.523809523809524,
+          "longest_days": 34.833333333333336
         },
         "30": {
           "threshold_pct": 30,
-          "episodes": 4,
-          "bars": 479,
-          "time_pct": 4.951928047141528,
-          "weeks": 19,
-          "weeks_pct": 8.225108225108226,
-          "longest_days": 39.333333333333336
+          "episodes": 2,
+          "bars": 196,
+          "time_pct": 2.0262586581205415,
+          "weeks": 8,
+          "weeks_pct": 3.463203463203463,
+          "longest_days": 14.0
         },
         "33": {
           "threshold_pct": 33,
-          "episodes": 2,
-          "bars": 228,
-          "time_pct": 2.3570763982218548,
-          "weeks": 8,
-          "weeks_pct": 3.463203463203463,
-          "longest_days": 21.333333333333332
+          "episodes": 1,
+          "bars": 57,
+          "time_pct": 0.5892690995554637,
+          "weeks": 3,
+          "weeks_pct": 1.2987012987012987,
+          "longest_days": 9.333333333333334
         }
       }
     },
     "standalone_continuous": {
       "BTC": {
-        "compound_x": 1729.9782,
+        "compound_x": 1587.2307999999998,
         "max_dd": 26.44,
-        "trades": 2797
+        "trades": 2792
       },
       "ETH": {
-        "compound_x": 18414.165,
-        "max_dd": 30.54,
+        "compound_x": 18772.023400000002,
+        "max_dd": 30.47,
         "trades": 3055
       },
       "SOL": {
-        "compound_x": 3923246.7664,
-        "max_dd": 24.19,
-        "trades": 3109
+        "compound_x": 2880367.2039,
+        "max_dd": 26.25,
+        "trades": 3091
       }
     }
   }

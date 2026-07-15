@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import fcntl
 import time
 from pathlib import Path
 
@@ -10,6 +9,9 @@ import schedule
 
 from llm_trading_bot.config import AppConfig
 from llm_trading_bot.live_state import SharedLiveState
+from llm_trading_bot.process_lock import (
+    AccountLockError, acquire_account_lock, release_account_lock,
+)
 from llm_trading_bot.scheduler import TradingScheduler
 
 
@@ -67,15 +69,13 @@ class SharedTradingOrchestrator:
                 raise ValueError("Shared live configs must use the same scheduling cadence")
 
     def _acquire_process_lock(self) -> None:
-        lock_path = self.log_dir / "shared_orchestrator.lock"
-        self._lock_handle = open(lock_path, "a+")
+        # Account-scoped: a second process against the same Bitget account is
+        # rejected even when it points at a different log directory.
         try:
-            fcntl.flock(self._lock_handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as exc:
-            self._lock_handle.close()
-            self._lock_handle = None
+            self._lock_handle = acquire_account_lock(self.configs[0].bitget)
+        except AccountLockError as exc:
             raise RuntimeError(
-                "Another shared trading orchestrator already owns this log directory"
+                "Another live trading process already owns this Bitget account"
             ) from exc
 
     def run_cycle(self) -> None:
@@ -101,12 +101,13 @@ class SharedTradingOrchestrator:
         schedule.every(self.position_interval_minutes).minutes.do(self.check_positions)
         try:
             while True:
-                schedule.run_pending()
+                try:
+                    schedule.run_pending()
+                except Exception as exc:  # a job crash must not kill the loop
+                    print(f"ERROR: scheduled job crashed: {exc}")
                 time.sleep(1)
         except KeyboardInterrupt:
             print("Shared trading orchestrator stopped by user")
         finally:
-            if self._lock_handle is not None:
-                fcntl.flock(self._lock_handle.fileno(), fcntl.LOCK_UN)
-                self._lock_handle.close()
-                self._lock_handle = None
+            release_account_lock(self._lock_handle)
+            self._lock_handle = None

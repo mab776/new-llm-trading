@@ -481,6 +481,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                     take_profit_2=pending.take_profit_2,
                     leverage=pending.leverage, risk_pct=pending.risk_pct,
                     tp1_exit_pct=pending.tp1_exit_pct, order_type="maker",
+                    max_margin_usd=pending.max_margin_usd,
                 )
                 fresh_trade._atr_entry = pending.atr_at_entry
                 maker_fills += 1
@@ -712,6 +713,10 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                         )
                         if pending is not None:
                             pending_margin = port.balance * pending.risk_pct
+                            if pending.max_margin_usd is not None:
+                                pending_margin = min(
+                                    pending_margin, pending.max_margin_usd
+                                )
                             committed_margin += pending_margin
                             committed_notional += pending_margin * pending.leverage
                         risk_eff = cap_risk_pct(
@@ -734,6 +739,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                                 leverage=lev_eff, risk_pct=risk_eff,
                                 tp1_exit_pct=tier.tp1_exit_pct,
                                 atr_at_entry=prim.atr_14, decision_time=ts,
+                                max_margin_usd=ps.max_position_usd,
                             )
                             maker_orders += 1
                         else:
@@ -744,6 +750,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                                 take_profit_2=targets.take_profit_2, leverage=lev_eff,
                                 risk_pct=risk_eff, tp1_exit_pct=tier.tp1_exit_pct,
                                 order_type="taker",
+                                max_margin_usd=ps.max_position_usd,
                             )
                             trade._atr_entry = prim.atr_14  # for ATR-based trailing
 
