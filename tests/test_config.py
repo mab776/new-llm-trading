@@ -178,6 +178,20 @@ class TestLoadConfig:
         cfg = load_config(Path(__file__).resolve().parents[1] / name)
         assert not hasattr(cfg, "openwebui")
 
+    @pytest.mark.parametrize("name", (
+        "config.json", "config-eth.json", "config-sol.json",
+        "config-aggressive.json", "config-eth-aggressive.json",
+        "config-sol-aggressive.json",
+    ))
+    def test_shipped_profiles_pin_isolated_one_way(self, name):
+        # All symbols run against ONE shared demo/live account set to isolated +
+        # one-way; preflight fails closed on mismatch. A config that falls back to
+        # the crossed default would refuse to start on paper day (ETH/SOL once did).
+        cfg = load_config(Path(__file__).resolve().parents[1] / name)
+        assert cfg.bitget.margin_mode == "isolated", name
+        assert cfg.bitget.position_mode == "one_way", name
+        assert cfg.bitget.testnet is True, name
+
 
 class TestFiltersConfig:
     def test_defaults(self):

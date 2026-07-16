@@ -84,7 +84,9 @@
         "api_secret": "",
         "passphrase": "",
         "testnet": true,
-        "product_type": "USDT-FUTURES"
+        "product_type": "USDT-FUTURES",
+        "position_mode": "one_way",
+        "margin_mode": "isolated"
     },
     "backtesting": {
         "start_date": "2021-01-01",

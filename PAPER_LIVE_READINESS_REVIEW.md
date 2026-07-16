@@ -177,9 +177,14 @@ scenario on the exchange:
 Use **one shared orchestrator process**, not independent per-symbol stacks:
 
 ```bash
+# STANDARD (capped) profile — the first paper run uses this, NOT the aggressive one
 python -m llm_trading_bot.main --mode live --shared-configs \
-  config-aggressive.json config-eth-aggressive.json config-sol-aggressive.json
+  config.json config-eth.json config-sol.json
 ```
+
+(The aggressive equivalent swaps in the `config-*aggressive.json` files — explicit opt-in
+only, after the standard paper run passes its gates; its BTC leg is a 0.71× LOSS in the
+clean OOS holdout.)
 
 ⚠️ **This command trades immediately.** Supply Bitget demo credentials and get explicit approval
 first. Deploy the single orchestrator as a native Portainer stack with Grafana over
