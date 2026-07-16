@@ -127,6 +127,14 @@ should be rerun. These path-dependent multiples are robustness results, never fo
 market-impact modeling); the maker fill model fills ~99.9% of touched limits, which live will
 not.
 
+**The honest number to plan against — clean out-of-sample holdout** (`opt/holdout_oos.py`, frozen
+configs replayed on **2025-06 → 2026-04**, ~11 months never tuned on; rolling VWAP, full execution
+model): standard **4.88×** (17.0% MTM DD, 1,044 trades), aggressive **16.8×** (35.0% DD, 1,638
+trades). ⚠️ Per-asset the edge is carried by **ETH/SOL, not BTC** — standalone OOS standard
+BTC 1.30× / ETH 4.87× / SOL 3.47×; aggressive **BTC 0.71× (a loss)** / ETH 10.14× / SOL 5.15×.
+BTC (the tuned asset) is the weakest OOS and goes negative under 25×; the portfolio masks it.
+Still an upper bound (optimistic fills/fees/slippage), single ~11-month regime.
+
 ### Key Design Principle: Single Source of Truth
 
 **`openwebui_filter.py` is THE source of truth** for all indicator computations (`compute_ema`,

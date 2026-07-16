@@ -98,6 +98,13 @@ Two shared-portfolio risk profiles are available:
   live-return forecast (no market-impact modeling); live drawdown can be materially worse than
   the approximately 35% history.
 
+> **The in-sample multiples are yardsticks, not forecasts.** The honest expectation comes from
+> the **clean out-of-sample holdout** — the frozen configs replayed on **2025-06 → 2026-04**
+> (~11 months the strategy was never tuned on; `python -m opt.holdout_oos`): **standard 4.88×,
+> aggressive 16.8×**. ⚠️ Out of sample the edge is carried by **ETH/SOL, not BTC** — BTC standalone
+> is 1.30× (standard) and **0.71×, a loss, on aggressive**. It's still an upper bound (optimistic
+> fills/fees/slippage). Start paper on the standard profile and watch BTC's live P&L.
+
 Reproduce the shared aggressive study with:
 
 ```bash

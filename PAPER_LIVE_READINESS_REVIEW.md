@@ -220,8 +220,20 @@ validated strategy is not yet what the live exchange path provably executes.
   shared caps for the uncapped anti-martingale return path: continuous **72.9 trillion×** at
   36.17% reported / 35.32% MTM maxDD, TEST 3,348,599×. The huge multiples are **path-dependent,
   not forecasts** (no market-impact modeling); live DD can be materially worse.
-- The post-June-2025 holdout (standard ~6.25×, aggressive ~29.78×, pre-cap replay) stays frozen
-  and untouched; it still relies on the backtest execution model.
+- **Clean out-of-sample holdout (the honest live anchor).** Frozen configs replayed on
+  **2025-06-01 → 2026-04-30** (~11 months the strategy was never tuned on; rolling-VWAP, full
+  execution model; window ends April because the 1h Bitget cache has a hole in May-2026). Run it
+  with `PYTHONPATH=. python -m opt.holdout_oos`:
+  - **Standard: 4.88×**, 15.7% reported / 17.0% MTM DD, 1,044 trades, 76.8% win.
+  - **Aggressive: 16.8×**, 34.6% / 35.0% DD, 1,638 trades.
+  - ⚠️ **Per-asset: the edge is carried by ETH/SOL, not BTC.** Standalone OOS — standard
+    BTC 1.30× / ETH 4.87× / SOL 3.47×; aggressive **BTC 0.71× (a LOSS)** / ETH 10.14× / SOL 5.15×.
+    BTC — the asset the strategy was tuned on — is the weakest OOS and goes negative under 25×
+    leverage; the portfolio masks this. Watch BTC's live P&L specifically; prefer the standard
+    profile to start.
+  - This replaces the earlier ~6.25× figure (that was the old cumulative-VWAP holdout). It is
+    still an upper bound — it uses the optimistic execution model (~99.9% maker fills, maker-fee
+    TPs, 2bps stop slippage) and is a single ~11-month regime sample.
 - **Strategy internals (unchanged, shipped):** 4h primary, score→route→trade; trailing stops
   (act 0.94% / cb 0.33%, ratchet once per completed 4h bar); pyramiding (max 3, same-direction);
   conviction sizing (exp 1.0); opposite-signal exit (threshold 20); DD circuit-breaker
@@ -322,9 +334,10 @@ Gap-free replay reference (still backtest-model-dependent, not a forecast):
 
 | Replay | Standard | Aggressive |
 |---|---:|---:|
-| Published 2021–Jun 2025 | 445,508×; 18.03% MTM DD | 4.976T×; 38.67% MTM DD |
-| Gap-free 2021–Jun 2025 | 369,856×; 18.90% MTM DD | 4.829T×; 34.82% MTM DD |
-| New Jun 2025–Jul 2026 holdout | 6.25×; 19.35% MTM DD; 1,216 trades | 29.78×; 32.51% MTM DD; 1,806 trades |
+| In-sample 2021–Jun 2025 (rolling-VWAP, current) | 842,919×; 18.85% MTM DD | 72.9T×; 35.32% MTM DD |
+| **Clean OOS 2025-06 → 2026-04 (rolling-VWAP)** — *the honest anchor* | **4.88×; 17.0% MTM DD; 1,044 tr** | **16.8×; 35.0% MTM DD; 1,638 tr** |
+| Pre-VWAP historical (superseded) | 445,508× / gap-free 369,856× | 4.976T× / 4.829T× |
+| Pre-VWAP holdout (superseded by the 4.88× row) | 6.25× | 29.78× |
 
 The `held_out_test` split has been consulted across many rounds and is no longer a pristine holdout;
 freeze the new post-June-2025 period instead.
@@ -382,6 +395,17 @@ was deleted. The last commit containing the LLM code is tagged **`last-llm-conse
 
 ## Change log
 
+- **2026-07-15 (LLM removal + clean OOS re-measure):**
+  - **All LLM/consensus/marginal-gate code removed** (commit `8d27ab7`; tag `last-llm-consensus`
+    for recovery). The gate was re-tested via vLLM `qwen3.6-27b` (thinking and no-thinking, same
+    40 entries) and was net-negative both ways (gated/baseline 0.89–0.95×) — it only vetoes
+    net-positive marginal trades. Now a pure technical-signal bot; MARGINAL executes
+    deterministically. Engine==fastbt parity still exact; 383 tests pass; both profiles reproduce
+    byte-identical headline results (behavior-neutral).
+  - **Clean OOS holdout re-measured** on the rolling-VWAP (`opt/holdout_oos.py`, 2025-06→2026-04):
+    standard **4.88×**, aggressive **16.8×** — replaces the stale 6.25×. Key finding: **BTC is the
+    weakest asset OOS** (standalone 1.30× standard, 0.71× = a loss on aggressive); ETH/SOL carry
+    the portfolio. Watch BTC live; start on the standard profile.
 - **2026-07-15 (pre-paper deep review — fixes applied):**
   - **VWAP made live-reproducible (parity bug).** `openwebui_filter.compute_vwap` was a
     cumulative-from-series-start VWAP whose value depends on how much history is loaded — the
