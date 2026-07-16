@@ -255,7 +255,9 @@ def download_bitget_csv(
     if start_date:
         start_dt = pd.to_datetime(start_date) - pd.Timedelta(days=warmup_days)
     else:
-        start_dt = end_dt - pd.Timedelta(days=warmup_days + 60)
+        # Live mode: warmup_days already covers indicator needs; a small buffer
+        # keeps the window from reaching back into old exchange data holes.
+        start_dt = end_dt - pd.Timedelta(days=warmup_days + 7)
 
     current = start_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     end_month = end_dt.replace(day=1) + relativedelta(months=1)

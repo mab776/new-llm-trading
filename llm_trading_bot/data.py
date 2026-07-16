@@ -117,7 +117,17 @@ def _period_for_warmup(timeframe: str, warmup_periods: int = 200) -> tuple[int, 
     Calculate how many calendar days of data to fetch for warmup.
     Returns (extra_days, candles_expected_per_day).
     """
-    if timeframe in ("1h", "4h"):
+    if timeframe == "1h":
+        # 1h is a secondary timeframe: indicators need ~warmup_periods hours
+        # (≈9 days at 210) plus EMA-seed margin. Keep this window TIGHT — an
+        # oversized window drags old exchange data holes into the strict gap
+        # validator for zero indicator benefit (all indicators have bounded
+        # memory; VWAP is a fixed 100-bar window). A Bitget-wide missing hour
+        # (2026-05-19 03:00 UTC) inside the old ~125-day window blocked every
+        # live analysis cycle on all symbols.
+        days = max(warmup_periods // 24 + 14, 30)
+        return days, 24
+    if timeframe == "4h":
         days = max(warmup_periods // 6 + 30, 60)
         return days, 24
     elif timeframe == "1d":
@@ -152,7 +162,9 @@ def _fetch_yfinance(
     if start_date:
         start_dt = pd.to_datetime(start_date) - timedelta(days=extra_days)
     else:
-        start_dt = end_dt - timedelta(days=extra_days + 60)
+        # Live mode: extra_days already covers warmup; keep the safety buffer
+        # small so the window doesn't reach back into old exchange data holes.
+        start_dt = end_dt - timedelta(days=extra_days + 7)
 
     # yfinance caps hourly data to ~730 days
     if yf_interval == "1h":
@@ -227,7 +239,9 @@ def _fetch_ccxt(
     if start_date:
         start_dt = pd.to_datetime(start_date) - timedelta(days=extra_days)
     else:
-        start_dt = end_dt - timedelta(days=extra_days + 60)
+        # Live mode: extra_days already covers warmup; keep the safety buffer
+        # small so the window doesn't reach back into old exchange data holes.
+        start_dt = end_dt - timedelta(days=extra_days + 7)
 
     since_ms = int(start_dt.timestamp() * 1000)
     end_ms = int(end_dt.timestamp() * 1000)
