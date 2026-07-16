@@ -135,6 +135,18 @@ BTC 1.30× / ETH 4.87× / SOL 3.47×; aggressive **BTC 0.71× (a loss)** / ETH 1
 BTC (the tuned asset) is the weakest OOS and goes negative under 25×; the portfolio masks it.
 Still an upper bound (optimistic fills/fees/slippage), single ~11-month regime.
 
+**Week-by-week progression export** — `opt/weekly_progression.py` (in-sample 2021-01→2025-06 →
+`reports/weekly_progression.xlsx`) and `opt/weekly_progression_oos.py` (OOS 2025-06→2026-04 →
+`reports/weekly_progression_oos.xlsx`) render the *compounding path*, not just the final multiple,
+to Excel. Each workbook = Summary + combined "Weekly Multiples" + six per-study detail sheets
+(`{standard, aggressive} × {BTC+ETH+SOL, BTC only, ETH only}`); single-asset studies drive the
+same shared-portfolio simulator with a one-symbol universe (portfolio caps still apply, so these
+differ from a fully standalone run). Both reuse `collect_studies`/`build_workbook` and replay via
+`simulate_multi` (maker entry, 1h sub-bar, funding, liquidation, 2bps slippage) — the OOS finals
+reproduce the holdout above. The OOS window stops at 2026-04-30 because Bitget has genuine May-2026
+candle holes for ETH/SOL and the data layer fails closed on gaps (`load_context`/`load_assets` now
+take optional `data_end`/`funding_end` to replay past the in-sample cutoff).
+
 ### Key Design Principle: Single Source of Truth
 
 **`openwebui_filter.py` is THE source of truth** for all indicator computations (`compute_ema`,

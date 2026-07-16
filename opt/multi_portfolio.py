@@ -20,11 +20,14 @@ AGGRESSIVE_ASSETS = {
 }
 
 
-def load_assets(entry_mode: str = "maker", profile: str = "standard") -> dict[str, AssetInput]:
+def load_assets(entry_mode: str = "maker", profile: str = "standard",
+                **ctx_kwargs) -> dict[str, AssetInput]:
+    """Load the asset universe. Extra kwargs (data_end, funding_end, ...) pass
+    through to ``load_context`` to replay out-of-sample windows."""
     configs = AGGRESSIVE_ASSETS if profile == "aggressive" else ASSETS
     out = {}
     for label, (symbol, config_path) in configs.items():
-        ctx = load_context(symbol, config_path)
+        ctx = load_context(symbol, config_path, **ctx_kwargs)
         ctx.config.trading.entry_mode = entry_mode
         out[label] = AssetInput(ctx.pre, ctx.config, ctx.funding)
     return out

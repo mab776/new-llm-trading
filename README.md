@@ -105,6 +105,30 @@ Two shared-portfolio risk profiles are available:
 > is 1.30× (standard) and **0.71×, a loss, on aggressive**. It's still an upper bound (optimistic
 > fills/fees/slippage). Start paper on the standard profile and watch BTC's live P&L.
 
+### Week-by-week progression (Excel)
+
+To see the *compounding path* rather than only the final multiple, export a weekly equity
+progression to Excel. Each run produces one workbook with a Summary sheet, a combined "Weekly
+Multiples" sheet (all curves side by side), and a per-study detail sheet (week #, week-ending
+date, equity, multiple, weekly return %, drawdown %). Six studies per workbook:
+`{standard, aggressive} × {BTC+ETH+SOL (default), BTC only, ETH only}`. Single-asset studies
+reuse the identical shared-portfolio simulator with a one-symbol universe (so the standard
+profile's portfolio caps still apply — a single-asset multiple here differs from a fully
+standalone run).
+
+```bash
+# In-sample 2021-01 → 2025-06 → reports/weekly_progression.xlsx
+PYTHONPATH=. python -m opt.weekly_progression
+
+# Out-of-sample 2025-06 → 2026-04 → reports/weekly_progression_oos.xlsx
+PYTHONPATH=. python -m opt.weekly_progression_oos
+```
+
+The OOS window ends **2026-04-30** (not 2026-06): Bitget futures history has genuine candle holes
+in May 2026 for ETH/SOL and the data pipeline fails closed on gaps, so the window is truncated to
+the last gap-free month boundary common to all three assets. OOS finals match the holdout above
+(standard 3-asset 4.85×, aggressive 3-asset 16.87×, aggressive BTC-only 0.71× — a loss).
+
 Reproduce the shared aggressive study with:
 
 ```bash

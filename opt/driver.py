@@ -53,8 +53,13 @@ class EvaluationContext:
     funding_metric: list[float] | None
 
 
-def load_context(symbol: str | None = None, config_path: str = "config.json") -> EvaluationContext:
-    """Load one independent symbol context (safe for multi-asset callers)."""
+def load_context(symbol: str | None = None, config_path: str = "config.json",
+                 data_start: str = "2020-10-01", data_end: str = "2025-06-01",
+                 funding_end: str = "2025-06-02") -> EvaluationContext:
+    """Load one independent symbol context (safe for multi-asset callers).
+
+    ``data_end``/``funding_end`` default to the in-sample cutoff; pass a later
+    date (e.g. "2026-06-01") to replay genuinely out-of-sample history."""
     cfg = load_config(config_path)
     configure_cache(cfg.data_cache.ttl_seconds)
     ds = cfg.data_source
@@ -62,7 +67,7 @@ def load_context(symbol: str | None = None, config_path: str = "config.json") ->
         ds.exchange_symbol = symbol
     data = fetch_multi_timeframe(
         ds.exchange_symbol, cfg.trading.timeframes,
-        start_date="2020-10-01", end_date="2025-06-01",
+        start_date=data_start, end_date=data_end,
         warmup_periods=0, source=ds.source, market=ds.market,
     )
     for tf, df in data.items():
@@ -74,7 +79,7 @@ def load_context(symbol: str | None = None, config_path: str = "config.json") ->
         from llm_trading_bot.funding import fetch_funding_history, aggregate_funding_to_bars
         import pandas as pd
         fund = fetch_funding_history(ds.exchange_symbol,
-                                     start_date="2020-08-01", end_date="2025-06-02")
+                                     start_date="2020-08-01", end_date=funding_end)
         tf_hours = timeframe_hours(cfg.trading.primary_timeframe)
         funding = aggregate_funding_to_bars(
             fund, pd.DatetimeIndex(pre.timestamps), tf_hours
