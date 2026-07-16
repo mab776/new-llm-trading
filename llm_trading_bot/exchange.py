@@ -757,7 +757,7 @@ class BitgetClient:
             params["planStatus"] = plan_status
         result = self._request("GET", path, params=params)
         data = result.get("data", {}) or {}
-        rows = data.get("entrustedList", []) if isinstance(data, dict) else []
+        rows = data.get("entrustedList") or [] if isinstance(data, dict) else []
         return [self._parse_plan(row) for row in rows]
 
     def get_positions(self, symbol: Optional[str] = None) -> list[Position]:
@@ -794,7 +794,7 @@ class BitgetClient:
             params["symbol"] = self._rest_symbol(symbol)
         result = self._request("GET", path, params=params)
         data = result.get("data", {}) or {}
-        return data.get("entrustedList", []) if isinstance(data, dict) else []
+        return data.get("entrustedList") or [] if isinstance(data, dict) else []
 
     def get_pending_orders(self, symbol: Optional[str] = None) -> list[PendingOrder]:
         """Return all normal opening orders still capable of adding exposure."""
@@ -835,7 +835,7 @@ class BitgetClient:
             params["symbol"] = self._rest_symbol(symbol)
         result = self._request("GET", "/api/v2/mix/order/orders-history", params=params)
         data = result.get("data", {}) or {}
-        return data.get("entrustedList", []) if isinstance(data, dict) else []
+        return data.get("entrustedList") or [] if isinstance(data, dict) else []
 
     def get_order_fills(self, symbol: str, order_id: str,
                         detail: Optional[dict] = None) -> list[Fill]:
@@ -851,7 +851,7 @@ class BitgetClient:
                 "limit": "100",
             })
             data = result.get("data", {}) or {}
-            rows = data.get("fillList", []) if isinstance(data, dict) else []
+            rows = data.get("fillList") or [] if isinstance(data, dict) else []
         if not rows and detail:
             rows = [{
                 "tradeId": detail.get("tradeId", ""),
@@ -899,7 +899,7 @@ class BitgetClient:
             params["symbol"] = self._rest_symbol(symbol)
         result = self._request("GET", path, params=params)
         data = result.get("data", {}) or {}
-        return data.get("list", []) if isinstance(data, dict) else []
+        return data.get("list") or [] if isinstance(data, dict) else []
 
     def close_position(self, symbol: str, side: str, size: float,
                        client_oid: Optional[str] = None) -> dict:
