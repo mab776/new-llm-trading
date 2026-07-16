@@ -132,6 +132,45 @@ def apply_exposure_caps(risk_pct: float, leverage: int, balance: float,
     )
 
 
+def _min_size_risk_adjust(port: Portfolio, risk_pct: float,
+                          max_margin_pct: float | None, leverage: int,
+                          price: float, strategy: dict, symbol: str):
+    """Research-only exchange-minimum modeling. Returns adjusted risk or None (skip).
+
+    Mirrors ``Portfolio._calculate_position_size`` (size = balance × min(risk, cap)
+    × leverage / price), rounds the size DOWN to the contract step, and applies the
+    ``min_size_policy`` when it lands below the exchange minimum quantity: "skip"
+    fails closed like live, "floor" bumps to the minimum (which inflates effective
+    risk exactly when the balance is smallest — measured, not recommended).
+    ``strategy["min_qty"] is None`` disables everything (exact legacy behavior).
+    """
+    minq_map = strategy.get("min_qty")
+    if not minq_map or symbol not in minq_map:
+        return risk_pct
+    if risk_pct <= 0 or leverage <= 0 or price <= 0 or port.balance <= 0:
+        return risk_pct
+    eff = risk_pct if max_margin_pct is None else min(risk_pct, max_margin_pct)
+    size = port.balance * eff * leverage / price
+    step = (strategy.get("size_step") or {}).get(symbol)
+    if step:
+        size = int(size / step) * step
+    minq = minq_map[symbol]
+    if size >= minq:
+        if step:  # reflect the step round-down in the sized risk
+            return size * price / leverage / port.balance
+        return risk_pct
+    # Counters live in a caller-provided nested dict so they survive the
+    # simulate_multi() shallow copy of the strat mapping.
+    counters = strategy.get("_min_counters")
+    if strategy.get("min_size_policy", "skip") == "floor":
+        if counters is not None:
+            counters["floors"] += 1
+        return minq * price / leverage / port.balance
+    if counters is not None:
+        counters["skips"] += 1
+    return None
+
+
 def simulate_multi(
     assets: dict[str, AssetInput], start_date: str, end_date: str,
     *, slip: float = 0.0, model_liquidation: bool = True,
@@ -429,6 +468,13 @@ def simulate_multi(
                         committed_margin, committed_notional, strategy,
                     )
                     if risk_eff <= 0:
+                        continue
+                    # Exchange-minimum modeling (research-only; None = disabled).
+                    risk_eff = _min_size_risk_adjust(
+                        port, risk_eff, ps.max_position_pct, leverage,
+                        bar_close, strategy, symbol,
+                    )
+                    if risk_eff is None:
                         continue
                     if tr.entry_mode == "maker":
                         state.pending = PendingEntry(

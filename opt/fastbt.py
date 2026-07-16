@@ -296,6 +296,14 @@ DEFAULT_STRAT = {
     "global_max_notional_pct": None, # committed entry notional / current balance
     "portfolio_risk_multiplier": 1.0, # scales every new trade before caps
     "marginal_size_frac": 1.0,    # size fraction for MARGINAL (vs STRONG) entries
+    # Research-only exchange micro-structure modeling (multi_asset simulate_multi):
+    # contract minimum quantity + size step per symbol label, and the policy when a
+    # computed size falls below the minimum: "skip" (fail closed, mirrors live) or
+    # "floor" (bump to the exchange minimum — inflates risk at small balances).
+    # None disables the modeling entirely (exact current behavior).
+    "min_qty": None,              # e.g. {"BTC": 0.0001, "ETH": 0.01, "SOL": 0.1}
+    "size_step": None,            # e.g. {"BTC": 0.0001, "ETH": 0.01, "SOL": 0.1}
+    "min_size_policy": "skip",    # "skip" | "floor"
     "dd_throttle": None,          # e.g. 0.10 -> while balance DD >= 10%, pyramiding pauses
     "dd_throttle_slots": 1,       # slots allowed while throttled (1 = full pause of pyramiding)
     "dd_throttle_risk": 1.0,      # risk multiplier applied while throttled (e.g. 0.5)
