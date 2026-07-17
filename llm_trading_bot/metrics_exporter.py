@@ -47,6 +47,32 @@ def _fmt_labels(labels: dict[str, str]) -> str:
     return "{" + inner + "}"
 
 
+_TICKER_CACHE: dict = {"ts": 0.0, "prices": {}}
+
+
+def _mark_prices() -> dict[str, float]:
+    """Last price per contract from Bitget's PUBLIC tickers endpoint, ~10s cache."""
+    now = time.monotonic()
+    if now - _TICKER_CACHE["ts"] < 10 and _TICKER_CACHE["prices"]:
+        return _TICKER_CACHE["prices"]
+    url = ("https://api.bitget.com/api/v2/mix/market/tickers?"
+           "productType=usdt-futures")
+    with urllib.request.urlopen(url, timeout=5) as resp:
+        payload = json.load(resp)
+    prices = {row["symbol"]: float(row.get("lastPr") or 0)
+              for row in payload.get("data") or []}
+    _TICKER_CACHE.update(ts=now, prices=prices)
+    return prices
+
+
+def _live_state(log_dir: str) -> dict:
+    try:
+        return json.load(open(os.path.join(log_dir, "shared_live_state.json"),
+                              encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
 def collect(log_dir: str) -> str:
     started = time.monotonic()
     heartbeat_ts: dict[str, float] = {}
@@ -109,14 +135,51 @@ def collect(log_dir: str) -> str:
     if "disk_free_mb" in latest_beat:
         emit("llt_disk_free_mb", "gauge", "Free disk in the log dir",
              [({}, float(latest_beat["disk_free_mb"]))])
-    for field in ("open_lots", "pending_orders", "positions",
-                  "consecutive_losses", "cooldown_remaining"):
+    for field in ("positions", "consecutive_losses", "cooldown_remaining"):
         samples = [({"symbol": s}, float(beat[field]))
                    for s, beat in sorted(per_symbol_beat.items())
                    if field in beat]
         if samples:
             emit(f"llt_{field}", "gauge",
                  f"{field} from each symbol's newest heartbeat", samples)
+
+    # Live (scrape-cadence) series from the state file + PUBLIC mark prices —
+    # much fresher than the 15-min heartbeat. Credential-free by design.
+    state = _live_state(log_dir)
+    lots_by_symbol: dict[str, list] = {s: [] for s in _SYMBOLS}
+    for lot in (state.get("lots") or {}).values():
+        lots_by_symbol.setdefault(lot.get("symbol", "unknown"), []).append(lot)
+    pending_by_symbol: dict[str, int] = {s: 0 for s in _SYMBOLS}
+    for order in (state.get("pending_orders") or {}).values():
+        sym = order.get("symbol", "unknown")
+        pending_by_symbol[sym] = pending_by_symbol.get(sym, 0) + 1
+    emit("llt_open_lots", "gauge", "Open lots (live, from state file)",
+         [({"symbol": s}, float(len(lots)))
+          for s, lots in sorted(lots_by_symbol.items())])
+    emit("llt_pending_orders", "gauge", "Pending entry orders (live, from state file)",
+         [({"symbol": s}, float(n)) for s, n in sorted(pending_by_symbol.items())])
+    try:
+        prices = _mark_prices()
+    except Exception:
+        prices = {}
+    if prices:
+        upnl_samples, mark_samples = [], []
+        for sym in sorted(lots_by_symbol):
+            mark = prices.get(_rest_symbol(sym))
+            if mark is None:
+                continue
+            mark_samples.append(({"symbol": sym}, mark))
+            upnl = sum(
+                (mark - float(lot["entry"])) * float(lot["remaining_size"])
+                * (1 if lot.get("direction") == "LONG" else -1)
+                for lot in lots_by_symbol[sym]
+            )
+            upnl_samples.append(({"symbol": sym}, round(upnl, 6)))
+        emit("llt_mark_price", "gauge", "Last price (Bitget public tickers)",
+             mark_samples)
+        emit("llt_unrealized_pnl_usdt", "gauge",
+             "Mark-to-market PnL of open lots (live, excludes fees)",
+             upnl_samples)
     emit("llt_decisions_total", "counter",
          "Decision records by action and symbol (full retention window)",
          [({"action": a, "symbol": s}, float(n))
