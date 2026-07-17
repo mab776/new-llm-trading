@@ -1,0 +1,10 @@
+Maker-fill bracket — clean OOS 2025-06-01 -> 2026-04-30, standard profile, real Bitget minimums, 2bps slip
+
+maker touch (canonical)        4.00x  DD  16.3%  tr 1057  win 76.9%  | orders 1057 touch 1057 elig 1057 fill 1057
+maker 1bps penetration         3.65x  DD  14.2%  tr 1025  win 75.6%  | orders 1042 touch 1042 elig 1025 fill 1025
+maker 2bps penetration         3.34x  DD  17.6%  tr 1009  win 76.6%  | orders 1041 touch 1041 elig 1009 fill 1009
+maker 5bps penetration         3.12x  DD  18.0%  tr 1003  win 76.1%  | orders 1055 touch 1055 elig 1003 fill 1003
+maker 5bps + 70% fill          2.62x  DD  17.3%  tr  846  win 74.7%  | orders 1252 touch 1251 elig 1196 fill  846
+taker (reference)              3.29x  DD  16.2%  tr 1013  win 75.9%  | taker: all entries fill
+
+harshest maker bound 2.62x vs taker 3.29x -> INCONCLUSIVE: live fill rate decides (86% rule, eval ~2026-07-30)
