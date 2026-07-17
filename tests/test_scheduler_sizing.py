@@ -283,3 +283,29 @@ def test_recent_analysis_bar_does_not_skip(monkeypatch, tmp_path):
     monkeypatch.setattr(sched.exchange, "get_available_balance", _boom)
     with pytest.raises(_Sentinel):
         sched._execute_trade(_decision())
+
+
+def test_min_size_split_refusal_logs_skip_decision(monkeypatch, tmp_path):
+    """A split_size SafetyViolation (sub-minimum lot) is a normal fail-closed
+    skip: it must log MIN_SIZE_SKIP and return, not crash the cycle."""
+    from llm_trading_bot.exchange import SafetyViolation
+
+    sched = TradingScheduler(_config(), log_dir=tmp_path)
+    sched.exchange._dry_run = False
+    monkeypatch.setattr(sched.exchange, "get_available_balance", lambda *a, **k: 100.0)
+    monkeypatch.setattr(sched.exchange, "get_account_equity", lambda *a, **k: 100.0)
+    monkeypatch.setattr(sched.exchange, "get_positions", lambda *a, **k: [])
+    monkeypatch.setattr(sched.exchange, "get_pending_orders", lambda *a, **k: [])
+    def _refuse(*a, **k):
+        raise SafetyViolation("REFUSED: Quantized size 0.0000 is below 0.0001")
+    monkeypatch.setattr(sched.exchange, "split_size", _refuse)
+    placed = []
+    monkeypatch.setattr(sched.exchange, "place_order",
+                        lambda *a, **k: placed.append(1))
+    logged = []
+    monkeypatch.setattr(sched, "_log_decision", lambda rec: logged.append(rec))
+
+    sched._execute_trade(_decision())  # must not raise
+    assert placed == []
+    assert [r["action"] for r in logged] == ["MIN_SIZE_SKIP"]
+    assert "0.0001" in logged[0]["reason"]

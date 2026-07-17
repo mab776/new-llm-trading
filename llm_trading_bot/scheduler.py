@@ -1323,10 +1323,28 @@ class TradingScheduler:
             return
         if not self.exchange._dry_run:
             # Reject an entry before submission when either 70% TP1 or the remainder
-            # would fall below the contract's executable size step/minimum.
-            self.exchange.split_size(
-                self.config.trading.symbol, size, tier.tp1_exit_pct,
-            )
+            # would fall below the contract's executable size step/minimum. This is
+            # the deliberate fail-closed "min-size skip" (opt/sizing_scenarios) — a
+            # normal small-balance outcome, so log it as a decision (the drift
+            # dataset counts skips to decide if the floor policy is ever needed)
+            # instead of letting it crash the cycle as an anonymous ERROR.
+            try:
+                self.exchange.split_size(
+                    self.config.trading.symbol, size, tier.tp1_exit_pct,
+                )
+            except SafetyViolation as exc:
+                self._log(
+                    f"MIN-SIZE SKIP: {exc} (margin ${margin:,.2f} @ "
+                    f"{tier.leverage}x -> size {size:.6f})"
+                )
+                self._log_decision({
+                    "action": "MIN_SIZE_SKIP",
+                    "bar": self._candidate_analysis_bar,
+                    "score": decision.scoring_result.raw_score,
+                    "margin": margin, "size": size,
+                    "reason": str(exc),
+                })
+                return
 
         self._log(
             f"Executing {side.upper()} @ ${targets.entry:,.2f} | "
