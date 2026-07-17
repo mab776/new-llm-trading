@@ -51,6 +51,12 @@ class TradingScheduler:
     4. Monitor existing positions
     """
 
+    # A new entry is only valid shortly after its analysis bar closes. Beyond this
+    # (e.g. a cold start that analyzed a bar which closed hours ago) a maker limit
+    # priced off the stale bar crosses the book and is post-only-rejected, and a
+    # market entry chases a moved price. Trailing/exits on open lots are unaffected.
+    STALE_ENTRY_MAX_SECONDS = 1800
+
     def __init__(self, config: AppConfig, *,
                  shared_state: SharedLiveState | None = None,
                  log_dir: str | Path = "logs"):
@@ -284,7 +290,12 @@ class TradingScheduler:
         for plan in self.exchange.get_tpsl_orders(symbol):
             if plan.order_id in known_ids:
                 continue
-            if plan.client_oid and not plan.client_oid.upper().startswith("BITGET#"):
+            # Positively identify a Bitget-attached entry preset: it carries no
+            # clientOid, a BITGET#-prefixed one, or a Bitget-generated all-numeric
+            # id. A human/operator plan uses a custom (non-numeric) clientOid and is
+            # never cancelled on a mere trigger/size match.
+            coid = plan.client_oid or ""
+            if coid and not (coid.upper().startswith("BITGET#") or coid.isdigit()):
                 continue
             if plan.plan_type not in (
                 "profit_plan", "loss_plan", "pos_profit", "pos_loss",
@@ -359,8 +370,20 @@ class TradingScheduler:
                     if filled_size > 0:
                         self._activate_filled_pending(order_id, detail)
                     else:
+                        # Exchange cancelled it before our expiry — for a post-only
+                        # maker entry this is a would-cross rejection. Log distinctly
+                        # from an untouched bar-expiry so fill-rate bucketing can tell
+                        # "post-only rejected" from "expired unfilled".
                         self._pending_orders.pop(order_id, None)
                         self._save_pending_orders()
+                        self._log(
+                            f"Maker order {order_id} cancelled by exchange before "
+                            f"expiry (post-only would-cross rejection)"
+                        )
+                        self._log_decision({
+                            "action": "MAKER_POST_ONLY_CANCELLED",
+                            "order_id": order_id,
+                        })
                     continue
                 if pending.get("entry_mode", "maker") != "maker":
                     # A market order is expected to fill promptly, but an ambiguous
@@ -569,6 +592,17 @@ class TradingScheduler:
         """Make exchange state authoritative before any analysis or new order."""
         with self._execution_lock:
             result = self.exchange.preflight(self.config.trading.symbol)
+            # Fail closed if the account leverage drifted from the active tier. The
+            # scheduler does not set leverage globally, so a mismatch (e.g. changed
+            # in the Bitget UI) would silently size positions wrong. Keys are absent
+            # on mocked preflight results, which skips the check.
+            expected_leverage = self.config.trading.active_leverage_tier.leverage
+            for key in ("leverage_long", "leverage_short"):
+                lev = result.get(key)
+                if lev is not None and int(lev) != int(expected_leverage):
+                    raise SafetyViolation(
+                        f"REFUSED: Bitget {key} is {lev}, expected {expected_leverage}"
+                    )
             allowed_symbols = allowed_symbols or {self.config.trading.symbol}
             raw_pending = self.exchange.get_pending_order_rows()
             account_pending = self.exchange.get_pending_orders()
@@ -1111,6 +1145,27 @@ class TradingScheduler:
         if not decision.targets:
             self._log("No targets calculated — cannot trade")
             return
+        bar = self._candidate_analysis_bar
+        if bar:
+            try:
+                bar_close = pd.Timestamp(bar) + timeframe_delta(
+                    self.config.trading.primary_timeframe
+                )
+                if bar_close.tzinfo is None:
+                    bar_close = bar_close.tz_localize("UTC")
+                age = (pd.Timestamp.now(tz="UTC") - bar_close).total_seconds()
+            except (ValueError, TypeError):
+                age = 0.0
+            if age > self.STALE_ENTRY_MAX_SECONDS:
+                self._log(
+                    f"SKIP: analysis bar {bar} closed {age / 60:.1f} min ago "
+                    f"(> {self.STALE_ENTRY_MAX_SECONDS / 60:.0f} min) — stale, not entering"
+                )
+                self._log_decision({
+                    "action": "SKIP_STALE_BAR", "bar": bar,
+                    "bar_age_seconds": round(age, 1),
+                })
+                return
         unprotected = [
             lot_id for lot_id, lot in self._tracked_trades.items()
             if not lot.get("protection_verified", False)

@@ -345,3 +345,25 @@ class TestModifyStopLoss:
             plan_order_id="plan-1", position_level=False,
         )
         assert captured[1][1]["size"] == "0.3"
+
+
+def test_get_positions_filters_by_symbol(monkeypatch):
+    """Bitget's all-position endpoint ignores the symbol param; the client must
+    filter client-side so a per-symbol caller never sees another symbol's position."""
+    client = BitgetClient(BitgetConfig(
+        api_key="k", api_secret="s", passphrase="p",
+    ))
+    payload = {"data": [
+        {"symbol": "BTCUSDT", "holdSide": "long", "total": "0.0017",
+         "openPriceAvg": "64000", "unrealizedPL": "0", "leverage": "25",
+         "marginMode": "isolated", "marginSize": "4.35"},
+        {"symbol": "ETHUSDT", "holdSide": "long", "total": "0.01",
+         "openPriceAvg": "1900", "unrealizedPL": "0", "leverage": "25",
+         "marginMode": "isolated", "marginSize": "0.76"},
+    ]}
+    monkeypatch.setattr(client, "_request", lambda *a, **k: payload)
+    eth = client.get_positions("ETH-USDT")
+    assert [p.symbol for p in eth] == ["ETHUSDT"]
+    btc = client.get_positions("BTC/USDT:USDT")
+    assert [p.symbol for p in btc] == ["BTCUSDT"]
+    assert {p.symbol for p in client.get_positions()} == {"BTCUSDT", "ETHUSDT"}

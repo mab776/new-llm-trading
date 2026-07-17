@@ -247,3 +247,39 @@ class TestLiveTrailing:
         moved.clear()
         sched._maybe_trail_stop(pos)
         assert moved == {}
+
+
+def test_stale_analysis_bar_skips_entry(monkeypatch, tmp_path):
+    """An entry whose analysis bar closed far in the past (e.g. a cold start on a
+    stale bar) is skipped before any sizing or exchange call."""
+    sched = TradingScheduler(_config(), log_dir=tmp_path)
+    sched._candidate_analysis_bar = "2020-01-01 00:00:00+00:00"
+    logged = []
+    monkeypatch.setattr(sched, "_log_decision", lambda rec: logged.append(rec))
+    reached_sizing = []
+    monkeypatch.setattr(
+        sched.exchange, "get_available_balance",
+        lambda *a, **k: reached_sizing.append(1) or 100.0,
+    )
+    sched._execute_trade(_decision())
+    assert any(r["action"] == "SKIP_STALE_BAR" for r in logged)
+    assert reached_sizing == []
+
+
+def test_recent_analysis_bar_does_not_skip(monkeypatch, tmp_path):
+    """A just-closed analysis bar passes the staleness guard and proceeds to sizing."""
+    import llm_trading_bot.scheduler as module
+    sched = TradingScheduler(_config(), log_dir=tmp_path)
+    sched._candidate_analysis_bar = str(
+        module.latest_completed_bar_open(sched.config.trading.primary_timeframe)
+    )
+
+    class _Sentinel(Exception):
+        pass
+
+    def _boom(*a, **k):
+        raise _Sentinel()
+
+    monkeypatch.setattr(sched.exchange, "get_available_balance", _boom)
+    with pytest.raises(_Sentinel):
+        sched._execute_trade(_decision())

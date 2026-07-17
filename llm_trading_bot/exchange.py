@@ -770,7 +770,14 @@ class BitgetClient:
         result = self._request("GET", path, params=params)
         positions = []
 
+        # Bitget's all-position endpoint ignores the symbol param and returns every
+        # open position, so filter client-side. Without this a symbol-scoped caller
+        # (e.g. a per-symbol scheduler in the shared orchestrator) sees other
+        # symbols' positions and fails its position/lot reconciliation.
+        want = self._rest_symbol(symbol) if symbol else None
         for pos_data in result.get("data", []):
+            if want and str(pos_data.get("symbol", "")) != want:
+                continue
             if float(pos_data.get("total", 0)) > 0:
                 positions.append(Position(
                     symbol=pos_data.get("symbol", ""),
@@ -989,11 +996,20 @@ class BitgetClient:
                 f"expected {self.config.margin_mode}"
             )
         spec = self.get_contract_spec(symbol)
+        # Surface the account's configured leverage so the scheduler can verify it
+        # against the active tier (isolated leverage is per-side). Absent on mocks.
+        if actual_margin == "isolated":
+            lev_long = account.get("isolatedLongLever")
+            lev_short = account.get("isolatedShortLever")
+        else:
+            lev_long = lev_short = account.get("crossedMarginLeverage")
         return {
             "symbol": spec.symbol,
             "position_mode": actual_pos,
             "margin_mode": actual_margin,
             "clock_drift_ms": drift_ms,
+            "leverage_long": int(lev_long) if lev_long not in (None, "") else None,
+            "leverage_short": int(lev_short) if lev_short not in (None, "") else None,
             "demo": self.config.testnet,
         }
 

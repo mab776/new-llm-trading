@@ -280,3 +280,84 @@ def test_startup_adopts_bot_order_accepted_before_local_save(monkeypatch, tmp_pa
     scheduler.reconcile_startup()
     assert scheduler._pending_orders["entry-1"]["client_oid"] == "llt-entry"
     assert scheduler._startup_reconciled
+
+
+def test_preset_cleanup_cancels_numeric_coid_preset(monkeypatch, tmp_path) -> None:
+    """Bitget attaches entry presets with an all-numeric auto clientOid, not a
+    BITGET# one. They must still be cancelled once the per-lot bracket exists, while
+    a named operator plan with the same trigger/size is left alone."""
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)
+    scheduler.exchange._dry_run = False
+    scheduler._tracked_trades["llt-entry"] = _lot() | {"filled_at_ms": 1_000_000}
+    manual = PlanOrder(
+        "manual", "operator-plan", "BTCUSDT", "loss_plan", "long",
+        1, 95, "live", created_at_ms=1_000_000,
+    )
+    numeric_preset = PlanOrder(
+        "preset", "1461740694906347522", "BTCUSDT", "loss_plan", "long",
+        1, 95, "live", created_at_ms=1_000_000,
+    )
+    monkeypatch.setattr(
+        scheduler.exchange, "get_tpsl_orders", lambda *a, **k: [manual, numeric_preset],
+    )
+    cancelled = []
+    monkeypatch.setattr(
+        scheduler.exchange, "cancel_tpsl_order",
+        lambda symbol, order_id, plan_type: cancelled.append(order_id) or {},
+    )
+    scheduler._cancel_replaced_presets("BTC-USDT")
+    assert cancelled == ["preset"]
+
+
+def test_post_only_instant_cancel_logged_distinctly(monkeypatch, tmp_path) -> None:
+    """An exchange-side cancel with zero fill (post-only would-cross rejection) must
+    log MAKER_POST_ONLY_CANCELLED, not be silently dropped like a bar expiry."""
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)
+    scheduler.exchange._dry_run = False
+    scheduler._pending_orders["ord-1"] = {
+        "symbol": "BTC-USDT", "direction": "LONG", "entry_mode": "maker",
+        "expires_at": time.time() + 3600,
+    }
+    monkeypatch.setattr(
+        scheduler.exchange, "get_order_detail",
+        lambda symbol, oid: {"state": "canceled", "baseVolume": "0"},
+    )
+    logged = []
+    monkeypatch.setattr(scheduler, "_log_decision", lambda rec: logged.append(rec))
+    scheduler._reconcile_pending_orders()
+    assert scheduler._pending_orders == {}
+    assert [r["action"] for r in logged] == ["MAKER_POST_ONLY_CANCELLED"]
+
+
+def test_startup_rejects_leverage_mismatch(monkeypatch, tmp_path) -> None:
+    """Account leverage that drifted from the active tier fails startup closed."""
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)  # active tier leverage=10
+    scheduler.exchange._dry_run = False
+    monkeypatch.setattr(scheduler.exchange, "preflight", lambda symbol: {
+        "symbol": "BTCUSDT", "position_mode": "one_way_mode",
+        "margin_mode": "isolated", "clock_drift_ms": 1,
+        "leverage_long": 25, "leverage_short": 25,
+    })
+    with pytest.raises(SafetyViolation, match="leverage"):
+        scheduler.reconcile_startup()
+
+
+def test_preflight_surfaces_isolated_leverage(monkeypatch) -> None:
+    client = BitgetClient(BitgetConfig(
+        api_key="k", api_secret="s", passphrase="p",
+        position_mode="one_way", margin_mode="isolated",
+    ))
+    now_ms = int(time.time() * 1000)
+    monkeypatch.setattr(client, "get_single_account", lambda symbol: {
+        "requestTime": now_ms,
+        "data": {
+            "posMode": "one_way_mode", "marginMode": "isolated",
+            "isolatedLongLever": "25", "isolatedShortLever": "25",
+        },
+    })
+    monkeypatch.setattr(
+        client, "get_contract_spec",
+        lambda symbol: type("Spec", (), {"symbol": "BTCUSDT"})(),
+    )
+    out = client.preflight("BTC-USDT")
+    assert out["leverage_long"] == 25 and out["leverage_short"] == 25
