@@ -46,6 +46,9 @@ Marc's account, the bot switches to the pre-built 1× configs with **identical n
 exposure** (leverage 25→1 compensated by risk 2%→50% and margin cap 4.4%→100%; the 66%
 per-trade rail is deliberately kept — `opt/leverage_scenarios.py` showed raising it to
 100% loses more to concentration than it gains). Strategy parameters are untouched.
+The rail was subsequently grid-searched (`opt/grid_1x_rail.py`, TRAIN-A/B split, holdout
+untouched): plateau 0.50–0.75, edges bad (0.40 over-constrains; 1.00 worse in three
+independent windows) — 0.66 confirmed, do not re-grid.
 
 - Files: `config-1x.json` / `config-eth-1x.json` / `config-sol-1x.json` (key-free, for
   sims) and gitignored `config-*-1x.local.json` (chain onto the key-bearing locals via
