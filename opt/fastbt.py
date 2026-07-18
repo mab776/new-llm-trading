@@ -290,6 +290,8 @@ DEFAULT_STRAT = {
     # Signal-decay research knobs (opt-in, probe_decay.py; NOT wired into live).
     # Signed score = raw_score for LONG, -raw_score for SHORT.
     "entry_require_rising": None,  # int K: block entry unless signed score non-decreasing over last K transitions
+    "entry_slope_min": None,       # block entry if 1-bar signed-score slope < this (0 == require_rising K=1)
+    "entry_slope_max": None,       # block entry if slope > this (contrarian: 0 -> only decaying entries)
     "decay_exit_bars": None,       # int N: exit when signed score fell N consecutive bars...
     "decay_exit_floor": None,      # ...AND is below this floor (both must be set)
     "short_threshold_mult": 1.0,  # >1 = stricter shorts (asymmetry)
@@ -720,6 +722,16 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                         sgn = 1.0 if direction_str == "LONG" else -1.0
                         sig = [sgn * s for s in raw_score_hist[-(k + 1):]]
                         rising_block = any(sig[j + 1] < sig[j] for j in range(k))
+                # Continuous slope band (research): block when the 1-bar signed
+                # slope is below min (strictness dial) or above max (contrarian).
+                if ((st["entry_slope_min"] is not None or st["entry_slope_max"] is not None)
+                        and len(raw_score_hist) >= 2):
+                    sgn = 1.0 if direction_str == "LONG" else -1.0
+                    delta = sgn * (raw_score_hist[-1] - raw_score_hist[-2])
+                    if st["entry_slope_min"] is not None and delta < st["entry_slope_min"]:
+                        rising_block = True
+                    if st["entry_slope_max"] is not None and delta > st["entry_slope_max"]:
+                        rising_block = True
                 can_enter = (committed < slots
                              and global_slot_ok
                              and all(t.direction == direction_str for t in port.open_trades)

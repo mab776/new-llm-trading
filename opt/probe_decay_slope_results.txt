@@ -1,0 +1,16 @@
+== anchors ==
+baseline                       TRAIN geo+124.1% cx   56.6 | TEST geo +56.7% cx   6.0 wf   +34 | FULL cx  324.7 wf   +35 dd20 t2606
+slope_min=0 (==K=1 yesterday)  TRAIN geo +99.8% cx   31.9 | TEST geo +46.4% cx   4.6 wf   +21 | FULL cx  140.3 wf   +32 dd22 t2088
+
+== fractional strictness: tolerate mild decay, block steep ==
+slope_min=-5                   TRAIN geo+116.7% cx   47.8 | TEST geo +50.8% cx   5.2 wf   +24 | FULL cx  234.7 wf   +44 dd21 t2356
+slope_min=-10                  TRAIN geo+115.7% cx   46.7 | TEST geo +54.7% cx   5.7 wf   +32 | FULL cx  255.7 wf   +41 dd19 t2498
+slope_min=-15                  TRAIN geo+124.6% cx   57.2 | TEST geo +52.4% cx   5.4 wf   +29 | FULL cx  295.1 wf   +36 dd20 t2566
+slope_min=-20                  TRAIN geo+126.1% cx   59.1 | TEST geo +55.6% cx   5.9 wf   +31 | FULL cx  332.2 wf   +34 dd18 t2589
+
+== negative K (contrarian): only decaying entries ==
+slope_max=+0                   TRAIN geo +44.2% cx    6.2 | TEST geo +40.7% cx   3.9 wf   +20 | FULL cx   24.5 wf   +23 dd18 t1475
+slope_max=-5                   TRAIN geo +29.1% cx    3.6 | TEST geo +21.2% cx   2.2 wf   +13 | FULL cx    7.9 wf    +7 dd14 t920
+
+== require STEEP rise (extra-strict, for the dose-response curve) ==
+slope_min=+5                   TRAIN geo +83.2% cx   20.6 | TEST geo +30.3% cx   2.9 wf   +14 | FULL cx   57.9 wf   +22 dd18 t1639
