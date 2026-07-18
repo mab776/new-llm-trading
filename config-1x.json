@@ -1,0 +1,13 @@
+{
+  "_extends": "config.json",
+  "trading": {
+    "leverage_tiers": {
+      "conservative": { "leverage": 1 },
+      "aggressive": { "leverage": 1 }
+    }
+  },
+  "position_sizing": {
+    "risk_pct_per_trade": 0.50,
+    "global_max_margin_pct": 1.0
+  }
+}

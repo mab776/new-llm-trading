@@ -1,0 +1,6 @@
+1x contingency validation — real minimums, maker touch, 2bps slip
+config set           window                  compound   maxDD  trades   win%
+25x (live)           TRAIN 2021-01..25-05   605065.73x   20.1%    6115  76.4%
+25x (live)           OOS   2025-06..26-04       4.00x   16.3%    1057  76.9%
+1x  (contingency)    TRAIN 2021-01..25-05   16570167.96x   23.9%    5926  84.2%
+1x  (contingency)    OOS   2025-06..26-04       3.69x   13.4%     959  80.4%

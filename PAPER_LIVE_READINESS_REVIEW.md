@@ -39,6 +39,27 @@ gives explicit approval.
 
 ---
 
+## 1× leverage contingency (staged 2026-07-17, not active)
+
+Canada bans *serving* leveraged crypto products; if Bitget ever cuts 25× access for
+Marc's account, the bot switches to the pre-built 1× configs with **identical notional
+exposure** (leverage 25→1 compensated by risk 2%→50% and margin cap 4.4%→100%; the 66%
+per-trade rail is deliberately kept — `opt/leverage_scenarios.py` showed raising it to
+100% loses more to concentration than it gains). Strategy parameters are untouched.
+
+- Files: `config-1x.json` / `config-eth-1x.json` / `config-sol-1x.json` (key-free, for
+  sims) and gitignored `config-*-1x.local.json` (chain onto the key-bearing locals via
+  `_extends` — no secret duplication). Validation: `opt/validate_1x.py` (TRAIN + OOS,
+  both config sets; results in `opt/validate_1x_results.txt`).
+- Expected cost vs 25×: ~8% of OOS log-growth (4.00×→3.69×) from cash-rationed pyramid
+  lots; lower maxDD; liquidation risk eliminated; fees/funding identical (notional-based).
+- Switch procedure: go flat (or accept market-closing open lots) → set account leverage
+  1× via API → relaunch with `--shared-configs config-1x.local.json
+  config-eth-1x.local.json config-sol-1x.local.json` → the preflight leverage check
+  then *enforces* 1× (refuses to start on mismatch).
+
+---
+
 ## Remaining work before paper trading (do these, then start)
 
 **Status 2026-07-15: items 2, 3, and 4 are DONE (see the per-item notes). Item 1 is the only
