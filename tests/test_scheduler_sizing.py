@@ -268,10 +268,13 @@ def test_stale_analysis_bar_skips_entry(monkeypatch, tmp_path):
 
 def test_recent_analysis_bar_does_not_skip(monkeypatch, tmp_path):
     """A just-closed analysis bar passes the staleness guard and proceeds to sizing."""
-    import llm_trading_bot.scheduler as module
+    import pandas as pd
     sched = TradingScheduler(_config(), log_dir=tmp_path)
+    # A bar whose close is "now" regardless of wall clock: open = now - 4h.
+    # (Using the real latest completed bar made this test pass only within
+    # STALE_ENTRY_MAX_SECONDS of an actual bar close.)
     sched._candidate_analysis_bar = str(
-        module.latest_completed_bar_open(sched.config.trading.primary_timeframe)
+        pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=4)
     )
 
     class _Sentinel(Exception):

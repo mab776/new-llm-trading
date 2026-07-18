@@ -287,6 +287,11 @@ DEFAULT_STRAT = {
     "anti_martingale_min": 0.5,
     "anti_martingale_max": 1.5,
     "opposite_exit": None,        # e.g. 25.0 -> close when opposite-direction |score| >= this
+    # Signal-decay research knobs (opt-in, probe_decay.py; NOT wired into live).
+    # Signed score = raw_score for LONG, -raw_score for SHORT.
+    "entry_require_rising": None,  # int K: block entry unless signed score non-decreasing over last K transitions
+    "decay_exit_bars": None,       # int N: exit when signed score fell N consecutive bars...
+    "decay_exit_floor": None,      # ...AND is below this floor (both must be set)
     "short_threshold_mult": 1.0,  # >1 = stricter shorts (asymmetry)
     "long_threshold_mult": 1.0,
     "max_positions": 1,           # >1 allows pyramiding same-direction entries
@@ -402,6 +407,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     outcome_streak = 0
     candles_since_loss = 999
     cooldown = 0
+    raw_score_hist: list[float] = []  # per-bar composite, for the decay knobs
     pending: PendingEntry | None = None
     last_close = None; last_time = None
     ti = -1  # test-bar counter (mirrors engine's enumerate over test_indices)
@@ -577,6 +583,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
             tp1_rr=tier.tp1_rr, tp2_rr=tier.tp2_rr,
         )
 
+        raw_score_hist.append(result.raw_score)
         abs_score = abs(result.raw_score)
         lp = loss_penalty()
         # Long/short threshold asymmetry (default 1.0 = symmetric)
@@ -626,6 +633,31 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                             "loss": trade.net_pnl <= 0, "sl": False,
                             "streak_applied": True,
                         })
+
+        # Decay exit (research knob): the signal died without reversing — signed
+        # score fell N consecutive bars AND sits below the floor. Softer than the
+        # opposite_exit cliff; same fee/streak accounting as signal_flip.
+        if (st["decay_exit_bars"] is not None and st["decay_exit_floor"] is not None
+                and port.open_trades
+                and len(raw_score_hist) > st["decay_exit_bars"]):
+            n = st["decay_exit_bars"]
+            for trade in list(port.open_trades):
+                sgn = 1.0 if trade.direction == "LONG" else -1.0
+                sig = [sgn * s for s in raw_score_hist[-(n + 1):]]
+                if (all(sig[k] > sig[k + 1] for k in range(n))
+                        and sig[-1] < st["decay_exit_floor"]):
+                    fill = (bar_close * (1 - slip) if trade.direction == "LONG"
+                            else bar_close * (1 + slip))
+                    port.close_trade(trade, fill, ts, "decay_exit")
+                    outcome_streak = update_outcome_streak(
+                        outcome_streak, trade.net_pnl > 0
+                    )
+                    if not hasattr(port, "_risk_events"):
+                        port._risk_events = []
+                    port._risk_events.append({
+                        "loss": trade.net_pnl <= 0, "sl": False,
+                        "streak_applied": True,
+                    })
 
         if signal in (SignalStrength.STRONG, SignalStrength.MARGINAL) and targets:
             if cooldown > 0:
@@ -677,11 +709,22 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                 global_limit = st["global_max_positions"]
                 global_slot_ok = global_limit is None or committed < global_limit
                 pend_ok = pending is None or pending.direction == direction_str
+                # Entry freshness (research knob): a threshold-passing score reached
+                # on the way DOWN (decaying from a higher peak) is not a fresh signal.
+                # Require the direction-signed score to be non-decreasing over the
+                # last K bar transitions.
+                rising_block = False
+                if st["entry_require_rising"] is not None:
+                    k = st["entry_require_rising"]
+                    if len(raw_score_hist) > k:
+                        sgn = 1.0 if direction_str == "LONG" else -1.0
+                        sig = [sgn * s for s in raw_score_hist[-(k + 1):]]
+                        rising_block = any(sig[j + 1] < sig[j] for j in range(k))
                 can_enter = (committed < slots
                              and global_slot_ok
                              and all(t.direction == direction_str for t in port.open_trades)
                              and pend_ok)
-                if not fails and can_enter and not fund_block:
+                if not fails and can_enter and not fund_block and not rising_block:
                     gate_accept = True
                     if signal == SignalStrength.MARGINAL:
                         marginal_candidates += 1

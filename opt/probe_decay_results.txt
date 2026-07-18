@@ -1,0 +1,21 @@
+  BTC/USDT:USDT funding: 5298 settlements loaded
+== baseline + regression (explicit Nones must equal baseline) ==
+baseline                       TRAIN geo+124.1% cx   56.6 | TEST geo +56.7% cx   6.0 wf   +34 | FULL cx  324.7 wf   +35 dd20 t2606
+knobs present but None (==base) TRAIN geo+124.1% cx   56.6 | TEST geo +56.7% cx   6.0 wf   +34 | FULL cx  324.7 wf   +35 dd20 t2606
+
+== entry freshness: require signed score rising over last K bars ==
+require_rising K=1             TRAIN geo +99.8% cx   31.9 | TEST geo +46.4% cx   4.6 wf   +21 | FULL cx  140.3 wf   +32 dd22 t2088
+require_rising K=2             TRAIN geo +41.4% cx    5.7 | TEST geo +32.1% cx   3.0 wf   +21 | FULL cx   17.6 wf    +1 dd15 t1188
+
+== decay exit: N straight falling bars AND signed score < floor ==
+decay_exit N=2 floor=5         TRAIN geo +98.8% cx   31.0 | TEST geo +41.9% cx   4.1 wf   +34 | FULL cx  121.0 wf   +25 dd26 t2610
+decay_exit N=2 floor=10        TRAIN geo +97.5% cx   30.1 | TEST geo +46.6% cx   4.6 wf   +34 | FULL cx  133.3 wf   +33 dd24 t2611
+decay_exit N=2 floor=15        TRAIN geo +89.1% cx   24.2 | TEST geo +41.8% cx   4.0 wf   +29 | FULL cx   93.8 wf   +29 dd21 t2645
+decay_exit N=3 floor=5         TRAIN geo+100.8% cx   32.7 | TEST geo +58.8% cx   6.4 wf   +37 | FULL cx  197.3 wf   +24 dd20 t2650
+decay_exit N=3 floor=10        TRAIN geo+101.9% cx   33.5 | TEST geo +54.6% cx   5.7 wf   +41 | FULL cx  182.0 wf   +30 dd19 t2654
+decay_exit N=3 floor=15        TRAIN geo+101.0% cx   32.8 | TEST geo +49.1% cx   4.9 wf   +36 | FULL cx  149.8 wf   +31 dd19 t2661
+
+== combined (best-guess pairs) ==
+rising K=1 + exit N=2 f=10     TRAIN geo +85.1% cx   21.7 | TEST geo +33.9% cx   3.2 wf   +28 | FULL cx   67.8 wf   +34 dd27 t2092
+rising K=1 + exit N=3 f=10     TRAIN geo +89.1% cx   24.2 | TEST geo +46.1% cx   4.6 wf   +23 | FULL cx  105.5 wf   +33 dd21 t2118
+rising K=2 + exit N=2 f=5      TRAIN geo +30.5% cx    3.8 | TEST geo +26.3% cx   2.5 wf    +9 | FULL cx    9.9 wf    -3 dd15 t1176
