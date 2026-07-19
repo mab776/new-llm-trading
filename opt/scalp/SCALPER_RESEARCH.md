@@ -81,7 +81,10 @@ sizing : loss budget 0.5%/trade → notional = bal×0.005/SL_dist, cap 3× bal
 | HOLDOUT 2025-06→2026-07 | 0.81× | 1.29× | 1.26× | **10.6% CAGR, 8.0% DD** |
 
 TEST ≈ HOLDOUT at the portfolio level — the number to believe is **~10%/yr at ~8% maxDD per
-0.5% loss budget**. Ladder (TRAIN): 1% budget ≈ 2× CAGR at ~2× DD (~15–23%/asset); 2% ≈
+0.5% loss budget**. Holdout monthly breakdown: 8/14 months positive, best month +7.8%
+(Oct-2025 vol spike), no lucky-month dominance — but the FOUR most recent months
+(2026-04→07) are all mildly negative (≈−6% cumulative): the edge's latest stretch is soft,
+inside the expected DD envelope but worth watching before committing capital. Ladder (TRAIN): 1% budget ≈ 2× CAGR at ~2× DD (~15–23%/asset); 2% ≈
 28–38% DD. Trades ≈ 3/week/asset (~9/week portfolio), median hold ~8–10h — a burst-swing
 scalper, not a minute-scale scraper; that is what survives fees honestly.
 
