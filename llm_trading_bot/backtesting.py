@@ -440,6 +440,7 @@ class BacktestEngine:
                 confidence_min=scoring_cfg.confidence_min,
                 confidence_max=scoring_cfg.confidence_max,
                 scoring_points=scoring_cfg.points,
+                alignment_scale_by_tf=scoring_cfg.alignment_scale_by_tf,
             )
 
             # 4. Calculate targets (use tier R:R ratios)

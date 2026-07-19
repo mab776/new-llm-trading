@@ -381,10 +381,24 @@ def compute_composite_score(
     confidence_min: float = 5,
     confidence_max: float = 95,
     scoring_points: dict[str, float] | None = None,
+    alignment_mode: str = "discrete",
+    alignment_scale: float = 5.0,
+    alignment_k: float = 30.0,
+    alignment_scale_by_tf: dict | None = None,
+    exclude_alignment_tfs: set | None = None,
 ) -> ScoringResult:
     """
     Compute a composite score across multiple timeframes.
     Primary timeframe gets full weight, others contribute via alignment bonus/penalty.
+
+    ``alignment_mode`` controls how each secondary timeframe contributes:
+      - "discrete" (default, legacy): a flat +-``alignment_scale`` vote on whether
+        the sign of the TF's trend agrees with the primary weighted total.
+      - "continuous": the vote magnitude scales with the TF's trend conviction via
+        ``alignment_scale * tanh(trend / alignment_k)``, so a near-zero timeframe
+        contributes ~0 instead of a full step. This removes the threshold-cliff
+        sensitivity where a tiny data change flips a whole +-5 vote across a
+        decision boundary. Defaults leave the discrete behavior untouched.
     """
     primary = indicators_by_tf.get(primary_timeframe)
     if not primary:
@@ -418,21 +432,33 @@ def compute_composite_score(
 
     # Multi-timeframe alignment bonus/penalty (up to ±15 points)
     alignment_bonus = 0.0
+    prim_sign = 1.0 if weighted_total > 0 else -1.0 if weighted_total < 0 else 0.0
     for tf, ind in indicators_by_tf.items():
         if tf == primary_timeframe:
             continue
-        tf_trend = score_trend(ind, scoring_points)
-        # If secondary timeframe agrees with primary, small bonus
-        if (tf_trend.raw_score > 0 and weighted_total > 0) or (
-            tf_trend.raw_score < 0 and weighted_total < 0
-        ):
-            alignment_bonus += 5
-            reasons.append(f"{tf} trend aligns")
-        elif (tf_trend.raw_score > 0 and weighted_total < 0) or (
-            tf_trend.raw_score < 0 and weighted_total > 0
-        ):
-            alignment_bonus -= 5
-            reasons.append(f"{tf} trend diverges")
+        # Opt-in: let a caller take a timeframe out of the alignment vote (e.g. when
+        # the daily trend is handled by a dedicated overlay and would double-count).
+        if exclude_alignment_tfs and tf in exclude_alignment_tfs:
+            continue
+        tf_trend = score_trend(ind, scoring_points).raw_score
+        # Neutral primary or neutral TF trend contributes nothing (both modes).
+        if prim_sign == 0.0 or tf_trend == 0.0:
+            continue
+        # Per-timeframe weight override (default: the flat alignment_scale for all).
+        scale = (alignment_scale_by_tf.get(tf, alignment_scale)
+                 if alignment_scale_by_tf else alignment_scale)
+        if alignment_mode == "continuous":
+            contrib = scale * float(np.tanh(tf_trend / alignment_k)) * prim_sign
+            alignment_bonus += contrib
+            reasons.append(
+                f"{tf} trend {'aligns' if contrib > 0 else 'diverges'} ({contrib:+.1f})")
+        else:  # discrete (legacy) — flat ±scale sign vote
+            if (tf_trend > 0) == (weighted_total > 0):
+                alignment_bonus += scale
+                reasons.append(f"{tf} trend aligns")
+            else:
+                alignment_bonus -= scale
+                reasons.append(f"{tf} trend diverges")
 
     raw_score = max(-100, min(100, weighted_total + alignment_bonus))
 

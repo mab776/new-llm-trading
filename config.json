@@ -59,7 +59,8 @@
         "adx_ranging_threshold": 20,
         "min_volatility_pct": 0.3,
         "confidence_min": 5,
-        "confidence_max": 95
+        "confidence_max": 95,
+        "alignment_scale_by_tf": {"1h": 0, "1d": 3}
     },
     "filters": {
         "min_adx": 20.6,

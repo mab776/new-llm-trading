@@ -29,7 +29,7 @@ from openwebui_filter import (
 from llm_trading_bot.scoring import (
     Direction, IndicatorSet, SignalStrength, CategoryScore,
     calculate_targets, apply_pre_trade_filters, compute_composite_score,
-    detect_market_regime,
+    detect_market_regime, score_trend,
 )
 from llm_trading_bot.portfolio import Portfolio
 from llm_trading_bot.entry import PendingEntry, maker_limit_touched
@@ -334,7 +334,76 @@ DEFAULT_STRAT = {
     "funding_long_boost": None,   # e.g. 0.7 -> eff long thresholds x0.7 when funding very low
     "funding_long_thr": 0.0,      # funding level that counts as "crowded shorts"
     "funding_long_trend_gate": False,
+    # Multi-timeframe alignment shape (opt-in, probe_alignment.py; NOT wired into
+    # live). "discrete" = legacy flat ±alignment_scale sign vote per secondary TF.
+    # "continuous" = alignment_scale * tanh(tf_trend / alignment_k) — smooth, kills
+    # the ±5 threshold-cliff sensitivity. Defaults reproduce the engine exactly.
+    "alignment_mode": "discrete",  # "discrete" | "continuous"
+    "alignment_scale": 5.0,        # max per-secondary-TF alignment contribution
+    "alignment_k": 30.0,           # continuous tanh smoothing scale (trend-score units)
+    "alignment_scale_by_tf": None, # e.g. {"1h": 3, "1d": 8}: per-TF discrete weight
+    #                                override. None ⇒ defer to the CONFIG's
+    #                                scoring.alignment_scale_by_tf (itself None ⇒
+    #                                flat alignment_scale) — keeps engine parity.
+    # 1d-TREND OVERLAY (opt-in, probe_daily_trend.py; NOT wired into live). A
+    # dedicated daily-regime term added ON TOP of the composite score (beyond the
+    # weak ±5 daily alignment vote). beta=0 ⇒ off ⇒ engine-identical.
+    "daily_trend_beta": 0.0,       # points added at full daily trend (0 = off)
+    "daily_trend_source": "score", # "score"|"ema200"|"ema_stack"|"adx_di" (daily metric)
+    "daily_trend_shape": "tanh",   # "sign"|"linear"|"tanh" (magnitude → contribution)
+    "daily_trend_k": 40.0,         # saturation scale for linear/tanh (daily-metric units)
+    "daily_trend_deadband": 0.0,   # |daily metric| below this contributes 0
+    "daily_trend_replace_align": False,  # True ⇒ drop 1d's ±5 alignment vote (no double-count)
 }
+
+
+def _daily_trend_value(dind, source: str, points=None):
+    """Derive a daily-regime metric in [-100, 100] from the 1d IndicatorSet, or None."""
+    if dind is None:
+        return None
+    c = dind.close
+    if source == "score":
+        return score_trend(dind, points).raw_score
+    if source == "ema200":
+        e = dind.ema_200
+        if not e or not c:
+            return None
+        return max(-100.0, min(100.0, 1000.0 * (c / e - 1.0)))   # ±10% → ±100
+    if source == "ema_stack":
+        es = (dind.ema_9, dind.ema_21, dind.ema_50, dind.ema_200)
+        if any(x is None for x in es):
+            return None
+        v = sum(33.34 if a > b else -33.34 for a, b in zip(es, es[1:]))
+        return max(-100.0, min(100.0, v))
+    if source == "adx_di":
+        adx, p, m = dind.adx, dind.plus_di, dind.minus_di
+        if adx is None or p is None or m is None:
+            return None
+        return (1.0 if p > m else -1.0) * min(adx / 40.0, 1.0) * 100.0
+    return None
+
+
+def apply_daily_overlay(result, dind, st, points=None) -> None:
+    """Add a dedicated daily-trend term on top of ``result.raw_score`` (in place),
+    re-deriving direction. beta=0 or missing daily data ⇒ no-op (engine-identical)."""
+    beta = st.get("daily_trend_beta", 0.0)
+    if not beta:
+        return
+    d = _daily_trend_value(dind, st.get("daily_trend_source", "score"), points)
+    if d is None or abs(d) < st.get("daily_trend_deadband", 0.0):
+        return
+    shape = st.get("daily_trend_shape", "tanh")
+    k = st.get("daily_trend_k", 40.0) or 1.0
+    if shape == "sign":
+        g = 1.0 if d > 0 else -1.0 if d < 0 else 0.0
+    elif shape == "linear":
+        g = max(-1.0, min(1.0, d / k))
+    else:  # tanh
+        g = float(np.tanh(d / k))
+    new = max(-100.0, min(100.0, result.raw_score + beta * g))
+    result.raw_score = round(new, 2)
+    result.direction = (Direction.BULLISH if new > 10 else
+                        Direction.BEARISH if new < -10 else Direction.NEUTRAL)
 
 
 def simulate(pre: Precomputed, config, start_date: str, end_date: str,
@@ -577,7 +646,14 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
             indicators_by_tf=inds_by_tf, weights=weights, primary_timeframe=primary_tf,
             confidence_min=sc.confidence_min, confidence_max=sc.confidence_max,
             scoring_points=getattr(sc, "points", None),
+            alignment_mode=st["alignment_mode"], alignment_scale=st["alignment_scale"],
+            alignment_k=st["alignment_k"],
+            alignment_scale_by_tf=(st["alignment_scale_by_tf"]
+                                   if st["alignment_scale_by_tf"] is not None
+                                   else getattr(sc, "alignment_scale_by_tf", None)),
+            exclude_alignment_tfs=({"1d"} if st.get("daily_trend_replace_align") else None),
         )
+        apply_daily_overlay(result, inds_by_tf.get("1d"), st, getattr(sc, "points", None))
 
         targets = calculate_targets(
             indicators=prim, direction=result.direction,

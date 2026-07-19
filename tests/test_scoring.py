@@ -359,6 +359,29 @@ class TestCompositeScore:
         names = {c.name for c in result.category_scores}
         assert names == {"trend", "momentum", "volume", "support_resistance", "risk"}
 
+    def test_alignment_scale_by_tf(self, bullish_indicators):
+        """Per-TF alignment weights: 3 shrinks the vote, 0 removes it, None = legacy 5."""
+        weights = {"trend": 0.3, "momentum": 0.25, "volume": 0.15,
+                   "support_resistance": 0.2, "risk": 0.1}
+        base = compute_composite_score({"4h": bullish_indicators}, weights=weights)
+        assert base.raw_score < 90  # headroom so the diffs below aren't clamped
+        legacy = compute_composite_score(
+            {"4h": bullish_indicators, "1d": bullish_indicators}, weights=weights)
+        weighted = compute_composite_score(
+            {"4h": bullish_indicators, "1d": bullish_indicators}, weights=weights,
+            alignment_scale_by_tf={"1d": 3.0})
+        zeroed = compute_composite_score(
+            {"4h": bullish_indicators, "1d": bullish_indicators}, weights=weights,
+            alignment_scale_by_tf={"1d": 0.0})
+        assert legacy.raw_score == pytest.approx(base.raw_score + 5.0)
+        assert weighted.raw_score == pytest.approx(base.raw_score + 3.0)
+        assert zeroed.raw_score == pytest.approx(base.raw_score)
+        # A TF absent from the mapping keeps the flat default scale
+        default_for_missing = compute_composite_score(
+            {"4h": bullish_indicators, "1d": bullish_indicators}, weights=weights,
+            alignment_scale_by_tf={"1h": 0.0})
+        assert default_for_missing.raw_score == pytest.approx(legacy.raw_score)
+
 
 # ──────────────────────────────────────────────────────────────────────
 # Target Calculation Tests

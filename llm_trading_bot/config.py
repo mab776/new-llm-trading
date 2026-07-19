@@ -78,6 +78,21 @@ class ScoringConfig(BaseModel):
     confidence_max: float = Field(95, ge=5, le=95)
     # Partial overrides of openwebui_filter.DEFAULT_SCORING_POINTS.
     points: dict[str, float] = Field(default_factory=dict)
+    # Per-timeframe discrete alignment-vote weight (e.g. {"1h": 0, "1d": 3}).
+    # None = legacy flat ±5 for every secondary timeframe. Gridded 2026-07-19
+    # (independent 1h/1d sweeps, select-TRAIN report-TEST + OOS invariance):
+    # the 1h vote is noise (TRAIN monotone-better toward 0), 1d wants ~3;
+    # OOS holdout 4.00x/16.3%DD -> 5.15x/12.9%DD at {"1h": 0, "1d": 3}.
+    alignment_scale_by_tf: dict[str, float] | None = None
+
+    @field_validator("alignment_scale_by_tf")
+    @classmethod
+    def validate_alignment_scale_by_tf(
+        cls, v: dict[str, float] | None
+    ) -> dict[str, float] | None:
+        if v is not None and any(w < 0 for w in v.values()):
+            raise ValueError("alignment_scale_by_tf weights cannot be negative")
+        return v
 
     @field_validator("weights")
     @classmethod
