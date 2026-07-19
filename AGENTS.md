@@ -13,7 +13,9 @@
 > All profile configs (aggressive, 1x) inherit both via `_extends`. **New reference numbers**
 > (same methods as below): standard continuous **6,050,413×** / 20.7% MTM DD, TEST 320.34×;
 > aggressive continuous **~2.48 quadrillion×** / 36.4% MTM DD, TEST 7.52M×. Clean OOS holdout
-> (frictionless): standard **6.47×** (was 4.88×); with real Bitget mins @ $100: **5.15×/12.9% DD**.
+> (canonical `opt.holdout_oos`): standard **5.90×/14.2% MTM DD** (was 4.88×/17.0%), aggressive
+> **37.3×/32.7%** (was 16.8×/35.0%); standalone BTC 1.65× / ETH 6.52× / SOL 6.21× (all improved).
+> With real Bitget mins @ $100: **5.15×/12.9% DD**.
 > ⚠️ 1× contingency validation numbers (3.69×) predate this — re-run `opt/validate_1x` before use.
 > Hat-number audit: all scorer trigger levels proven robust (±15% AST perturbation); regime
 > detection = dead code (skip flags off); watchlist williams/stoch bands (below flag threshold).
