@@ -1,5 +1,25 @@
 # Paper/Live Trading Readiness Review
 
+> **⚡ 2026-07-19 STRATEGY UPDATE (supersedes the numbers below where they differ).**
+> Two config changes deployed LIVE (bot restarted, 398 tests, engine==fastbt parity exact):
+> 1. **Per-TF alignment weights `{"1h": 0, "1d": 3}`** (commit `49f236e`) — the hardcoded ±5
+>    secondary-TF alignment vote was never searched; live/backtest reconciliation of the first
+>    paper days exposed it (one near-zero 1h vote flipping ±5 across the −20 exit cliff = the
+>    whole early live loss). Independent sweeps: 1h vote = noise, 1d wants 3.
+> 2. **Consecutive-loss penalty removed (5→0)** (commit `79a914e`, `opt/probe_penalty.py`) —
+>    penalty stacked on thresholds tuned for the old ±10 alignment range; on the new base it is
+>    monotone-harmful on TRAIN+TEST, gave no measurable 2022-bear insurance, won 8/9 folds at 0.
+>
+> All profile configs (aggressive, 1x) inherit both via `_extends`. **New reference numbers**
+> (same methods as below): standard continuous **6,050,413×** / 20.7% MTM DD, TEST 320.34×;
+> aggressive continuous **~2.48 quadrillion×** / 36.4% MTM DD, TEST 7.52M×. Clean OOS holdout
+> (frictionless): standard **6.47×** (was 4.88×); with real Bitget mins @ $100: **5.15×/12.9% DD**.
+> ⚠️ 1× contingency validation numbers (3.69×) predate this — re-run `opt/validate_1x` before use.
+> Hat-number audit: all scorer trigger levels proven robust (±15% AST perturbation); regime
+> detection = dead code (skip flags off); watchlist williams/stoch bands (below flag threshold).
+> Research parked: 1d adx_di overlay (holdout advantage inverted on new base — don't re-pitch).
+> Also 2026-07-19: **+$100 deposit** (futures ~$193; granularity tax 20.5%→10.7%).
+
 **Original review:** 2026-07-13 (commit `8cc6912`, `main`)
 **Last updated:** 2026-07-15 — all credential-free prerequisites done; rolling-VWAP
 reproducibility fix + LLM-consensus bug fixes applied; **403 tests pass**.
