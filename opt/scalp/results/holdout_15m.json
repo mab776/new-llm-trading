@@ -1,0 +1,54 @@
+{
+ "sig": {
+  "n": 96,
+  "vol_expand": 1.3,
+  "vol_n": 32,
+  "trend_gate": null
+ },
+ "exec": "maker|sl2.0|tp6.0|loss0.5%",
+ "window": "2025-06-01..2026-07-17",
+ "results": {
+  "BTCUSDT": {
+   "growth": 0.8113,
+   "dd": 20.5,
+   "trades": 212,
+   "win": 23.6,
+   "fees": 1084,
+   "exits": {
+    "sl": 162,
+    "postonly_cancel": 85,
+    "tp": 50
+   }
+  },
+  "ETHUSDT": {
+   "growth": 1.291,
+   "dd": 8.8,
+   "trades": 192,
+   "win": 33.9,
+   "fees": 757,
+   "exits": {
+    "sl": 127,
+    "tp": 65,
+    "postonly_cancel": 71
+   }
+  },
+  "SOLUSDT": {
+   "growth": 1.259,
+   "dd": 6.1,
+   "trades": 170,
+   "win": 33.5,
+   "fees": 513,
+   "exits": {
+    "sl": 111,
+    "tp": 57,
+    "postonly_cancel": 61,
+    "liq": 2
+   }
+  },
+  "portfolio": {
+   "growth": 1.1204,
+   "cagr_pct": 10.63,
+   "dd": 7.95
+  }
+ }
+}

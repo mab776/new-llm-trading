@@ -1,0 +1,31 @@
+{
+ "sig": {
+  "n": 96,
+  "vol_expand": 1.3,
+  "vol_n": 32,
+  "trend_gate": null
+ },
+ "exec": "maker|off0.0|ttl1|sl2.0|tp6.0|ts0|mean0|be0.0|tr0.0",
+ "periods": {
+  "TRAIN": {
+   "growth_x": 1.5278,
+   "cagr_pct": 15.2,
+   "max_dd_pct": 7.7,
+   "corr": {
+    "BTCUSDT-ETHUSDT": 0.301,
+    "BTCUSDT-SOLUSDT": 0.172,
+    "ETHUSDT-SOLUSDT": 0.208
+   }
+  },
+  "TEST": {
+   "growth_x": 1.1307,
+   "cagr_pct": 9.09,
+   "max_dd_pct": 7.47,
+   "corr": {
+    "BTCUSDT-ETHUSDT": 0.449,
+    "BTCUSDT-SOLUSDT": 0.249,
+    "ETHUSDT-SOLUSDT": 0.284
+   }
+  }
+ }
+}

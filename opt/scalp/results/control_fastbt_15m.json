@@ -1,0 +1,325 @@
+{
+ "note": "Control experiment: the shipped 4h composite-score strategy at 15m, retuned.\n\nThe 2026-07-13 static transplant already showed the untuned strategy dies at\n5m (0.24x) and degrades at 1h. The fair question for the scalper project is:\ndoes an honest RETUNE (entry thresholds, ATR stop scale, alignment weights\nadapted to the 15m/1h/4h ladder) make the house scorer competitive with the\ndedicated scalp strategies at 15m? Same Binance futures data, same fees, same\nTRAIN folds as the scalp grids. Funding omitted (small at these horizons,\nidentical across variants).\n",
+ "results": [
+  {
+   "thr_mult": 1.0,
+   "atr_mult": 1.0,
+   "geo_growth": 1.0227,
+   "folds_positive": 3,
+   "worst_dd": 32.1,
+   "trades": 10888,
+   "per_fold": {
+    "21H1": [
+     1.832,
+     29.7,
+     3184
+    ],
+    "21H2": [
+     0.8496,
+     31.9,
+     2139
+    ],
+    "22H1": [
+     1.1518,
+     27.8,
+     2227
+    ],
+    "22H2": [
+     0.8381,
+     32.1,
+     1336
+    ],
+    "23H1": [
+     1.0087,
+     29.9,
+     1176
+    ],
+    "23H2": [
+     0.7549,
+     27.5,
+     826
+    ]
+   }
+  },
+  {
+   "thr_mult": 1.0,
+   "atr_mult": 0.75,
+   "geo_growth": 0.9045,
+   "folds_positive": 1,
+   "worst_dd": 36.4,
+   "trades": 11688,
+   "per_fold": {
+    "21H1": [
+     2.0892,
+     28.6,
+     3575
+    ],
+    "21H2": [
+     0.7605,
+     36.4,
+     2375
+    ],
+    "22H1": [
+     0.7073,
+     30.6,
+     1968
+    ],
+    "22H2": [
+     0.7364,
+     31.8,
+     1486
+    ],
+    "23H1": [
+     0.908,
+     29.3,
+     1284
+    ],
+    "23H2": [
+     0.7285,
+     28.7,
+     1000
+    ]
+   }
+  },
+  {
+   "thr_mult": 1.5,
+   "atr_mult": 1.0,
+   "geo_growth": 0.9953,
+   "folds_positive": 2,
+   "worst_dd": 32.7,
+   "trades": 10963,
+   "per_fold": {
+    "21H1": [
+     2.2498,
+     22.9,
+     3276
+    ],
+    "21H2": [
+     0.8649,
+     32.7,
+     1910
+    ],
+    "22H1": [
+     0.79,
+     27.4,
+     2050
+    ],
+    "22H2": [
+     0.7901,
+     29.3,
+     1343
+    ],
+    "23H1": [
+     1.0555,
+     25.8,
+     1439
+    ],
+    "23H2": [
+     0.7585,
+     26.4,
+     945
+    ]
+   }
+  },
+  {
+   "thr_mult": 1.5,
+   "atr_mult": 0.75,
+   "geo_growth": 0.9398,
+   "folds_positive": 1,
+   "worst_dd": 32.6,
+   "trades": 11403,
+   "per_fold": {
+    "21H1": [
+     2.2352,
+     22.9,
+     3459
+    ],
+    "21H2": [
+     0.824,
+     32.6,
+     2149
+    ],
+    "22H1": [
+     0.6994,
+     31.0,
+     1773
+    ],
+    "22H2": [
+     0.7485,
+     28.6,
+     1469
+    ],
+    "23H1": [
+     0.9564,
+     27.1,
+     1502
+    ],
+    "23H2": [
+     0.747,
+     26.5,
+     1051
+    ]
+   }
+  },
+  {
+   "thr_mult": 2.0,
+   "atr_mult": 1.0,
+   "geo_growth": 0.9808,
+   "folds_positive": 2,
+   "worst_dd": 28.3,
+   "trades": 8517,
+   "per_fold": {
+    "21H1": [
+     2.025,
+     20.9,
+     2509
+    ],
+    "21H2": [
+     0.9488,
+     27.0,
+     1662
+    ],
+    "22H1": [
+     0.7284,
+     27.5,
+     1248
+    ],
+    "22H2": [
+     0.7365,
+     28.3,
+     1049
+    ],
+    "23H1": [
+     1.0569,
+     21.4,
+     1192
+    ],
+    "23H2": [
+     0.8172,
+     21.9,
+     857
+    ]
+   }
+  },
+  {
+   "thr_mult": 2.0,
+   "atr_mult": 0.75,
+   "geo_growth": 0.9481,
+   "folds_positive": 2,
+   "worst_dd": 30.2,
+   "trades": 9272,
+   "per_fold": {
+    "21H1": [
+     1.8535,
+     17.1,
+     2593
+    ],
+    "21H2": [
+     0.8023,
+     29.9,
+     1678
+    ],
+    "22H1": [
+     0.8019,
+     22.9,
+     1784
+    ],
+    "22H2": [
+     0.708,
+     30.2,
+     1068
+    ],
+    "23H1": [
+     1.0213,
+     20.7,
+     1250
+    ],
+    "23H2": [
+     0.8423,
+     18.8,
+     899
+    ]
+   }
+  },
+  {
+   "thr_mult": 3.0,
+   "atr_mult": 1.0,
+   "geo_growth": 0.9551,
+   "folds_positive": 1,
+   "worst_dd": 19.4,
+   "trades": 2290,
+   "per_fold": {
+    "21H1": [
+     1.2162,
+     11.4,
+     621
+    ],
+    "21H2": [
+     0.9397,
+     15.0,
+     428
+    ],
+    "22H1": [
+     0.8459,
+     19.4,
+     363
+    ],
+    "22H2": [
+     0.9094,
+     15.7,
+     295
+    ],
+    "23H1": [
+     0.9145,
+     11.5,
+     332
+    ],
+    "23H2": [
+     0.9444,
+     9.5,
+     251
+    ]
+   }
+  },
+  {
+   "thr_mult": 3.0,
+   "atr_mult": 0.75,
+   "geo_growth": 0.938,
+   "folds_positive": 1,
+   "worst_dd": 16.8,
+   "trades": 2314,
+   "per_fold": {
+    "21H1": [
+     1.1731,
+     9.1,
+     627
+    ],
+    "21H2": [
+     0.8855,
+     16.8,
+     434
+    ],
+    "22H1": [
+     0.879,
+     14.8,
+     365
+    ],
+    "22H2": [
+     0.8941,
+     15.7,
+     299
+    ],
+    "23H1": [
+     0.9104,
+     11.9,
+     334
+    ],
+    "23H2": [
+     0.9162,
+     9.1,
+     255
+    ]
+   }
+  }
+ ]
+}
