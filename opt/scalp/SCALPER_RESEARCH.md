@@ -123,6 +123,15 @@ by the live track record, not by more backtests.
   product. A $193 account earning 10%/yr is ~$20 — this product only makes sense at larger
   balance or as a diversifier alongside the 4h bot (their daily correlations were 0.17-0.45).
 
+## 7.5 Cross-venue check (Bitget vs Binance, go-live de-risk)
+
+Research data is Binance USDT-perp; live trades Bitget. 3-week overlap of Bitget 15m
+(public ccxt, keyless) vs the Binance-aggregated 15m used here: closes differ by
+**0.65 bps median / 2.5 bps p99**, the ATR-expansion gate agrees on **99.5%** of bars,
+raw breakout-bar counts 58 vs 56. The signal transfers across venues. (Note:
+`bitget_csv._TF_MS` lacks sub-1h granularities — the live 15m path will need that
+one-line addition; Bitget's API serves 15m fine.)
+
 ## 8. If Marc wants to go further (next steps, in order)
 
 1. Decide BTC in/out (see §6) and the loss budget (0.5% vs 1%).
