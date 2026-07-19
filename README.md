@@ -186,6 +186,16 @@ PYTHONPATH=. /tmp/tmlvenv/bin/python -m opt.lower_timeframes
 
 Machine-readable results are in `opt/lower_timeframe_results.json`.
 
+**Scalper second-product research (2026-07-19, PARKED):** a full from-scratch 5m/15m scalper
+search lives in `opt/scalp/` (dedicated vectorized engine with 5m sub-bar replay, ~13k
+backtests, pre-committed TRAIN/TEST/HOLDOUT protocol). One survivor: 15m Donchian-96 breakout
+gated by ATR-expansion ≥ 1.3 — ~10%/yr at ~8% maxDD (equal-weight portfolio, 0.5%/trade loss
+budget; TEST ≈ HOLDOUT). Pure 5m is structurally fee-dead; mean reversion and the retuned
+house scorer are not competitive at 15m; BTC's short-horizon edge is gone post-2024. Marc
+reviewed and parked it (not worth building a live path vs the 4h product's returns). Full
+story + protocol + caveats: `opt/scalp/SCALPER_RESEARCH.md`. ⚠️ Its holdout is SPENT — any
+revival must validate on new (live/paper) data, not more backtests.
+
 Reproduce the corrected standard/aggressive validation with:
 
 ```bash

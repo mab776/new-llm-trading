@@ -17,6 +17,7 @@ last digit) on both non-trailing and trailing configs.
 | `refine.py` | Focused search in the robust (trailing-on) region; ranks by `min(trainGeo, testGeo)`. |
 | `ablate.py`, `finalize.py` | One-change-at-a-time ablation; slippage/leverage sensitivity + chronological OOS split. |
 | `run_once.py`, `validate.py` | Engine baseline runner; fast-vs-engine exactness check. |
+| `scalp/` | **Parked** 2026-07-19: 5m/15m scalper second-product research (own vectorized engine + strategies + pre-committed protocol; holdout spent). See `scalp/SCALPER_RESEARCH.md`. |
 
 ## Critical bug found & fixed on the way (commit 504638d)
 

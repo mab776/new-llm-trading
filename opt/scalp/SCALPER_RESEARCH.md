@@ -1,5 +1,10 @@
 # Scalper Research — 15m/5m second product (2026-07-19 overnight session)
 
+> **STATUS: PARKED (Marc, 2026-07-19 morning).** ~10%/yr at 8% DD doesn't compete with the 4h
+> product's returns for the same capital; not worth building a live path now. Kept intact for
+> a possible revisit. ⚠️ If revived: the holdout below is SPENT — validate on new live/paper
+> data only; do not re-grid on TEST/holdout windows.
+
 **Goal (Marc):** an honest, from-scratch attempt at a 5–15 min "scraper" product inside this
 project — not a knob-swap of the 4h strategy. Maximize profit at decent maxDD, do not tune a
 lucky one-shot, do not overfit. The live 4h bot is untouched.
