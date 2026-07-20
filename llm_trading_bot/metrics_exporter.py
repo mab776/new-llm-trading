@@ -13,6 +13,8 @@ Exposed series (prefix llt_):
 - llt_disk_free_mb
 - llt_decisions_total{action,symbol}        the maker fill funnel lives here
 - llt_lot_closed_total{reason,symbol} + llt_lot_closed_pnl_usdt_total{...}
+- llt_realized_gains_usdt / llt_realized_losses_usdt / llt_realized_net_usdt   (sign-split PnL)
+- llt_lot_closed_wins / llt_lot_closed_losses   (win/loss trade counts)
 
 Run: PYTHONPATH=. python3 -m llm_trading_bot.metrics_exporter \
         [--log-dir logs] [--port 9105]
@@ -81,6 +83,10 @@ def collect(log_dir: str) -> str:
     decisions: dict[tuple[str, str], int] = {}
     closed_count: dict[tuple[str, str], int] = {}
     closed_pnl: dict[tuple[str, str], float] = {}
+    realized_gains = 0.0   # sum of positive closed-lot PnL
+    realized_losses = 0.0  # sum of negative closed-lot PnL (<= 0)
+    win_count = 0
+    loss_count = 0
     per_symbol_beat: dict[str, dict] = {}
 
     files = sorted(glob.glob(os.path.join(log_dir, "decisions-*.jsonl")))
@@ -108,9 +114,14 @@ def collect(log_dir: str) -> str:
                     reason = str(rec.get("reason") or "unknown")
                     key = (reason, symbol)
                     closed_count[key] = closed_count.get(key, 0) + 1
-                    closed_pnl[key] = closed_pnl.get(key, 0.0) + float(
-                        rec.get("net_pnl_est") or 0.0
-                    )
+                    pnl = float(rec.get("net_pnl_est") or 0.0)
+                    closed_pnl[key] = closed_pnl.get(key, 0.0) + pnl
+                    if pnl > 0:
+                        realized_gains += pnl
+                        win_count += 1
+                    else:
+                        realized_losses += pnl
+                        loss_count += 1
 
     out: list[str] = []
 
@@ -191,6 +202,17 @@ def collect(log_dir: str) -> str:
          "Net estimated PnL summed by exit reason",
          [({"reason": r, "symbol": s}, round(v, 6))
           for (r, s), v in sorted(closed_pnl.items())])
+    emit("llt_realized_gains_usdt", "gauge",
+         "Sum of positive closed-lot PnL (total gained)", [({}, round(realized_gains, 6))])
+    emit("llt_realized_losses_usdt", "gauge",
+         "Sum of negative closed-lot PnL (total lost, <= 0)", [({}, round(realized_losses, 6))])
+    emit("llt_realized_net_usdt", "gauge",
+         "Net realized trading PnL (gains + losses, deposit-independent)",
+         [({}, round(realized_gains + realized_losses, 6))])
+    emit("llt_lot_closed_wins", "gauge", "Count of profitable closed lots",
+         [({}, float(win_count))])
+    emit("llt_lot_closed_losses", "gauge", "Count of losing closed lots",
+         [({}, float(loss_count))])
     emit("llt_decision_files", "gauge", "decisions-*.jsonl files parsed",
          [({}, float(len(files)))])
     emit("llt_scrape_parse_seconds", "gauge", "Time spent parsing the logs",
