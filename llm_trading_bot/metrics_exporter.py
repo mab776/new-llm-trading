@@ -282,18 +282,22 @@ def levels(symbol: str, log_dir: str) -> dict:
 
 _CHART_HTML = """<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>llt — candles + TP/SL</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
  body{margin:0;background:#111418;color:#d8dee6;font:14px system-ui,sans-serif}
- #bar{display:flex;gap:.5em;align-items:center;padding:.6em 1em}
+ #bar{display:flex;flex-wrap:wrap;gap:.4em;align-items:center;padding:.5em .7em}
+ .grp{display:inline-flex;flex-wrap:wrap;gap:.4em}
+ .sep{opacity:.4}
  button{background:#22262c;color:#d8dee6;border:1px solid #3a3f46;border-radius:6px;
-        padding:.35em .9em;cursor:pointer}
+        padding:.45em .8em;min-height:38px;font-size:14px;line-height:1;
+        cursor:pointer;flex:0 0 auto}
  button.on{background:#2f6feb;border-color:#2f6feb;color:#fff}
- #meta{margin-left:auto;opacity:.75;font-size:.85em}
+ #meta{flex-basis:100%;opacity:.75;font-size:.85em}
  #chart{position:absolute;top:52px;bottom:0;left:0;right:0}
 </style></head><body>
 <div id="bar">
- <span id="syms"></span> <span style="opacity:.4">|</span> <span id="tfs"></span>
+ <span id="syms" class="grp"></span> <span class="sep">|</span> <span id="tfs" class="grp"></span>
  <span id="meta"></span>
 </div>
 <div id="chart"></div>
@@ -345,7 +349,10 @@ async function load(){
   const last=candles.at(-1);
   document.getElementById("meta").textContent=
     `${sym} ${tf} — last ${last?last.close:"?"} · lots ${lv.lots.length} · pending ${lv.pending.length}`;
+  fitChart();
 }
+function fitChart(){document.getElementById("chart").style.top=document.getElementById("bar").offsetHeight+"px";}
+addEventListener("resize",fitChart);
 load(); setInterval(load,60000);
 </script></body></html>
 """
