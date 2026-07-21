@@ -321,6 +321,14 @@ DEFAULT_STRAT = {
     "min_qty": None,              # e.g. {"BTC": 0.0001, "ETH": 0.01, "SOL": 0.1}
     "size_step": None,            # e.g. {"BTC": 0.0001, "ETH": 0.01, "SOL": 0.1}
     "min_size_policy": "skip",    # "skip" | "floor"
+    # Conditional cap-overshoot provision (opt-in, probe_overshoot.py; NOT live).
+    # When a skip-policy entry quantizes below the exchange minimum (the live
+    # MIN_SIZE_SKIP) but |score| >= min_size_overshoot_score, bump it to the
+    # minimum anyway — iff total committed exposure stays within the global
+    # margin/notional caps stretched by (1 + min_size_overshoot). Both None
+    # (default) = exact fail-closed skip behavior.
+    "min_size_overshoot": None,
+    "min_size_overshoot_score": None,
     "dd_throttle": None,          # e.g. 0.10 -> while balance DD >= 10%, pyramiding pauses
     "dd_throttle_slots": 1,       # slots allowed while throttled (1 = full pause of pyramiding)
     "dd_throttle_risk": 1.0,      # risk multiplier applied while throttled (e.g. 0.5)

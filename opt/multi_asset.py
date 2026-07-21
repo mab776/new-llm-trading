@@ -136,7 +136,10 @@ def apply_exposure_caps(risk_pct: float, leverage: int, balance: float,
 
 def _min_size_risk_adjust(port: Portfolio, risk_pct: float,
                           max_margin_pct: float | None, leverage: int,
-                          price: float, strategy: dict, symbol: str):
+                          price: float, strategy: dict, symbol: str,
+                          *, abs_score: float | None = None,
+                          committed_margin: float = 0.0,
+                          committed_notional: float = 0.0):
     """Research-only exchange-minimum modeling. Returns adjusted risk or None (skip).
 
     Mirrors ``Portfolio._calculate_position_size`` (size = balance × min(risk, cap)
@@ -168,6 +171,29 @@ def _min_size_risk_adjust(port: Portfolio, risk_pct: float,
         if counters is not None:
             counters["floors"] += 1
         return minq * price / leverage / port.balance
+    # Conditional overshoot provision (research): rescue a would-be skip by
+    # flooring to the exchange minimum when the signal is strong enough AND the
+    # stretched global caps still hold. Mirrors cap_risk_pct's cap semantics
+    # (committed margin/notional vs pct-of-balance) with a (1 + overshoot) allowance.
+    over = strategy.get("min_size_overshoot")
+    over_score = strategy.get("min_size_overshoot_score")
+    if (over is not None and over_score is not None
+            and abs_score is not None and abs_score >= over_score):
+        new_margin = minq * price / leverage
+        new_notional = minq * price
+        margin_cap = strategy.get("global_max_margin_pct")
+        notional_cap = strategy.get("global_max_notional_pct")
+        ok = True
+        if margin_cap:
+            ok = (committed_margin + new_margin
+                  <= (1 + over) * margin_cap * port.balance)
+        if ok and notional_cap:
+            ok = (committed_notional + new_notional
+                  <= (1 + over) * notional_cap * port.balance)
+        if ok:
+            if counters is not None:
+                counters["overshoots"] = counters.get("overshoots", 0) + 1
+            return minq * price / leverage / port.balance
     if counters is not None:
         counters["skips"] += 1
     return None
@@ -529,6 +555,9 @@ def simulate_multi(
                     risk_eff = _min_size_risk_adjust(
                         port, risk_eff, ps.max_position_pct, leverage,
                         bar_close, strategy, symbol,
+                        abs_score=abs_score,
+                        committed_margin=committed_margin,
+                        committed_notional=committed_notional,
                     )
                     if risk_eff is None:
                         continue

@@ -1,0 +1,27 @@
+Conditional cap-overshoot probe | multi-asset half-year folds WITH real mins @ $193/fold | maker + sub-bar + funding + 2bps
+
+             arm  TRAINgeo  worstF  skip  flr  over trades
+  baseline(skip)    +577.3  +156.4  3289    0     0   3794
+  floor(control)    +599.5  +181.4     0 1202     0   5037
+     O=0.25 S=22    +598.6  +179.4   616    0   912   4745
+     O=0.25 S=25    +599.3  +173.7   913    0   765   4609
+     O=0.25 S=30    +624.2  +187.5  1582    0   530   4356
+      O=0.5 S=22    +598.6  +179.4   616    0   912   4745
+      O=0.5 S=25    +599.3  +173.7   913    0   765   4609
+      O=0.5 S=30    +624.2  +187.5  1582    0   530   4356
+        O=1 S=22    +598.6  +179.4   616    0   912   4745
+        O=1 S=25    +599.3  +173.7   913    0   765   4609
+        O=1 S=30    +624.2  +187.5  1582    0   530   4356
+
+TRAIN: baseline +577.3 | floor +599.5 | best conditional O=0.25 S=30 -> +624.2 (530 overshoots)
+
+TEST (baseline + floor + top-3 by TRAIN):
+  baseline      TEST geo +301.7  worst +229.7
+  floor         TEST geo +339.0  worst +248.4
+  O=0.25 S=30    TEST geo +324.9  worst +283.1  over 564  [gate2 PASS]
+  O=0.5  S=30    TEST geo +324.9  worst +283.1  over 564  [gate2 PASS]
+  O=1    S=30    TEST geo +324.9  worst +283.1  over 564  [gate2 PASS]
+
+Holdout invariance ($193 + mins): baseline 5.65x vs O=0.25/S=30 6.01x  ratio 1.063 [gate3 PASS]
+
+Reminder: small-account provision by construction (benefit decays with balance); adoption needs scheduler-side code + the full protocol.
