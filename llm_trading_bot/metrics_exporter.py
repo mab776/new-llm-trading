@@ -110,10 +110,18 @@ def collect(log_dir: str, counters_since: float = 0.0) -> str:
                         latest_beat_ts, latest_beat = ts, rec
                     continue
                 # Counter era boundary (experiment resets): decisions before the
-                # cutoff are excluded from every counter metric. Heartbeat/equity
-                # freshness above is deliberately NOT filtered — that is current
-                # status, not accumulated history. Raw logs stay untouched.
+                # cutoff are excluded from every counter metric, BUT their label
+                # combos are still emitted as explicit zeros — otherwise the
+                # series vanish and Grafana's lastNotNull keeps painting stale
+                # pre-reset values. Heartbeat/equity freshness above is
+                # deliberately NOT filtered — that is current status, not
+                # accumulated history. Raw logs stay untouched.
                 if counters_since and _ts(rec) < counters_since:
+                    decisions.setdefault((action, symbol), 0)
+                    if action == "LOT_CLOSED":
+                        key = (str(rec.get("reason") or "unknown"), symbol)
+                        closed_count.setdefault(key, 0)
+                        closed_pnl.setdefault(key, 0.0)
                     continue
                 decisions[(action, symbol)] = decisions.get((action, symbol), 0) + 1
                 if action == "LOT_CLOSED":
