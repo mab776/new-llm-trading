@@ -1,0 +1,17 @@
+Reserved-allocation probe | clean OOS 2025-06-01 -> 2026-04-30 | maker + sub-bar exits + funding + 2bps slip
+
+=== STRUCTURAL (no minimums) (initial $3000, mins=off) ===
+  SHARED (one pot, global cap)           5.88x   MTM DD  14.2%   trades 1148  
+  RESERVED (thirds of $3000)             4.79x   MTM DD  12.7%   trades 2003  
+      BTC:   1.65x on $1000.00  (trades 544, win 74%, own-DD 15.9%)
+      ETH:   6.52x on $1000.00  (trades 709, win 80%, own-DD 15.4%)
+      SOL:   6.21x on $1000.00  (trades 750, win 78%, own-DD 17.6%)
+
+=== LIVE-SCALE granularity (initial $193, mins=REAL) ===
+  SHARED (one pot, global cap)           5.65x   MTM DD  14.1%   trades 1217  
+  RESERVED (thirds of $193)              3.89x   MTM DD  10.7%   trades 1885  
+      BTC:   1.61x on $64.33  (trades 526, win 74%, own-DD 13.5%)
+      ETH:   5.11x on $64.33  (trades 613, win 80%, own-DD 12.2%)
+      SOL:   4.94x on $64.33  (trades 746, win 78%, own-DD 17.3%)
+
+Notes: RESERVED = no cross-subsidy (a slice can't borrow another's margin room) and no shared compounding (winners compound only their own slice). Equal thirds by design — no allocation tuning.
