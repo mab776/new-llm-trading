@@ -1,5 +1,23 @@
 # Signal Trading Bot
 
+> **🔬 2026-07-20 RESEARCH NIGHT (no strategy change; live config untouched).** Three
+> portfolio-architecture probes (all opt-in fastbt/simulate_multi knobs, default-off =
+> engine-identical, 398 tests) + new tooling:
+> 1. **Reserved per-asset capital — REJECTED** (`opt/probe_reserved.py`, `37b898a`): equal
+>    thirds trade ~+70% more but grow less (OOS 4.79× vs 5.88×; 3.89× vs 5.65× @$193+mins);
+>    cross-subsidy concentration IS the edge — margin-cap crowding is its price.
+> 2. **Cross-asset rotation — REJECTED for growth** (`opt/probe_rotation.py`, `d8b4a24`):
+>    TRAIN winner failed the TEST gate (split-disagreement noise). Post-hoc: improves
+>    worst-folds — parked as a robustness idea.
+> 3. **Conditional cap-overshoot (min-size rescue) — ALL GATES PASSED** (`opt/probe_overshoot.py`,
+>    `b5fe4de`): flooring MIN_SIZE_SKIPped strong entries to the exchange minimum beats
+>    fail-closed skip on TRAIN+TEST+holdout (5.65→6.01×). Small-account provision
+>    (self-retires by ~$2500). NOT deployed — needs scheduler-side code + Marc's go.
+> Also: **`opt/live_reconcile.py`** promoted to an official sim-vs-live reconciliation tool
+> (`1aebd52`; live −$4.74 ≈ sim −$4.15/−$4.48 over the first 4 live days — no execution
+> drift), and **`GOOD_IDEAS.md`** now indexes every shelved-but-positive finding (walk-forward
+> retuning ~2×, min-size rescue, scalper, watchlist bands, …).
+
 > **⚡ 2026-07-19 STRATEGY UPDATE (supersedes the numbers below where they differ).**
 > Two config changes deployed LIVE (bot restarted, 398 tests, engine==fastbt parity exact):
 > 1. **Per-TF alignment weights `{"1h": 0, "1d": 3}`** (commit `49f236e`) — the hardcoded ±5
