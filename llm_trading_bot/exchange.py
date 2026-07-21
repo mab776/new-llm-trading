@@ -317,6 +317,23 @@ class BitgetClient:
         self._contract_specs[symbol] = spec
         return spec
 
+    def get_ticker(self, symbol: str) -> dict:
+        """Best bid/ask/last for a futures symbol (maker re-peg pricing)."""
+        result = self._request("GET", "/api/v2/mix/market/ticker", params={
+            "productType": self.config.product_type,
+            "symbol": self._rest_symbol(symbol),
+        })
+        rows = result.get("data") or []
+        row = rows[0] if isinstance(rows, list) and rows else {}
+        try:
+            return {
+                "bid": float(row["bidPr"]),
+                "ask": float(row["askPr"]),
+                "last": float(row["lastPr"]),
+            }
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ExchangeError(f"Malformed Bitget ticker for {symbol}: {row}") from exc
+
     def _normalize_open_order(
         self,
         symbol: str,

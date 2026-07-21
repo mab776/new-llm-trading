@@ -329,6 +329,96 @@ def test_post_only_instant_cancel_logged_distinctly(monkeypatch, tmp_path) -> No
     assert [r["action"] for r in logged] == ["MAKER_POST_ONLY_CANCELLED"]
 
 
+def _rejected_pending(**over) -> dict:
+    pending = {
+        "symbol": "BTC-USDT", "direction": "LONG", "entry_mode": "maker",
+        "entry": 100.0, "stop_loss": 95.0, "take_profit_1": 110.0,
+        "take_profit_2": 120.0, "size": 1.0, "leverage": 10,
+        "client_oid": "llt-old", "placed_at": 0,
+        "expires_at": time.time() + 3600,
+    }
+    pending.update(over)
+    return pending
+
+
+def _wire_retry(scheduler, monkeypatch, logged, placed, bid=98.0, ask=98.5):
+    from types import SimpleNamespace
+    scheduler.exchange._dry_run = False
+    monkeypatch.setattr(
+        scheduler.exchange, "get_order_detail",
+        lambda symbol, oid: {"state": "canceled", "baseVolume": "0"},
+    )
+    monkeypatch.setattr(
+        scheduler.exchange, "get_ticker",
+        lambda symbol: {"bid": bid, "ask": ask, "last": (bid + ask) / 2},
+    )
+    monkeypatch.setattr(
+        scheduler.exchange, "place_order",
+        lambda **kw: placed.append(kw) or SimpleNamespace(
+            order_id=f"retry-{len(placed)}", price=kw["price"],
+            size=kw["size"], stop_loss=kw["targets"].stop_loss,
+            take_profit_1=kw["targets"].take_profit_1,
+            take_profit_2=kw["targets"].take_profit_2,
+        ),
+    )
+    monkeypatch.setattr(scheduler, "_log_decision", lambda rec: logged.append(rec))
+
+
+def test_maker_retry_replaces_rejected_order(monkeypatch, tmp_path) -> None:
+    """Maker v2: a would-cross rejection re-places at min(intended, bid) with the
+    same targets/expiry, bumping the retry counter — no terminal cancel logged."""
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)
+    scheduler.config.trading.maker_retry_max = 2
+    scheduler._pending_orders["ord-1"] = _rejected_pending()
+    logged, placed = [], []
+    _wire_retry(scheduler, monkeypatch, logged, placed, bid=98.0)
+    scheduler._reconcile_pending_orders()
+    assert len(placed) == 1
+    assert placed[0]["price"] == 98.0  # re-pegged to bid (below intended 100)
+    assert placed[0]["order_type"] == "limit"
+    new = scheduler._pending_orders["retry-1"]
+    assert new["retries"] == 1
+    assert new["intended_entry"] == 100.0
+    assert [r["action"] for r in logged] == ["MAKER_RETRY"]
+
+
+def test_maker_retry_never_chases_above_intended(monkeypatch, tmp_path) -> None:
+    """If the market bounced back above the intended limit, re-place AT the
+    intended limit (rests normally) — the retry must never chase price up."""
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)
+    scheduler.config.trading.maker_retry_max = 2
+    scheduler._pending_orders["ord-1"] = _rejected_pending()
+    logged, placed = [], []
+    _wire_retry(scheduler, monkeypatch, logged, placed, bid=104.0, ask=104.5)
+    scheduler._reconcile_pending_orders()
+    assert placed[0]["price"] == 100.0  # min(intended, bid)
+
+
+def test_maker_retry_exhausted_logs_terminal_cancel(monkeypatch, tmp_path) -> None:
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)
+    scheduler.config.trading.maker_retry_max = 2
+    scheduler._pending_orders["ord-1"] = _rejected_pending(retries=2)
+    logged, placed = [], []
+    _wire_retry(scheduler, monkeypatch, logged, placed)
+    scheduler._reconcile_pending_orders()
+    assert placed == []
+    assert [r["action"] for r in logged] == ["MAKER_POST_ONLY_CANCELLED"]
+    assert logged[0]["retries"] == 2
+
+
+def test_maker_retry_skips_when_market_through_stop(monkeypatch, tmp_path) -> None:
+    """If the bid has fallen to/under the stop, entering is no longer sane —
+    give up instead of re-placing."""
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)
+    scheduler.config.trading.maker_retry_max = 2
+    scheduler._pending_orders["ord-1"] = _rejected_pending()
+    logged, placed = [], []
+    _wire_retry(scheduler, monkeypatch, logged, placed, bid=94.0, ask=94.5)
+    scheduler._reconcile_pending_orders()
+    assert placed == []
+    assert [r["action"] for r in logged] == ["MAKER_POST_ONLY_CANCELLED"]
+
+
 def test_startup_rejects_leverage_mismatch(monkeypatch, tmp_path) -> None:
     """Account leverage that drifted from the active tier fails startup closed."""
     scheduler = TradingScheduler(_config(), log_dir=tmp_path)  # active tier leverage=10

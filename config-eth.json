@@ -35,7 +35,8 @@
             "enabled": true,
             "activation_pct": 0.94,
             "callback_pct": 0.33
-        }
+        },
+        "maker_retry_max": 3
     },
     "scoring": {
         "points": {
@@ -64,7 +65,10 @@
         "min_volatility_pct": 0.3,
         "confidence_min": 5,
         "confidence_max": 95,
-        "alignment_scale_by_tf": {"1h": 0, "1d": 3}
+        "alignment_scale_by_tf": {
+            "1h": 0,
+            "1d": 3
+        }
     },
     "filters": {
         "min_adx": 20.6,

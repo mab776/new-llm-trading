@@ -32,7 +32,9 @@ from llm_trading_bot.exposure import (
 from llm_trading_bot.live_state import SharedLiveState
 from llm_trading_bot.process_lock import acquire_account_lock, release_account_lock
 from llm_trading_bot.routing import RoutingDecision, route_signal
-from llm_trading_bot.scoring import Direction, SignalStrength, calculate_indicators
+from llm_trading_bot.scoring import (
+    Direction, SignalStrength, TradeTargets, calculate_indicators,
+)
 from llm_trading_bot.trailing import compute_trailing_stop
 from llm_trading_bot.timeframes import (
     completed_market_snapshot, latest_completed_bar_open, timeframe_delta,
@@ -347,6 +349,71 @@ class TradingScheduler:
             "protection_verified": protected,
         })
 
+    def _retry_rejected_maker(self, order_id: str, pending: dict,
+                              now: float) -> bool:
+        """Maker v2: re-place a post-only would-cross rejected entry.
+
+        Re-pegs at min(intended, best bid) for LONG / max(intended, best ask)
+        for SHORT — crossing-proof by construction, so the replacement rests
+        and fills at or better than the intended limit (the price the backtest
+        fill model assumes). Inherits the same-bar expiry and per-lot targets;
+        gives up after ``trading.maker_retry_max`` attempts (0 = v1 behavior).
+        """
+        retries = int(pending.get("retries", 0))
+        if (pending.get("entry_mode") != "maker"
+                or retries >= self.config.trading.maker_retry_max
+                or now >= float(pending["expires_at"])):
+            return False
+        symbol = pending["symbol"]
+        side = "buy" if pending["direction"] == "LONG" else "sell"
+        quote = self.exchange.get_ticker(symbol)
+        intended = float(pending.get("intended_entry", pending["entry"]))
+        reprice = (min(intended, quote["bid"]) if side == "buy"
+                   else max(intended, quote["ask"]))
+        stop_loss = float(pending["stop_loss"])
+        if ((side == "buy" and reprice <= stop_loss)
+                or (side == "sell" and reprice >= stop_loss)):
+            return False  # market ran through the stop — entry no longer sane
+        tp1 = float(pending["take_profit_1"])
+        tp2 = float(pending["take_profit_2"])
+        targets = TradeTargets(
+            entry=reprice, stop_loss=stop_loss,
+            take_profit_1=tp1, take_profit_2=tp2,
+            risk_amount=abs(reprice - stop_loss),
+            reward_1=abs(tp1 - reprice), reward_2=abs(tp2 - reprice),
+            direction=(Direction.BULLISH if side == "buy"
+                       else Direction.BEARISH),
+        )
+        client_oid = self._entry_client_oid(side)
+        result = self.exchange.place_order(
+            symbol=symbol, side=side, size=float(pending["size"]),
+            targets=targets, leverage=int(pending.get("leverage") or 1),
+            order_type="limit", price=reprice, client_oid=client_oid,
+        )
+        new_pending = dict(pending)
+        new_pending.update({
+            "entry": result.price if result.price is not None else reprice,
+            "intended_entry": intended,
+            "client_oid": client_oid,
+            "placed_at": now,
+            "retries": retries + 1,
+        })
+        self._pending_orders[result.order_id] = new_pending
+        self._save_pending_orders()
+        self._log(
+            f"Maker retry {retries + 1}/{self.config.trading.maker_retry_max}: "
+            f"re-placed rejected order {order_id} as {result.order_id} "
+            f"@ {result.price if result.price is not None else reprice} "
+            f"(intended {intended})"
+        )
+        self._log_decision({
+            "action": "MAKER_RETRY", "order_id": result.order_id,
+            "replaces": order_id, "attempt": retries + 1,
+            "price": result.price if result.price is not None else reprice,
+            "intended": intended,
+        })
+        return True
+
     def _reconcile_pending_orders(self) -> None:
         """Promote filled maker orders and cancel orders after one primary bar.
 
@@ -376,14 +443,22 @@ class TradingScheduler:
                         # "post-only rejected" from "expired unfilled".
                         self._pending_orders.pop(order_id, None)
                         self._save_pending_orders()
-                        self._log(
-                            f"Maker order {order_id} cancelled by exchange before "
-                            f"expiry (post-only would-cross rejection)"
-                        )
-                        self._log_decision({
-                            "action": "MAKER_POST_ONLY_CANCELLED",
-                            "order_id": order_id,
-                        })
+                        retried = False
+                        try:
+                            retried = self._retry_rejected_maker(
+                                order_id, pending, now)
+                        except Exception as exc:  # never break the reconcile loop
+                            self._log(f"Maker retry failed for {order_id}: {exc}")
+                        if not retried:
+                            self._log(
+                                f"Maker order {order_id} cancelled by exchange "
+                                f"before expiry (post-only would-cross rejection)"
+                            )
+                            self._log_decision({
+                                "action": "MAKER_POST_ONLY_CANCELLED",
+                                "order_id": order_id,
+                                "retries": int(pending.get("retries", 0)),
+                            })
                     continue
                 if pending.get("entry_mode", "maker") != "maker":
                     # A market order is expected to fill promptly, but an ambiguous

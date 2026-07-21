@@ -2,7 +2,11 @@
     "trading": {
         "symbol": "BTC-USDT",
         "yfinance_symbol": "BTC-USD",
-        "timeframes": ["1h", "4h", "1d"],
+        "timeframes": [
+            "1h",
+            "4h",
+            "1d"
+        ],
         "primary_timeframe": "4h",
         "leverage_tiers": {
             "conservative": {
@@ -31,7 +35,8 @@
             "enabled": true,
             "activation_pct": 0.94,
             "callback_pct": 0.33
-        }
+        },
+        "maker_retry_max": 3
     },
     "scoring": {
         "points": {
@@ -47,7 +52,7 @@
         },
         "weights": {
             "trend": 0.210839,
-            "momentum": 0.317980,
+            "momentum": 0.31798,
             "volume": 0.201832,
             "support_resistance": 0.165336,
             "risk": 0.104011
@@ -60,7 +65,10 @@
         "min_volatility_pct": 0.3,
         "confidence_min": 5,
         "confidence_max": 95,
-        "alignment_scale_by_tf": {"1h": 0, "1d": 3}
+        "alignment_scale_by_tf": {
+            "1h": 0,
+            "1d": 3
+        }
     },
     "filters": {
         "min_adx": 20.6,

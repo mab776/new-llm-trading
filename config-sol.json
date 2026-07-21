@@ -1,137 +1,141 @@
 {
-  "trading": {
-    "symbol": "SOL-USDT",
-    "yfinance_symbol": "SOL-USD",
-    "timeframes": [
-      "1h",
-      "4h",
-      "1d"
-    ],
-    "primary_timeframe": "4h",
-    "leverage_tiers": {
-      "conservative": {
-        "leverage": 12,
-        "strong_threshold": 21.3,
-        "marginal_threshold_low": 12.6,
-        "marginal_threshold_high": 21.3,
-        "tp1_rr": 2.02,
-        "tp2_rr": 3.34,
-        "tp1_exit_pct": 0.7
-      },
-      "aggressive": {
-        "leverage": 25,
-        "strong_threshold": 21.3,
-        "marginal_threshold_low": 12.6,
-        "marginal_threshold_high": 21.3,
-        "tp1_rr": 2.02,
-        "tp2_rr": 3.34,
-        "tp1_exit_pct": 0.7
-      }
+    "trading": {
+        "symbol": "SOL-USDT",
+        "yfinance_symbol": "SOL-USD",
+        "timeframes": [
+            "1h",
+            "4h",
+            "1d"
+        ],
+        "primary_timeframe": "4h",
+        "leverage_tiers": {
+            "conservative": {
+                "leverage": 12,
+                "strong_threshold": 21.3,
+                "marginal_threshold_low": 12.6,
+                "marginal_threshold_high": 21.3,
+                "tp1_rr": 2.02,
+                "tp2_rr": 3.34,
+                "tp1_exit_pct": 0.7
+            },
+            "aggressive": {
+                "leverage": 25,
+                "strong_threshold": 21.3,
+                "marginal_threshold_low": 12.6,
+                "marginal_threshold_high": 21.3,
+                "tp1_rr": 2.02,
+                "tp2_rr": 3.34,
+                "tp1_exit_pct": 0.7
+            }
+        },
+        "active_tier": "aggressive",
+        "stop_loss_strategy": "atr",
+        "entry_mode": "maker",
+        "trailing_stop": {
+            "enabled": true,
+            "activation_pct": 0.94,
+            "callback_pct": 0.33
+        },
+        "maker_retry_max": 3
     },
-    "active_tier": "aggressive",
-    "stop_loss_strategy": "atr",
-    "entry_mode": "maker",
-    "trailing_stop": {
-      "enabled": true,
-      "activation_pct": 0.94,
-      "callback_pct": 0.33
+    "scoring": {
+        "points": {
+            "trend.ema_stack": 34.8,
+            "trend.ema200": 16.1,
+            "trend.di": 22.3,
+            "trend.macd": 13.5,
+            "momentum.rsi_trend": 22.0,
+            "momentum.roc_strong": 21.7,
+            "volume.confirmation": 27.6,
+            "volume.obv": 20.5,
+            "sr.proximity": 24.9
+        },
+        "weights": {
+            "trend": 0.210839,
+            "momentum": 0.31798,
+            "volume": 0.201832,
+            "support_resistance": 0.165336,
+            "risk": 0.104011
+        },
+        "atr_period": 14,
+        "atr_sl_multiplier": 2.26,
+        "atr_tp1_multiplier": 3.0,
+        "atr_tp2_multiplier": 6.0,
+        "adx_ranging_threshold": 20,
+        "min_volatility_pct": 0.3,
+        "confidence_min": 5,
+        "confidence_max": 95,
+        "alignment_scale_by_tf": {
+            "1h": 0,
+            "1d": 3
+        }
+    },
+    "filters": {
+        "min_adx": 20.6,
+        "min_volatility_pct": 0.3,
+        "min_profit_after_fees": true,
+        "min_category_agreement": 3,
+        "require_trend_momentum_agree": false,
+        "skip_choppy_regime": false,
+        "skip_volatile_regime": false
+    },
+    "fees": {
+        "maker": 0.0002,
+        "taker": 0.0006,
+        "default_order_type": "taker"
+    },
+    "bitget": {
+        "api_key": "",
+        "api_secret": "",
+        "passphrase": "",
+        "testnet": true,
+        "product_type": "USDT-FUTURES",
+        "position_mode": "one_way",
+        "margin_mode": "isolated"
+    },
+    "backtesting": {
+        "start_date": "2021-01-01",
+        "end_date": "2025-06-01",
+        "initial_balance": 100,
+        "warmup_periods": 200,
+        "enable_partial_exits": true,
+        "enable_trailing_stops": true
+    },
+    "scheduling": {
+        "interval_minutes": 60,
+        "check_positions_interval_minutes": 15
+    },
+    "data_cache": {
+        "ttl_seconds": 300
+    },
+    "risk_management": {
+        "max_holding_hours": 0,
+        "cooldown_candles_after_sl": 2,
+        "consecutive_loss_penalty": 0.0,
+        "max_consecutive_loss_penalty": 20.0,
+        "loss_penalty_decay_candles": 10,
+        "use_maker_fee_for_tp": true,
+        "opposite_exit_threshold": 20.0,
+        "dd_throttle_threshold": 0.25,
+        "dd_throttle_slots": 1,
+        "dd_throttle_risk": 0.5
+    },
+    "data_source": {
+        "source": "bitget",
+        "exchange_symbol": "SOL/USDT:USDT",
+        "market": "futures"
+    },
+    "position_sizing": {
+        "risk_pct_per_trade": 0.02,
+        "max_position_pct": 0.66,
+        "max_positions": 3,
+        "conviction_exponent": 1.0,
+        "anti_martingale_step": 0.05,
+        "anti_martingale_min": 0.7,
+        "anti_martingale_max": 1.1,
+        "portfolio_risk_multiplier": 1.0,
+        "global_max_positions": 0,
+        "global_max_margin_pct": 0.044,
+        "global_max_notional_pct": 1.1
     }
-  },
-  "scoring": {
-    "points": {
-      "trend.ema_stack": 34.8,
-      "trend.ema200": 16.1,
-      "trend.di": 22.3,
-      "trend.macd": 13.5,
-      "momentum.rsi_trend": 22.0,
-      "momentum.roc_strong": 21.7,
-      "volume.confirmation": 27.6,
-      "volume.obv": 20.5,
-      "sr.proximity": 24.9
-    },
-    "weights": {
-      "trend": 0.210839,
-      "momentum": 0.31798,
-      "volume": 0.201832,
-      "support_resistance": 0.165336,
-      "risk": 0.104011
-    },
-    "atr_period": 14,
-    "atr_sl_multiplier": 2.26,
-    "atr_tp1_multiplier": 3.0,
-    "atr_tp2_multiplier": 6.0,
-    "adx_ranging_threshold": 20,
-    "min_volatility_pct": 0.3,
-    "confidence_min": 5,
-    "confidence_max": 95,
-    "alignment_scale_by_tf": {"1h": 0, "1d": 3}
-  },
-  "filters": {
-    "min_adx": 20.6,
-    "min_volatility_pct": 0.3,
-    "min_profit_after_fees": true,
-    "min_category_agreement": 3,
-    "require_trend_momentum_agree": false,
-    "skip_choppy_regime": false,
-    "skip_volatile_regime": false
-  },
-  "fees": {
-    "maker": 0.0002,
-    "taker": 0.0006,
-    "default_order_type": "taker"
-  },
-  "bitget": {
-    "api_key": "",
-    "api_secret": "",
-    "passphrase": "",
-    "testnet": true,
-    "product_type": "USDT-FUTURES",
-    "position_mode": "one_way",
-    "margin_mode": "isolated"
-  },
-  "backtesting": {
-    "start_date": "2021-01-01",
-    "end_date": "2025-06-01",
-    "initial_balance": 100,
-    "warmup_periods": 200,
-    "enable_partial_exits": true,
-    "enable_trailing_stops": true
-  },
-  "scheduling": {
-    "interval_minutes": 60,
-    "check_positions_interval_minutes": 15
-  },
-  "data_cache": {
-    "ttl_seconds": 300
-  },
-  "risk_management": {
-    "max_holding_hours": 0,
-    "cooldown_candles_after_sl": 2,
-    "consecutive_loss_penalty": 0.0,
-    "max_consecutive_loss_penalty": 20.0,
-    "loss_penalty_decay_candles": 10,
-    "use_maker_fee_for_tp": true,
-    "opposite_exit_threshold": 20.0,
-    "dd_throttle_threshold": 0.25,
-    "dd_throttle_slots": 1,
-    "dd_throttle_risk": 0.5
-  },
-  "data_source": {
-    "source": "bitget",
-    "exchange_symbol": "SOL/USDT:USDT",
-    "market": "futures"
-  },
-  "position_sizing": {
-    "risk_pct_per_trade": 0.02,
-    "max_position_pct": 0.66,
-    "max_positions": 3,
-    "conviction_exponent": 1.0,
-    "anti_martingale_step": 0.05,
-    "anti_martingale_min": 0.7,
-    "anti_martingale_max": 1.1,
-    "portfolio_risk_multiplier": 1.0,
-    "global_max_positions": 0,
-    "global_max_margin_pct": 0.044,
-    "global_max_notional_pct": 1.1
-  }
 }

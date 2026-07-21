@@ -48,6 +48,12 @@ class TradingConfig(BaseModel):
     # taker = market at decision close; maker = post-only limit at that close,
     # good for the following primary bar only.
     entry_mode: Literal["taker", "maker"] = "taker"
+    # Maker v2: when a post-only entry is would-cross rejected, re-place up to
+    # this many times at min(intended, best bid) (LONG) / max(intended, best
+    # ask) (SHORT) — crossing-proof, fills at-or-better than the intended limit
+    # (the price the backtest fill model already assumes). Same-bar expiry still
+    # applies. 0 = give up on first rejection (v1 behavior).
+    maker_retry_max: int = Field(default=0, ge=0, le=10)
     trailing_stop: TrailingStopConfig = Field(default_factory=TrailingStopConfig)
 
     @model_validator(mode="after")
