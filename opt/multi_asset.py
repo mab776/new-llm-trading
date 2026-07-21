@@ -50,6 +50,7 @@ class _AssetState:
     cooldown: int = 0
     last_close: float | None = None
     last_time: str | None = None
+    last_raw_score: float | None = None  # newest composite score (rotation support)
 
 
 @dataclass
@@ -68,6 +69,7 @@ class MultiAssetResult:
     maker_touches: int = 0
     maker_queue_eligible: int = 0
     maker_fills: int = 0
+    rotations: int = 0
 
 
 def _mark_to_market_equity(port: Portfolio,
@@ -233,6 +235,7 @@ def simulate_multi(
     maker_touches = 0
     maker_queue_eligible_count = 0
     maker_fills = 0
+    rotations = 0
     for ts in sorted(events):
         for symbol in sorted(states):
             state = states[symbol]
@@ -394,6 +397,7 @@ def simulate_multi(
                 sc.atr_sl_multiplier, tier.tp1_rr, tier.tp2_rr,
             )
             abs_score = abs(result.raw_score)
+            state.last_raw_score = result.raw_score
             penalty = _loss_penalty(state)
             threshold_mult = strategy["regime_threshold_mults"].get(regime, 1.0)
             strong, marginal = (
@@ -471,10 +475,54 @@ def simulate_multi(
                         tier.leverage
                         * strategy["regime_leverage_mults"].get(regime, 1.0)
                     )))
+                    risk_pre_cap = risk_eff
                     risk_eff = apply_exposure_caps(
                         risk_eff, leverage, port.balance,
                         committed_margin, committed_notional, strategy,
                     )
+                    # Cross-asset rotation (research, opt-in): a cap-squeezed
+                    # STRONG entry may evict the weakest OTHER symbol's position.
+                    rot_w = strategy["rotate_weak_support"]
+                    rot_g = strategy["rotate_min_gap"]
+                    if (rot_w is not None and rot_g is not None
+                            and signal == SignalStrength.STRONG
+                            and risk_eff
+                            < strategy["rotate_squeeze_frac"] * risk_pre_cap):
+                        victims = []
+                        for t in port.open_trades:
+                            if t.symbol == symbol:
+                                continue
+                            vscore = states[t.symbol].last_raw_score
+                            if vscore is None:
+                                continue
+                            support = vscore if t.direction == "LONG" else -vscore
+                            if support <= rot_w and abs_score - support >= rot_g:
+                                victims.append((support, t.symbol))
+                        if victims:
+                            _, vsym = min(victims)
+                            vstate = states[vsym]
+                            for t in [t for t in port.open_trades
+                                      if t.symbol == vsym]:
+                                fill = (vstate.last_close * (1 - slip)
+                                        if t.direction == "LONG"
+                                        else vstate.last_close * (1 + slip))
+                                port.close_trade(t, fill, bar_time, "rotation")
+                                vstate.outcome_streak = update_outcome_streak(
+                                    vstate.outcome_streak, t.net_pnl > 0)
+                                if t.net_pnl <= 0:
+                                    vstate.consecutive_losses += 1
+                                    vstate.candles_since_loss = 0
+                                else:
+                                    vstate.consecutive_losses = 0
+                                    vstate.candles_since_loss = 999
+                            rotations += 1
+                            _, committed_margin, committed_notional = (
+                                committed_exposure(port, pending_all,
+                                                   port.balance))
+                            risk_eff = apply_exposure_caps(
+                                risk_pre_cap, leverage, port.balance,
+                                committed_margin, committed_notional, strategy,
+                            )
                     if risk_eff <= 0:
                         continue
                     # Exchange-minimum modeling (research-only; None = disabled).
@@ -552,4 +600,5 @@ def simulate_multi(
         maker_touches=maker_touches,
         maker_queue_eligible=maker_queue_eligible_count,
         maker_fills=maker_fills,
+        rotations=rotations,
     )

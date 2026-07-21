@@ -287,6 +287,16 @@ DEFAULT_STRAT = {
     "anti_martingale_min": 0.5,
     "anti_martingale_max": 1.5,
     "opposite_exit": None,        # e.g. 25.0 -> close when opposite-direction |score| >= this
+    # Cross-asset rotation research knobs (opt-in, probe_rotation.py; multi-asset
+    # simulate_multi only, NOT wired into live). When a STRONG entry is cap-squeezed
+    # below rotate_squeeze_frac of its pre-cap risk, the weakest OTHER symbol's open
+    # position (signed support = raw_score for LONG, -raw_score for SHORT) is closed
+    # (reason "rotation") iff support <= rotate_weak_support AND the newcomer's
+    # |score| - support >= rotate_min_gap; exposure caps then recompute on the freed
+    # margin. Both thresholds None (default) = code path untouched.
+    "rotate_weak_support": None,
+    "rotate_min_gap": None,
+    "rotate_squeeze_frac": 0.5,
     # Signal-decay research knobs (opt-in, probe_decay.py; NOT wired into live).
     # Signed score = raw_score for LONG, -raw_score for SHORT.
     "entry_require_rising": None,  # int K: block entry unless signed score non-decreasing over last K transitions
