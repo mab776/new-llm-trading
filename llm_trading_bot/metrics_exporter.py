@@ -75,7 +75,7 @@ def _live_state(log_dir: str) -> dict:
         return {}
 
 
-def collect(log_dir: str) -> str:
+def collect(log_dir: str, counters_since: float = 0.0) -> str:
     started = time.monotonic()
     heartbeat_ts: dict[str, float] = {}
     latest_beat: dict = {}
@@ -108,6 +108,12 @@ def collect(log_dir: str) -> str:
                         per_symbol_beat[symbol] = rec
                     if ts >= latest_beat_ts:
                         latest_beat_ts, latest_beat = ts, rec
+                    continue
+                # Counter era boundary (experiment resets): decisions before the
+                # cutoff are excluded from every counter metric. Heartbeat/equity
+                # freshness above is deliberately NOT filtered — that is current
+                # status, not accumulated history. Raw logs stay untouched.
+                if counters_since and _ts(rec) < counters_since:
                     continue
                 decisions[(action, symbol)] = decisions.get((action, symbol), 0) + 1
                 if action == "LOT_CLOSED":
@@ -384,7 +390,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--log-dir", default="logs")
     parser.add_argument("--port", type=int, default=9105)
+    parser.add_argument("--counters-since", default=None,
+                        help="ISO timestamp; decisions before this are excluded "
+                             "from all counter metrics (experiment-era reset). "
+                             "Heartbeat/equity/chart stay unfiltered.")
     args = parser.parse_args()
+    counters_since = (datetime.fromisoformat(args.counters_since).timestamp()
+                      if args.counters_since else 0.0)
 
     class Handler(BaseHTTPRequestHandler):
         def _reply(self, body: bytes, ctype: str, status: int = 200) -> None:
@@ -400,7 +412,7 @@ def main() -> None:
             route = url.path.rstrip("/")
             try:
                 if route in ("", "/metrics"):
-                    self._reply(collect(args.log_dir).encode(),
+                    self._reply(collect(args.log_dir, counters_since).encode(),
                                 "text/plain; version=0.0.4")
                 elif route == "/chart":
                     self._reply(_CHART_HTML.encode(), "text/html; charset=utf-8")
