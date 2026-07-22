@@ -463,7 +463,7 @@ load();setInterval(()=>{if(!paused)load();},15000);
 """
 
 
-_RAWLOG_HTML = """<!DOCTYPE html>
+_RAWLOG_HTML = r"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>llt — verbose log</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -481,13 +481,20 @@ _RAWLOG_HTML = """<!DOCTYPE html>
 </style></head><body>
 <div id="bar">
  <span id="syms"></span>
+ <label><input type="checkbox" id="idle"> idle cycles</label>
  <button id="pause">⏸ pause</button>
  <span id="meta"></span>
 </div>
 <div id="log"></div>
 <script>
 const SYMS=["All","BTC-USDT","ETH-USDT","SOL-USDT"];
-let sym=localStorage.rawsym||"All", paused=false;
+let sym=localStorage.rawsym||"All", paused=false,
+    showIdle=localStorage.rawidle==="1";
+// The no-op cycle chatter: separators, Starting/already-analyzed/complete,
+// and bare "[ts] [SYM]" spacer lines. Real cycles keep their meat (Signal:,
+// scores, decisions, Position updates) — only the boilerplate is dropped.
+const IDLE=[/={10,}/,/Starting analysis cycle/,/already analyzed/,
+            /Cycle complete/,/^\[[^\]]+\]\s+\[[A-Z]+-USDT\]\s*$/];
 function chip(cur,cb){const el=document.getElementById("syms");el.innerHTML="";
  for(const s of SYMS){const b=document.createElement("button");
   b.textContent=s==="All"?"All":s.split("-")[0];
@@ -495,11 +502,13 @@ function chip(cur,cb){const el=document.getElementById("syms");el.innerHTML="";
 function esc(x){return x.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
 async function load(){
  chip(sym,s=>{sym=s;localStorage.rawsym=s;load();});
+ document.getElementById("idle").checked=showIdle;
  const box=document.getElementById("log");
  const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<40;
- const d=await fetch(`/rawlogfeed?n=500`).then(r=>r.json());
+ const d=await fetch(`/rawlogfeed?n=1500`).then(r=>r.json());
  let lines=d.lines;
  if(sym!=="All"){const tag="["+sym+"]";lines=lines.filter(l=>l.includes(tag));}
+ if(!showIdle)lines=lines.filter(l=>!IDLE.some(re=>re.test(l)));
  box.innerHTML=lines.map(l=>{
    let cls="l";const u=l.toUpperCase();
    if(/TRACEBACK|ERROR|EXCEPTION|REFUSED|SAFETYVIOLATION|FAILED/.test(u))cls+=" err";
@@ -509,6 +518,8 @@ async function load(){
  if(atBottom)box.scrollTop=box.scrollHeight;
  document.getElementById("meta").textContent=`${lines.length} lines · ${d.file||"?"} · ${new Date().toLocaleTimeString()}`;
 }
+document.getElementById("idle").onchange=e=>{showIdle=e.target.checked;
+ localStorage.rawidle=showIdle?"1":"0";load();};
 document.getElementById("pause").onclick=e=>{paused=!paused;
  e.target.textContent=paused?"▶ resume":"⏸ pause";e.target.classList.toggle("on",paused);};
 load();setInterval(()=>{if(!paused)load();},15000);
