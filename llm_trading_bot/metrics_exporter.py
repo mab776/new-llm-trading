@@ -333,7 +333,13 @@ def _summary(rec: dict) -> str:
             v = f"{v:.{dec}f}".rstrip("0").rstrip(".")
         out.append(f"{label or key}={v}")
 
-    for spec in (("score", None, 2), ("side",), ("direction", "dir"),
+    score = rec.get("score")
+    if isinstance(score, (int, float)):
+        # Signed composite score; sign = direction lean (+ bullish / − bearish).
+        lean = "LONG" if score > 0 else "SHORT" if score < 0 else "FLAT"
+        out.append(f"score={score:+.2f} {lean}")
+
+    for spec in (("side",), ("direction", "dir"),
                  ("attempt", "try"), ("entry", "@", 2), ("price", "@", 2),
                  ("intended", "intended", 2), ("exit_price", "exit", 2),
                  ("size", "×", 6), ("sl", "sl", 2), ("tp1", "tp1", 2),
