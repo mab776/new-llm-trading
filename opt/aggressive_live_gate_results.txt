@@ -1,0 +1,34 @@
+== gate (chain reproduction + per-asset, current strategy) ==
+== aggressive holdout gate (2025-06 -> 2026-04) ==
+   portfolio frictionless (anchor):    37.30x  maxDD  33.3%  trades 1944
+        portfolio $100 + real mins:     2.82x  maxDD  36.2%  trades 1215
+-- per-asset standalone (frictionless) --
+                    BTC standalone:     2.00x  maxDD  23.4%  trades 615
+                    ETH standalone:    12.67x  maxDD  20.2%  trades 793
+                    SOL standalone:     8.49x  maxDD  21.6%  trades 847
+
+== balance sweep (with real mins) ==
+  $  100:    2.82x  maxDD  36.2%  log-growth retention  28.7%  trades 1215
+  $  193:   45.68x  maxDD  36.4%  log-growth retention 105.6%  trades 1944
+  $  250:   18.24x  maxDD  38.5%  log-growth retention  80.2%  trades 1675
+  $  500:   36.66x  maxDD  33.3%  log-growth retention  99.5%  trades 1938
+  $ 1000:   36.20x  maxDD  33.2%  log-growth retention  99.2%  trades 1944
+  $ 2500:   36.89x  maxDD  33.3%  log-growth retention  99.7%  trades 1944
+
+== jitter 175-215 ==
+  $175:   49.97x  maxDD  36.4%  trades 1979
+  $185:   38.92x  maxDD  36.5%  trades 1903
+  $205:   32.35x  maxDD  36.8%  trades 1851
+  $215:   36.34x  maxDD  36.3%  trades 1861
+
+== cliff finder 115-160 ==
+  $115:   40.22x  maxDD  36.3%  trades 1975
+  $130:   62.82x  maxDD  36.5%  trades 1999
+  $145:   24.41x  maxDD  36.0%  trades 1839
+  $160:   50.12x  maxDD  36.3%  trades 1965
+
+VERDICT: $100 sits on the quantization cliff (2.82x, 37% of trades lost).
+Fund >= $115, recommended $150-200 for margin. Band 115-215: retention >=88%,
+maxDD ~36.3% (vs 33.3% at scale). Multiples scatter 24-63x = path noise, read as
+~37x expectation w/ wide variance. BTC no longer a loss under aggressive on the
+current strategy (2.00x standalone; was 0.71x pre-alignment-fix).
