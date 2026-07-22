@@ -51,6 +51,8 @@ class _AssetState:
     last_close: float | None = None
     last_time: str | None = None
     last_raw_score: float | None = None  # newest composite score (rotation support)
+    entry_streak: int = 0                # consecutive same-direction entry-eligible bars
+    entry_streak_dir: str | None = None  # direction of that streak (entry_confirm_bars)
 
 
 @dataclass
@@ -434,6 +436,18 @@ def simulate_multi(
                       SignalStrength.MARGINAL if abs_score >= marginal else
                       SignalStrength.WAIT)
 
+            # Entry-confirmation streak (entry_confirm_bars): consecutive bars this
+            # symbol has been entry-eligible in the same direction. Pure bookkeeping
+            # unless the knob names this symbol — cannot alter default behavior.
+            if (signal in (SignalStrength.STRONG, SignalStrength.MARGINAL)
+                    and result.direction != Direction.NEUTRAL):
+                _sdir = "LONG" if result.direction == Direction.BULLISH else "SHORT"
+                state.entry_streak = (state.entry_streak + 1
+                                      if state.entry_streak_dir == _sdir else 1)
+                state.entry_streak_dir = _sdir
+            else:
+                state.entry_streak, state.entry_streak_dir = 0, None
+
             open_symbol = [t for t in port.open_trades if t.symbol == symbol]
             if (risk.opposite_exit_threshold > 0 and open_symbol
                     and result.direction != Direction.NEUTRAL
@@ -454,8 +468,12 @@ def simulate_multi(
                             state.consecutive_losses = 0
                             state.candles_since_loss = 999
 
+            _confirm_map = strategy["entry_confirm_bars"]
+            _confirm_need = _confirm_map.get(symbol) if _confirm_map else None
             if (signal in (SignalStrength.STRONG, SignalStrength.MARGINAL)
-                    and targets and state.cooldown <= 0):
+                    and targets and state.cooldown <= 0
+                    and (_confirm_need is None
+                         or state.entry_streak > _confirm_need)):
                 failures = apply_pre_trade_filters(
                     indicators=prim, targets=targets, min_adx=ft.min_adx,
                     min_volatility_pct=ft.min_volatility_pct,

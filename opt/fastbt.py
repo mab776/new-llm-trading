@@ -304,6 +304,13 @@ DEFAULT_STRAT = {
     "entry_slope_max": None,       # block entry if slope > this (contrarian: 0 -> only decaying entries)
     "decay_exit_bars": None,       # int N: exit when signed score fell N consecutive bars...
     "decay_exit_floor": None,      # ...AND is below this floor (both must be set)
+    # Per-symbol entry confirmation delay (opt-in, probe_btc_delay.py; multi-asset
+    # only). Dict {symbol: N}: block the named symbol's entries during the first N
+    # bars of each fresh same-direction signal episode (streak of consecutive
+    # entry-eligible bars); later episode bars — including pyramid adds — pass
+    # untouched. Exits/flips never delayed. Portfolio-crowding probe: BTC claims
+    # the margin cap first every episode and squeezes ETH/SOL out at small balances.
+    "entry_confirm_bars": None,
     "short_threshold_mult": 1.0,  # >1 = stricter shorts (asymmetry)
     "long_threshold_mult": 1.0,
     "max_positions": 1,           # >1 allows pyramiding same-direction entries

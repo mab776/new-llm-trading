@@ -1,0 +1,19 @@
+BTC entry-delay probe | multi-asset half-year folds | maker + sub-bar + funding + 2bps | frictionless folds, mins on holdout only
+
+  variant  TRAINgeo  worstF trades   folds
+ baseline    +611.9  +181.3   3472   21H1:+4200  22H1:+851  23H1:+181  24H1:+446  25H1:+191
+    BTC-1    +616.3  +179.0   3353   21H1:+3224  22H1:+1015  23H1:+209  24H1:+490  25H1:+179
+    BTC-2    +606.2  +180.9   3260   21H1:+2882  22H1:+1100  23H1:+245  24H1:+407  25H1:+181
+    ALL-1    +503.7  +167.8   2878   21H1:+1973  22H1:+723  23H1:+238  24H1:+419  25H1:+168
+
+Baseline TRAIN geo +611.9 | best BTC-delay BTC-1 +616.3 | ALL-1 +503.7
+
+Gate 1 PASSED. TEST (baseline + candidates):
+  variant   TESTgeo  worstF trades   folds
+ baseline    +324.0  +221.3   2819   21H2:+392  22H2:+319  23H2:+221  24H2:+388
+    BTC-1    +319.2  +211.1   2688   21H2:+459  22H2:+281  23H2:+211  24H2:+366
+    BTC-2    +346.1  +229.0   2682   21H2:+496  22H2:+291  23H2:+229  24H2:+416
+    ALL-1    +298.9  +214.9   2341   21H2:+470  22H2:+236  23H2:+215  24H2:+320
+
+Gate 2 (BTC-1 TEST +319.2 vs baseline +324.0 - 2): FAILED
+VERDICT: TRAIN winner fails the TEST gate — split-disagreement noise (same signature as decay-exit / rotation). STOP.
