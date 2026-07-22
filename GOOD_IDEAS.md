@@ -114,17 +114,21 @@ tax falls ~20.5% @$100 → 10.7% @$193 → ~6% @$250 → 2.2% @$1000 → ~0 @$25
 off realized balance each decision — no restart needed). Also the natural retirement path for
 ideas #2/#3.
 
-## 9. Aggressive profile — validated headroom, deliberately capped
+## 9. Aggressive profile — ✅ DEPLOYED LIVE 2026-07-22 (sub-account)
 *Origin: designed alongside standard from the start as the two-profile deliverable of the
 optimization campaign; capped by the go-live decision, not by evidence against it.*
 
 The aggressive configs hold up on the clean OOS holdout (**37.3× / 32.7% MTM DD** vs standard
 5.90× / 14.2%) and inherit every strategy fix via `_extends`.
-**Why parked:** live validation runs on the standard profile only, tiny capital, by explicit
-decision — execution realism (maker fills, slippage, TP fees) must be measured before 2×-ing
-the risk.
-**Unblocks when:** the live track record earns it (post maker-vs-taker decision, clean weeks,
-larger balance).
+**Unblocked early by Marc's explicit decision 2026-07-22:** running live on a dedicated Bitget
+**virtual sub-account** (~$169, funded via XRP) in parallel with the standard bot — a separate
+account is mandatory (one-way mode = one position book per symbol; two bots on one account
+collide and fail reconcile). Pre-go gate (`opt/aggressive_live_gate.py` + results): chain
+reproduces the 37.30× anchor exactly; per-asset BTC 2.00× (alignment fix cured the old 0.71×
+loss) / ETH 12.67× / SOL 8.49×; **⚠️ $100 sits on a quantization cliff** (2.82×, 37% of trades
+lost) — the working band starts ≥$115. Ops layout: PAPER_LIVE_READINESS_REVIEW.md
+§ "Aggressive sub-account bot". Maiden bar (20:00 UTC Jul 22): BTC+ETH maker entries filled
+2/2 zero-retry while the capped standard bot MIN_SIZE_SKIPped the identical signals.
 
 ---
 

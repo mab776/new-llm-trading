@@ -27,6 +27,17 @@ on the server and a bot on the Pi will happily trade the same account simultaneo
 After migrating, remove/disable the server-side launch (tmux session, and the Claude-RC
 autostart note if any) so a server reboot can't resurrect a second copy.
 
+## ⚠️ TWO bots exist since 2026-07-22 — this playbook covers only the standard one
+
+The **aggressive sub-account bot** (`~/Documents/new-llm-trading-aggressive`, tmux
+`trading-bot-aggr`, exporter :9106, its own keys/account — see
+PAPER_LIVE_READINESS_REVIEW.md § "Aggressive sub-account bot") runs on the server too.
+If migrating it as well, repeat every step with its checkout/session/port/keys, and
+scope the per-machine stop-before-start rule **per account**: the two bots trade
+*different* accounts, so standard-on-Pi + aggressive-on-server is safe; two copies of
+the *same* bot on two hosts is the disaster case. Prometheus rewire then needs BOTH
+jobs retargeted (`llm-trading-bot` :9105 and `llm-trading-bot-aggr` :9106 → `.75`).
+
 ## Pre-migration checklist
 
 - [ ] Pick a moment **mid-bar with no pending maker order** (they're good-for-one-bar;

@@ -1,5 +1,13 @@
 # AGENTS.md — Architecture & Development Guide
 
+> **🔴 2026-07-22 — TWO live instances now run in parallel:** the standard bot (main account,
+> capped) and the **aggressive profile on a Bitget virtual sub-account** (~$169, uncapped,
+> checkout `~/new-llm-trading-aggressive`, tmux `trading-bot-aggr`, exporter :9106, dashboard
+> `llt-aggr-drift`). Separate account is mandatory (one-way mode = one position book per
+> symbol). Layout/relaunch/gate: PAPER_LIVE_READINESS_REVIEW.md § "Aggressive sub-account bot".
+> ⚠️ For sims at small balances note the **$100 quantization cliff** (`opt/aggressive_live_gate.py`):
+> aggressive with real mins collapses to 2.82× at $100 but works from ~$115 up.
+
 > **⚡ 2026-07-19 STRATEGY UPDATE (supersedes the numbers below where they differ).**
 > Two config changes deployed LIVE (bot restarted, 398 tests, engine==fastbt parity exact):
 > 1. **Per-TF alignment weights `{"1h": 0, "1d": 3}`** (commit `49f236e`) — the hardcoded ±5

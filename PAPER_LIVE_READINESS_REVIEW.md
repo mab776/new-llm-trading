@@ -85,6 +85,57 @@ independent windows) — 0.66 confirmed, do not re-grid.
 
 ---
 
+## Aggressive sub-account bot — 🔴 LIVE since 2026-07-22 18:52 UTC
+
+A second, fully independent instance running the **aggressive profile** (uncapped exposure:
+`global_max_positions/margin_pct/notional_pct = 0`) on a dedicated **Bitget virtual
+sub-account** (~$169, funded via XRP → USDT spot → USDT-M transfer), in parallel with the
+standard bot. A separate account is **mandatory**: one-way mode keeps one position book per
+symbol, so two instances on one account would overwrite each other's positions and fail
+startup reconciliation.
+
+**Layout (mirrors the standard bot everywhere):**
+
+| Piece | Standard | Aggressive |
+|---|---|---|
+| Checkout | `~/Documents/new-llm-trading` | `~/Documents/new-llm-trading-aggressive` (same repo/commit) |
+| Keys | `~/Documents/secretKeys/secretkeys.cfg` | `~/Documents/secretKeys/bitget-agressive-subaccount.cfg` (futures-only key, deliberately no spot scope) |
+| Configs | `config*.local.json` | `config-*aggressive.local.json` (gitignored, mode 600, `_extends` the aggressive bases → inherit every strategy fix) |
+| tmux | `trading-bot` (bot + metrics) | `trading-bot-aggr` (bot + metrics) |
+| Exporter | :9105 | :9106 |
+| Prometheus job | `llm-trading-bot` | `llm-trading-bot-aggr` |
+| Dashboard | `llt-live-drift` | `llt-aggr-drift` (identical clone; iframes → :9106) |
+| Heartbeat alert | `cfsc2x9tydedca` (scoped `job="llm-trading-bot"`) | `llt-aggr-heartbeat` |
+
+**Relaunch commands** (after reboot etc. — venv `/tmp/tmlvenv` dies with the host, rebuild it
+first; see PI_MIGRATION.md):
+
+```bash
+tmux new-session -d -s trading-bot-aggr -c ~/Documents/new-llm-trading-aggressive \
+  "PYTHONPATH=. /tmp/tmlvenv/bin/python -m llm_trading_bot.main --mode live --shared-configs \
+   config-aggressive.local.json config-eth-aggressive.local.json config-sol-aggressive.local.json \
+   2>&1 | tee -a logs/stdout-supervised.log"
+tmux new-window -t trading-bot-aggr -n metrics -c ~/Documents/new-llm-trading-aggressive \
+  "python3 -m llm_trading_bot.metrics_exporter --port 9106 2>&1 | tee -a logs/metrics-exporter.log"
+```
+
+**Pre-go gate (2026-07-22, `opt/aggressive_live_gate.py` + `_results.txt`):** local chain
+reproduces the canonical holdout anchor **exactly** (37.30× / 33.3% frictionless); per-asset on
+the current strategy BTC 2.00× / ETH 12.67× / SOL 8.49× (the alignment fix cured the old
+aggressive-BTC 0.71× loss). **⚠️ Funding floor: $100 sits on a quantization cliff** (2.82×,
+37% of trades lost to min-size rounding); the working band starts ≥ $115 (validated $115–$215:
+24–63× path scatter ≈ ~37× expectation, maxDD ~36.3%; $500+ converge on 37×/33%). Account set
+one-way + isolated + 25× ×3 symbols via API, verified by readback.
+
+**Standing caveats:** both bots trade the same signals — same-direction exposure is fully
+correlated across the two accounts. Expect ~36% MTM drawdowns on the aggressive side by
+design. Its maker fills feed its own funnel (dashboards/jobs fully separated so the standard
+bot's ~Jul-30 maker-vs-taker decision stays clean). Maiden bar 20:00 UTC Jul 22: BTC + ETH
+maker entries filled 2/2 with zero retries while the capped standard bot MIN_SIZE_SKIPped the
+identical signals.
+
+---
+
 ## Remaining work before paper trading (do these, then start)
 
 **Status 2026-07-15: items 2, 3, and 4 are DONE (see the per-item notes). Item 1 is the only
@@ -446,6 +497,14 @@ was deleted. The last commit containing the LLM code is tagged **`last-llm-conse
 
 ## Change log
 
+- **2026-07-22 (aggressive sub-account go-live):** second instance running the aggressive
+  profile on a dedicated Bitget virtual sub-account (~$169) — see the new
+  § "Aggressive sub-account bot" for layout/relaunch/gate numbers. Pre-go sim gate
+  `opt/aggressive_live_gate.py`: anchor reproduced exactly (37.30×), per-asset healthy
+  (BTC 2.00×), **$100 funding-cliff discovered** (2.82×, working band ≥$115). Monitoring
+  split: standard dashboard queries scoped to `job="llm-trading-bot"` (v25), clone
+  `llt-aggr-drift` on `job="llm-trading-bot-aggr"` (:9106), heartbeat alerts per-job.
+  Maiden bar: 2/2 maker fills zero-retry; capped standard bot skipped the same signals.
 - **2026-07-15 (LLM removal + clean OOS re-measure):**
   - **All LLM/consensus/marginal-gate code removed** (commit `8d27ab7`; tag `last-llm-consensus`
     for recovery). The gate was re-tested via vLLM `qwen3.6-27b` (thinking and no-thinking, same

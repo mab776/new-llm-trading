@@ -1,5 +1,16 @@
 # Signal Trading Bot
 
+> **🔴 2026-07-22 — SECOND LIVE INSTANCE: aggressive profile on a Bitget sub-account (~$169).**
+> Runs in parallel with the standard bot (separate account is mandatory — one-way mode keeps one
+> position book per symbol). Checkout `~/new-llm-trading-aggressive`, tmux `trading-bot-aggr`,
+> exporter :9106, dashboard `llt-aggr-drift`; full layout + relaunch commands in
+> PAPER_LIVE_READINESS_REVIEW.md § "Aggressive sub-account bot". Pre-go gate
+> (`opt/aggressive_live_gate.py`): anchor reproduced 37.30×; **$100 funding-cliff** (working
+> band ≥$115); maiden bar filled 2/2 maker zero-retry while the capped standard bot skipped the
+> identical signals. Same-day probe: **BTC-only entry delay REJECTED** at the TEST gate
+> (`opt/probe_btc_delay.py`, `ed8014e`); standard-holdout win-spread measured: growth is
+> cumulative (top-5 wins = 3.2% of win log-growth), 28% of 10-day sim windows are flat-or-down.
+
 > **🔬 2026-07-20 RESEARCH NIGHT (no strategy change; live config untouched).** Three
 > portfolio-architecture probes (all opt-in fastbt/simulate_multi knobs, default-off =
 > engine-identical, 398 tests) + new tooling:
