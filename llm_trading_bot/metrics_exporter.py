@@ -316,6 +316,200 @@ def levels(symbol: str, log_dir: str) -> dict:
             "markers": markers[-300:]}
 
 
+# ---------------------------------------------------------------------------
+# Decision log feed (/logs + /logfeed): the structured decisions-*.jsonl stream
+# rendered readably. Reads only the live log dir (archived eras are excluded by
+# the same non-recursive glob the counters use). Same stdlib-only rule.
+
+def _summary(rec: dict) -> str:
+    """Compact one-line detail from a decision record's meaningful fields."""
+    out = []
+
+    def add(key, label=None, dec=None):
+        v = rec.get(key)
+        if v is None:
+            return
+        if dec is not None and isinstance(v, (int, float)):
+            v = f"{v:.{dec}f}".rstrip("0").rstrip(".")
+        out.append(f"{label or key}={v}")
+
+    for spec in (("score", None, 2), ("side",), ("direction", "dir"),
+                 ("attempt", "try"), ("entry", "@", 2), ("price", "@", 2),
+                 ("intended", "intended", 2), ("exit_price", "exit", 2),
+                 ("size", "×", 6), ("sl", "sl", 2), ("tp1", "tp1", 2),
+                 ("net_pnl_est", "pnl", 2), ("equity", "eq", 2),
+                 ("open_lots", "lots"), ("positions", "pos"),
+                 ("consecutive_losses", "losses"), ("cooldown_remaining", "cd")):
+        add(*spec)
+    reason = rec.get("reason")
+    if reason:
+        out.append(str(reason)[:120])
+    return "  ".join(out)
+
+
+def logfeed(log_dir: str, limit: int = 400, include_heartbeat: bool = False) -> list[dict]:
+    rows = []
+    for path in sorted(glob.glob(os.path.join(log_dir, "decisions-*.jsonl"))):
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    rec = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                action = str(rec.get("action") or "")
+                if not action:
+                    continue
+                if action == "HEARTBEAT" and not include_heartbeat:
+                    continue
+                ts = rec.get("timestamp") or ""
+                rows.append({
+                    "ts": _ts(rec),
+                    "t": (ts[5:10] + " " + ts[11:19]) if len(ts) >= 19 else ts,
+                    "symbol": rec.get("symbol") or "",
+                    "action": action,
+                    "detail": _summary(rec),
+                })
+    rows.sort(key=lambda r: r["ts"])
+    return rows[-limit:]
+
+
+def _tail_lines(path: str, n: int, maxbytes: int = 262144) -> list[str]:
+    """Last n lines of a file, reading only the trailing maxbytes."""
+    with open(path, "rb") as fh:
+        fh.seek(0, os.SEEK_END)
+        size = fh.tell()
+        fh.seek(max(0, size - maxbytes))
+        chunk = fh.read()
+    if size > maxbytes:  # drop the partial first line
+        chunk = chunk.split(b"\n", 1)[-1]
+    lines = chunk.decode("utf-8", "replace").splitlines()
+    return lines[-n:]
+
+
+def rawlog_lines(log_dir: str, n: int = 300) -> dict:
+    """Tail of the newest trading-*.log (the verbose per-cycle narrative)."""
+    files = sorted(glob.glob(os.path.join(log_dir, "trading-*.log")))
+    if not files:
+        return {"file": None, "lines": []}
+    path = files[-1]
+    return {"file": os.path.basename(path), "lines": _tail_lines(path, n)}
+
+
+_LOGS_HTML = """<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>llt — decision log</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+ body{margin:0;background:#111418;color:#d8dee6;font:13px ui-monospace,Menlo,Consolas,monospace}
+ #bar{display:flex;flex-wrap:wrap;gap:.4em;align-items:center;padding:.5em .7em;
+      position:sticky;top:0;background:#111418;border-bottom:1px solid #23272e;z-index:2}
+ button{background:#22262c;color:#d8dee6;border:1px solid #3a3f46;border-radius:6px;
+        padding:.4em .7em;min-height:34px;font-size:13px;cursor:pointer}
+ button.on{background:#2f6feb;border-color:#2f6feb;color:#fff}
+ label{display:inline-flex;gap:.3em;align-items:center;cursor:pointer}
+ #meta{opacity:.7}
+ table{border-collapse:collapse;width:100%}
+ td{padding:.25em .6em;border-bottom:1px solid #191d22;vertical-align:top;white-space:nowrap}
+ td.detail{white-space:normal;color:#c2c9d2}
+ .t{color:#7d8794}
+ .sym{color:#9aa4b2}
+ .act{font-weight:600;border-radius:4px;padding:.05em .45em;font-size:12px}
+ tr:hover{background:#15191e}
+</style></head><body>
+<div id="bar">
+ <span id="syms"></span>
+ <label><input type="checkbox" id="hb"> heartbeats</label>
+ <button id="pause">⏸ pause</button>
+ <span id="meta"></span>
+</div>
+<table><tbody id="rows"></tbody></table>
+<script>
+const SYMS=["All","BTC-USDT","ETH-USDT","SOL-USDT"];
+let sym=localStorage.logsym||"All", hb=localStorage.loghb==="1", paused=false;
+const COL={MAKER_FILL:"#2f6feb",PLACE_BUY_MAKER:"#26a69a",PLACE_SELL_MAKER:"#ef5350",
+ MAKER_RETRY:"#e3a008",MAKER_POST_ONLY_CANCELLED:"#d9534f",MAKER_CANCEL_UNFILLED:"#6c757d",
+ LOT_CLOSED:"#a06fe6",SIGNAL_FLIP_CLOSE:"#e8833a",TRAIL_RATCHET:"#3aa8a0",
+ MIN_SIZE_SKIP:"#5a6270",COOLDOWN_SKIP:"#5a6270",WAIT:"#454b54",HEARTBEAT:"#2f353c"};
+function chip(cur,cb){const el=document.getElementById("syms");el.innerHTML="";
+ for(const s of SYMS){const b=document.createElement("button");
+  b.textContent=s==="All"?"All":s.split("-")[0];
+  if(s===cur)b.classList.add("on");b.onclick=()=>cb(s);el.appendChild(b);}}
+async function load(){
+ chip(sym,s=>{sym=s;localStorage.logsym=s;load();});
+ document.getElementById("hb").checked=hb;
+ const rows=await fetch(`/logfeed?hb=${hb?1:0}&n=500`).then(r=>r.json());
+ const body=document.getElementById("rows");body.innerHTML="";
+ let shown=0;
+ for(const r of rows.slice().reverse()){
+  if(sym!=="All"&&r.symbol!==sym)continue;
+  const tr=document.createElement("tr");
+  const c=COL[r.action]||"#454b54";
+  tr.innerHTML=`<td class="t">${r.t}</td><td class="sym">${r.symbol.split("-")[0]}</td>`+
+   `<td><span class="act" style="background:${c}22;color:${c}">${r.action}</span></td>`+
+   `<td class="detail">${r.detail.replace(/[<>&]/g,x=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[x]))}</td>`;
+  body.appendChild(tr);shown++;}
+ document.getElementById("meta").textContent=`${shown} shown · updated ${new Date().toLocaleTimeString()}`;
+}
+document.getElementById("hb").onchange=e=>{hb=e.target.checked;localStorage.loghb=hb?"1":"0";load();};
+document.getElementById("pause").onclick=e=>{paused=!paused;
+ e.target.textContent=paused?"▶ resume":"⏸ pause";e.target.classList.toggle("on",paused);};
+load();setInterval(()=>{if(!paused)load();},15000);
+</script></body></html>
+"""
+
+
+_RAWLOG_HTML = """<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>llt — verbose log</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+ html,body{height:100%}
+ body{margin:0;background:#0d1013;color:#c2c9d2;font:12px ui-monospace,Menlo,Consolas,monospace;display:flex;flex-direction:column}
+ #bar{display:flex;flex-wrap:wrap;gap:.4em;align-items:center;padding:.45em .7em;
+      background:#111418;border-bottom:1px solid #23272e}
+ button{background:#22262c;color:#d8dee6;border:1px solid #3a3f46;border-radius:6px;
+        padding:.35em .65em;min-height:32px;font-size:12px;cursor:pointer}
+ button.on{background:#2f6feb;border-color:#2f6feb;color:#fff}
+ #meta{opacity:.65}
+ #log{flex:1;overflow:auto;padding:.4em .7em;white-space:pre-wrap;word-break:break-word}
+ .l{display:block;line-height:1.35}
+ .err{color:#ef6b6b}.warn{color:#e3a008}.dim{opacity:.55}
+</style></head><body>
+<div id="bar">
+ <span id="syms"></span>
+ <button id="pause">⏸ pause</button>
+ <span id="meta"></span>
+</div>
+<div id="log"></div>
+<script>
+const SYMS=["All","BTC-USDT","ETH-USDT","SOL-USDT"];
+let sym=localStorage.rawsym||"All", paused=false;
+function chip(cur,cb){const el=document.getElementById("syms");el.innerHTML="";
+ for(const s of SYMS){const b=document.createElement("button");
+  b.textContent=s==="All"?"All":s.split("-")[0];
+  if(s===cur)b.classList.add("on");b.onclick=()=>cb(s);el.appendChild(b);}}
+function esc(x){return x.replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
+async function load(){
+ chip(sym,s=>{sym=s;localStorage.rawsym=s;load();});
+ const box=document.getElementById("log");
+ const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<40;
+ const d=await fetch(`/rawlogfeed?n=500`).then(r=>r.json());
+ let lines=d.lines;
+ if(sym!=="All"){const tag="["+sym+"]";lines=lines.filter(l=>l.includes(tag));}
+ box.innerHTML=lines.map(l=>{
+   let cls="l";const u=l.toUpperCase();
+   if(/TRACEBACK|ERROR|EXCEPTION|REFUSED|SAFETYVIOLATION|FAILED/.test(u))cls+=" err";
+   else if(/WARN|RETRY|SKIP|CANCEL/.test(u))cls+=" warn";
+   else if(/already analyzed|Cycle complete|Starting analysis/.test(l))cls+=" dim";
+   return `<span class="${cls}">${esc(l)||"&nbsp;"}</span>`;}).join("");
+ if(atBottom)box.scrollTop=box.scrollHeight;
+ document.getElementById("meta").textContent=`${lines.length} lines · ${d.file||"?"} · ${new Date().toLocaleTimeString()}`;
+}
+document.getElementById("pause").onclick=e=>{paused=!paused;
+ e.target.textContent=paused?"▶ resume":"⏸ pause";e.target.classList.toggle("on",paused);};
+load();setInterval(()=>{if(!paused)load();},15000);
+</script></body></html>
+"""
+
+
 _CHART_HTML = """<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>llt — candles + TP/SL</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -424,6 +618,25 @@ def main() -> None:
                                 "text/plain; version=0.0.4")
                 elif route == "/chart":
                     self._reply(_CHART_HTML.encode(), "text/html; charset=utf-8")
+                elif route == "/logs":
+                    self._reply(_LOGS_HTML.encode(), "text/html; charset=utf-8")
+                elif route == "/logfeed":
+                    hb = q.get("hb", ["0"])[0] == "1"
+                    try:
+                        n = min(max(int(q.get("n", ["400"])[0]), 1), 2000)
+                    except ValueError:
+                        n = 400
+                    self._reply(json.dumps(logfeed(args.log_dir, n, hb)).encode(),
+                                "application/json")
+                elif route == "/rawlog":
+                    self._reply(_RAWLOG_HTML.encode(), "text/html; charset=utf-8")
+                elif route == "/rawlogfeed":
+                    try:
+                        n = min(max(int(q.get("n", ["300"])[0]), 1), 2000)
+                    except ValueError:
+                        n = 300
+                    self._reply(json.dumps(rawlog_lines(args.log_dir, n)).encode(),
+                                "application/json")
                 elif route == "/candles":
                     symbol = q.get("symbol", ["BTC-USDT"])[0]
                     tf = q.get("tf", ["4h"])[0]

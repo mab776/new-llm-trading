@@ -6,6 +6,10 @@ just before the dashboard/exporter counters were reset to the v2 era
 this is the human-readable tally of the go-live → v2 window (2026-07-16 16:00 UTC →
 2026-07-21 18:42 UTC, standard profile, real money).
 
+> **Update 2026-07-21 ~20:15 UTC:** the `--counters-since` filter flag was **dropped** in favour
+> of physically archiving the v1 logs to `logs/v1maker-live-run/` (see that folder's README). The
+> exporter now runs flagless and reads only the live v2 file. This snapshot's numbers are unchanged.
+
 ## Account
 - Equity ~$194.0 (peak 194.14; includes the +$97 deposit 2026-07-19 — NOT profit)
 - Realized trading P/L: **−$3.32** (gains +$2.00 / losses −$5.32; 3 W / 5 L)
