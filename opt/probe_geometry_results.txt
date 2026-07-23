@@ -1,0 +1,155 @@
+    Bitget 1h 2020-09-01 → 2025-06-01... 41641 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2025-06-01... 10591 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2025-06-01... 1736 candles (cached on disk)
+
+== Stage A — structural STOP placement (BTC TRAIN) ==
+  baseline                                     geo +166.40%/f  cx    134.16x  worst   +43.4%  DD 15.6%  tr 1762
+  swing/widen w2 b0.25 comp0                   geo +165.92%/f  cx    132.97x  worst   +40.1%  DD 15.4%  tr 1753
+  swing/widen w2 b0.25 comp1                   geo +144.36%/f  cx     87.12x  worst   +34.3%  DD 14.8%  tr 1849
+  swing/widen w2 b0.5 comp0                    geo +164.49%/f  cx    129.42x  worst   +39.4%  DD 15.6%  tr 1753
+  swing/widen w2 b0.5 comp1                    geo +137.81%/f  cx     76.06x  worst   +31.2%  DD 14.8%  tr 1867
+  swing/widen w3 b0.25 comp0                   geo +166.49%/f  cx    134.40x  worst   +38.7%  DD 15.4%  tr 1751
+  swing/widen w3 b0.25 comp1                   geo +131.46%/f  cx     66.43x  worst   +28.6%  DD 13.8%  tr 1873
+  swing/widen w3 b0.5 comp0                    geo +165.27%/f  cx    131.36x  worst   +38.1%  DD 15.6%  tr 1751
+  swing/widen w3 b0.5 comp1                    geo +124.60%/f  cx     57.15x  worst   +25.7%  DD 14.3%  tr 1892
+  swing/widen w5 b0.25 comp0                   geo +165.83%/f  cx    132.74x  worst   +36.7%  DD 15.6%  tr 1748
+  swing/widen w5 b0.25 comp1                   geo  +96.53%/f  cx     29.32x  worst   +16.1%  DD 15.7%  tr 1916
+  swing/widen w5 b0.5 comp0                    geo +165.19%/f  cx    131.16x  worst   +36.0%  DD 15.7%  tr 1748
+  swing/widen w5 b0.5 comp1                    geo  +90.51%/f  cx     25.09x  worst   +15.0%  DD 15.4%  tr 1925
+  swing/tighten w2 b0.25 comp0                 geo +154.53%/f  cx    106.83x  worst   +42.9%  DD 18.3%  tr 1796
+  swing/tighten w2 b0.25 comp1                 geo +154.53%/f  cx    106.83x  worst   +42.9%  DD 18.3%  tr 1796
+  swing/tighten w2 b0.5 comp0                  geo +157.77%/f  cx    113.81x  worst   +45.8%  DD 17.2%  tr 1783
+  swing/tighten w2 b0.5 comp1                  geo +157.77%/f  cx    113.81x  worst   +45.8%  DD 17.2%  tr 1783
+  swing/tighten w3 b0.25 comp0                 geo +160.14%/f  cx    119.12x  worst   +45.6%  DD 16.3%  tr 1782
+  swing/tighten w3 b0.25 comp1                 geo +160.14%/f  cx    119.12x  worst   +45.6%  DD 16.3%  tr 1782
+  swing/tighten w3 b0.5 comp0                  geo +162.07%/f  cx    123.62x  worst   +47.6%  DD 16.8%  tr 1773
+  swing/tighten w3 b0.5 comp1                  geo +162.07%/f  cx    123.62x  worst   +47.6%  DD 16.8%  tr 1773
+  swing/tighten w5 b0.25 comp0                 geo +162.17%/f  cx    123.86x  worst   +40.4%  DD 15.6%  tr 1767
+  swing/tighten w5 b0.25 comp1                 geo +162.17%/f  cx    123.86x  worst   +40.4%  DD 15.6%  tr 1767
+  swing/tighten w5 b0.5 comp0                  geo +163.76%/f  cx    127.66x  worst   +44.6%  DD 15.6%  tr 1766
+  swing/tighten w5 b0.5 comp1                  geo +163.76%/f  cx    127.66x  worst   +44.6%  DD 15.6%  tr 1766
+  swing/replace w2 b0.25 comp0                 geo +153.39%/f  cx    104.45x  worst   +39.1%  DD 18.2%  tr 1788
+  swing/replace w2 b0.25 comp1                 geo +130.09%/f  cx     64.49x  worst   +30.1%  DD 17.1%  tr 1883
+  swing/replace w2 b0.5 comp0                  geo +155.51%/f  cx    108.89x  worst   +41.3%  DD 17.2%  tr 1775
+  swing/replace w2 b0.5 comp1                  geo +127.55%/f  cx     61.01x  worst   +31.3%  DD 16.2%  tr 1891
+  swing/replace w3 b0.25 comp0                 geo +159.00%/f  cx    116.54x  worst   +40.5%  DD 16.2%  tr 1773
+  swing/replace w3 b0.25 comp1                 geo +123.10%/f  cx     55.27x  worst   +28.0%  DD 14.9%  tr 1890
+  swing/replace w3 b0.5 comp0                  geo +160.12%/f  cx    119.09x  worst   +39.9%  DD 16.8%  tr 1762
+  swing/replace w3 b0.5 comp1                  geo +118.94%/f  cx     50.30x  worst   +27.1%  DD 15.4%  tr 1902
+  swing/replace w5 b0.25 comp0                 geo +161.07%/f  cx    121.29x  worst   +32.9%  DD 15.6%  tr 1755
+  swing/replace w5 b0.25 comp1                 geo  +92.50%/f  cx     26.43x  worst   +12.5%  DD 16.1%  tr 1925
+  swing/replace w5 b0.5 comp0                  geo +162.03%/f  cx    123.52x  worst   +35.0%  DD 15.8%  tr 1753
+  swing/replace w5 b0.5 comp1                  geo  +87.14%/f  cx     22.95x  worst   +13.9%  DD 15.9%  tr 1932
+  trendline/widen w2 b0.25 comp0               geo +166.01%/f  cx    133.19x  worst   +40.2%  DD 15.4%  tr 1753
+  trendline/widen w2 b0.25 comp1               geo +150.69%/f  cx     99.01x  worst   +36.8%  DD 14.7%  tr 1820
+  trendline/widen w2 b0.5 comp0                geo +165.50%/f  cx    131.93x  worst   +39.9%  DD 15.4%  tr 1753
+  trendline/widen w2 b0.5 comp1                geo +146.77%/f  cx     91.50x  worst   +35.3%  DD 14.6%  tr 1828
+  trendline/widen w3 b0.25 comp0               geo +165.57%/f  cx    132.10x  worst   +39.1%  DD 15.4%  tr 1753
+  trendline/widen w3 b0.25 comp1               geo +137.86%/f  cx     76.14x  worst   +30.5%  DD 14.5%  tr 1831
+  trendline/widen w3 b0.5 comp0                geo +165.29%/f  cx    131.40x  worst   +38.8%  DD 15.4%  tr 1754
+  trendline/widen w3 b0.5 comp1                geo +132.26%/f  cx     67.60x  worst   +29.1%  DD 14.3%  tr 1842
+  trendline/widen w5 b0.25 comp0               geo +163.73%/f  cx    127.59x  worst   +36.8%  DD 15.4%  tr 1753
+  trendline/widen w5 b0.25 comp1               geo +104.62%/f  cx     35.88x  worst   +18.9%  DD 14.8%  tr 1866
+  trendline/widen w5 b0.5 comp0                geo +165.43%/f  cx    131.74x  worst   +38.1%  DD 15.4%  tr 1752
+  trendline/widen w5 b0.5 comp1                geo +100.58%/f  cx     32.47x  worst   +19.5%  DD 13.9%  tr 1871
+  trendline/tighten w2 b0.25 comp0             geo +153.60%/f  cx    104.89x  worst   +33.7%  DD 17.2%  tr 1800
+  trendline/tighten w2 b0.25 comp1             geo +153.60%/f  cx    104.89x  worst   +33.7%  DD 17.2%  tr 1800
+  trendline/tighten w2 b0.5 comp0              geo +163.45%/f  cx    126.92x  worst   +35.6%  DD 17.2%  tr 1799
+  trendline/tighten w2 b0.5 comp1              geo +163.45%/f  cx    126.92x  worst   +35.6%  DD 17.2%  tr 1799
+  trendline/tighten w3 b0.25 comp0             geo +165.11%/f  cx    130.96x  worst   +56.5%  DD 14.7%  tr 1793
+  trendline/tighten w3 b0.25 comp1             geo +165.11%/f  cx    130.96x  worst   +56.5%  DD 14.7%  tr 1793
+  trendline/tighten w3 b0.5 comp0              geo +167.38%/f  cx    136.67x  worst   +47.2%  DD 15.1%  tr 1787
+  trendline/tighten w3 b0.5 comp1              geo +167.38%/f  cx    136.67x  worst   +47.2%  DD 15.1%  tr 1787
+  trendline/tighten w5 b0.25 comp0             geo +171.70%/f  cx    148.06x  worst   +45.8%  DD 14.5%  tr 1805
+  trendline/tighten w5 b0.25 comp1             geo +171.70%/f  cx    148.06x  worst   +45.8%  DD 14.5%  tr 1805
+  trendline/tighten w5 b0.5 comp0              geo +163.90%/f  cx    127.99x  worst   +39.4%  DD 15.0%  tr 1797
+  trendline/tighten w5 b0.5 comp1              geo +163.90%/f  cx    127.99x  worst   +39.4%  DD 15.0%  tr 1797
+  trendline/replace w2 b0.25 comp0             geo +152.70%/f  cx    103.05x  worst   +29.9%  DD 17.2%  tr 1791
+  trendline/replace w2 b0.25 comp1             geo +136.71%/f  cx     74.32x  worst   +24.7%  DD 17.1%  tr 1858
+  trendline/replace w2 b0.5 comp0              geo +162.24%/f  cx    124.01x  worst   +31.6%  DD 17.1%  tr 1790
+  trendline/replace w2 b0.5 comp1              geo +141.55%/f  cx     82.23x  worst   +24.4%  DD 17.2%  tr 1862
+  trendline/replace w3 b0.25 comp0             geo +163.58%/f  cx    127.23x  worst   +51.1%  DD 14.7%  tr 1784
+  trendline/replace w3 b0.25 comp1             geo +135.34%/f  cx     72.19x  worst   +40.4%  DD 13.2%  tr 1862
+  trendline/replace w3 b0.5 comp0              geo +165.97%/f  cx    133.10x  worst   +41.8%  DD 15.1%  tr 1779
+  trendline/replace w3 b0.5 comp1              geo +131.83%/f  cx     66.96x  worst   +30.6%  DD 13.3%  tr 1865
+  trendline/replace w5 b0.25 comp0             geo +168.19%/f  cx    138.75x  worst   +37.5%  DD 14.9%  tr 1797
+  trendline/replace w5 b0.25 comp1             geo +106.34%/f  cx     37.40x  worst   +18.2%  DD 12.1%  tr 1909
+  trendline/replace w5 b0.5 comp0              geo +161.08%/f  cx    121.29x  worst   +32.4%  DD 15.1%  tr 1788
+  trendline/replace w5 b0.5 comp1              geo  +95.22%/f  cx     28.36x  worst   +12.8%  DD 13.1%  tr 1908
+  baseline TRAIN geo +166.40 | top5:
+    trendline/tighten w5 b0.25 comp1: +171.70
+    trendline/tighten w5 b0.25 comp0: +171.70
+    trendline/replace w5 b0.25 comp0: +168.19
+    trendline/tighten w3 b0.5 comp1: +167.38
+    trendline/tighten w3 b0.5 comp0: +167.38
+
+== Stage B — entry proximity gate (BTC TRAIN) ==
+  baseline                                     geo +166.40%/f  cx    134.16x  worst   +43.4%  DD 15.6%  tr 1762
+  gate w2 x1.0                                 geo  +16.53%/f  cx      2.15x  worst    +2.0%  DD  8.5%  tr  322
+  gate w2 x2.0                                 geo  +67.85%/f  cx     13.32x  worst    +9.7%  DD 11.9%  tr  839
+  gate w2 x3.0                                 geo +100.70%/f  cx     32.56x  worst    +4.9%  DD 15.5%  tr 1286
+  gate w3 x1.0                                 geo  +12.40%/f  cx      1.79x  worst    +7.0%  DD  7.3%  tr  192
+  gate w3 x2.0                                 geo  +46.17%/f  cx      6.67x  worst    +2.9%  DD 11.4%  tr  633
+  gate w3 x3.0                                 geo  +81.40%/f  cx     19.64x  worst    +6.8%  DD 17.1%  tr 1110
+  gate w5 x1.0                                 geo   +2.99%/f  cx      1.16x  worst    +0.2%  DD  4.0%  tr   60
+  gate w5 x2.0                                 geo  +14.85%/f  cx      2.00x  worst    -0.6%  DD 11.8%  tr  291
+  gate w5 x3.0                                 geo  +33.37%/f  cx      4.22x  worst    -1.6%  DD 19.1%  tr  752
+  baseline TRAIN geo +166.40 | top3:
+    gate w2 x3.0: +100.70
+    gate w3 x3.0: +81.40
+    gate w2 x2.0: +67.85
+
+== Stage C — structure-break exit (BTC TRAIN) ==
+  baseline                                     geo +166.40%/f  cx    134.16x  worst   +43.4%  DD 15.6%  tr 1762
+  break swing w2                               geo +140.75%/f  cx     80.87x  worst   +43.3%  DD 15.7%  tr 1832
+  break swing w3                               geo +153.83%/f  cx    105.36x  worst   +38.6%  DD 15.4%  tr 1806
+  break swing w5                               geo +165.54%/f  cx    132.03x  worst   +42.8%  DD 15.4%  tr 1781
+  break trendline w2                           geo +102.98%/f  cx     34.46x  worst   +30.7%  DD 13.0%  tr 2106
+  break trendline w3                           geo +109.15%/f  cx     40.02x  worst   +20.7%  DD 16.3%  tr 2043
+  break trendline w5                           geo +127.31%/f  cx     60.69x  worst   +25.9%  DD 13.1%  tr 1928
+  baseline TRAIN geo +166.40 | top3:
+    break swing w5: +165.54
+    break swing w3: +153.83
+    break swing w2: +140.75
+
+== Stage D — TEST gate (sole TRAIN survivor: trendline/tighten w5 b0.25) ==
+  baseline TRAIN                               geo +166.40%/f  cx    134.16x  worst   +43.4%  DD 15.6%  tr 1762
+  baseline TEST                                geo  +66.79%/f  cx      7.74x  worst   +34.3%  DD 23.9%  tr 1341
+  candidate TRAIN                              geo +171.70%/f  cx    148.06x  worst   +45.8%  DD 14.5%  tr 1805
+  candidate TEST                               geo  +63.15%/f  cx      7.08x  worst   +27.8%  DD 18.6%  tr 1363
+  baseline FULL                                geo +301.61%/f  cx   1044.80x  worst   +43.4%  DD 23.5%  tr 3106
+  candidate FULL                               geo +300.79%/f  cx   1034.10x  worst   +45.8%  DD 18.1%  tr 3172
+
+GATE 1 (TRAIN): +171.70 vs +166.40 -> PASS
+GATE 2 (TEST):  +63.15 vs +66.79 -> FAIL
+
+================================ VERDICT (2026-07-23) ================================
+REJECTED for adoption — pre-committed TEST gate failed (TRAIN +5.3 / TEST -3.6 =
+split-disagreement noise, the same signature as decay-exit / rotation / entry-delay /
+cap-overshoot-S).
+
+Stage results:
+  A structural stops : 6/72 cells beat TRAIN baseline; best = trendline/TIGHTEN w5
+    b0.25 (pull the stop UP to just below the rising trendline when closer than the
+    ATR stop). Return edge did not confirm on TEST.
+  B entry proximity  : 0/9 — catastrophic (best -66 geo pts). "Only buy near
+    geometric support" removes the extended/momentum entries that carry the edge.
+    This directly answers "shouldn't the bot see supports before entering": NO.
+  C break exit       : 0/6 — the trailing stop already does this job better.
+
+UNSELECTED ROBUSTNESS OBSERVATION (report-only, not acted on): the Stage-A winner
+is return-neutral on FULL (300.8 vs 301.6 geo) while reducing max DD on EVERY split
+(TRAIN 14.5 vs 15.6, TEST 18.6 vs 23.9, FULL 18.1 vs 23.5). Same pattern class as
+the rotation worst-fold observation -> GOOD_IDEAS: revisit only under a NEW
+robustness-targeted pre-committed protocol (select on DD/worst-fold, not return).
+
+Note for the live incident that motivated this (2026-07-23 whipsaw): on that day the
+ATR stops were ALREADY tighter than the trendline level, so even the winning variant
+would have made identical decisions. The stop-outs were the strategy's real cost.
+
+Method: opt/probe_geometry.py; causal swing pivots (wing bars each side, confirmed
+wing bars later — lookahead-free, unit-tested), 2-pivot directional trendlines;
+default-off knobs verified digit-equal vs HEAD (2024 + 22H1 folds); thresholds/
+filters/TP rails always saw baseline ATR geometry (isolates stop placement);
+slip 2bps, funding on, liquidation modeled, primary-granularity exits.
+======================================================================================

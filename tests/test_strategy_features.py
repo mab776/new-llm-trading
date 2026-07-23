@@ -83,3 +83,37 @@ def test_opposite_exit_closes_only_opposing_trades():
     # signal_flip is a loss here but must NOT trigger the SL cooldown
     assert eng.cooldown_remaining == 0
     assert eng.consecutive_losses == 1
+
+
+# ── Geometric structure levels (probe_geometry research knobs) ──
+
+def test_structure_pivot_confirmation_is_causal():
+    """A swing low at bar j must be invisible before j+wing and visible at j+wing."""
+    import numpy as np
+    from opt.fastbt import compute_structure_levels
+    lows = np.array([10, 9, 8, 5, 8, 9, 10, 11, 12, 13], dtype=float)
+    highs = lows + 1
+    wing = 2
+    sup, _res, _sl, _rl = compute_structure_levels(lows, highs, wing)
+    # pivot low at j=3 (value 5): confirmed at i = j + wing = 5
+    assert np.isnan(sup[4]), "pivot visible before confirmation = lookahead"
+    assert sup[5] == 5.0
+    assert sup[9] == 5.0
+
+
+def test_structure_trendline_rising_only():
+    """Support trendline requires the second pivot low ABOVE the first."""
+    import numpy as np
+    from opt.fastbt import compute_structure_levels
+    # two pivot lows: j=3 (5.0) then j=9 (7.0) -> rising line
+    lows = np.array([10, 9, 8, 5, 8, 9, 10, 9, 8, 7, 8, 9, 10, 11], dtype=float)
+    highs = lows + 1
+    sup, _res, line, _rl = compute_structure_levels(lows, highs, 2)
+    # line confirmed once second pivot (j=9) confirms at i=11
+    assert np.isnan(line[10])
+    slope = (7.0 - 5.0) / (9 - 3)
+    assert abs(line[11] - (7.0 + slope * (11 - 9))) < 1e-9
+    # falling lows -> no rising support line ever
+    lows2 = np.array([13, 12, 11, 8, 11, 12, 10, 9, 7, 5, 7, 8, 9, 10], dtype=float)
+    sup2, _r2, line2, _rl2 = compute_structure_levels(lows2, lows2 + 1, 2)
+    assert np.isnan(line2).all()

@@ -254,6 +254,50 @@ def deterministic_maker_fill(probability: float, seed: int, key: str) -> bool:
     return sample < probability
 
 
+def compute_structure_levels(lows: np.ndarray, highs: np.ndarray, wing: int):
+    """Causal swing-pivot structure levels per bar (probe_geometry).
+
+    A swing low at bar j is a bar whose low is <= every low within `wing` bars
+    on BOTH sides; it is only CONFIRMED at bar j+wing (no lookahead: bar i uses
+    pivots with j <= i-wing). Trendlines use the last TWO confirmed pivots and
+    are directional-only: support line must be rising, resistance line falling
+    (a flat/contrary line is no geometric trend — NaN).
+
+    Returns (sup_swing, res_swing, sup_line, res_line) float arrays, NaN where
+    unavailable.
+    """
+    n = len(lows)
+    sup_swing = np.full(n, np.nan)
+    res_swing = np.full(n, np.nan)
+    sup_line = np.full(n, np.nan)
+    res_line = np.full(n, np.nan)
+    lo_piv: list[tuple[int, float]] = []   # (index, value), confirmed
+    hi_piv: list[tuple[int, float]] = []
+    for i in range(n):
+        j = i - wing  # candidate pivot confirmed at bar i
+        if j - wing >= 0:
+            w_lo = lows[j - wing: j + wing + 1]
+            w_hi = highs[j - wing: j + wing + 1]
+            # NaN in the window (warmup rows) disqualifies the candidate.
+            if not np.isnan(w_lo).any() and lows[j] <= w_lo.min():
+                lo_piv.append((j, float(lows[j])))
+            if not np.isnan(w_hi).any() and highs[j] >= w_hi.max():
+                hi_piv.append((j, float(highs[j])))
+        if lo_piv:
+            sup_swing[i] = lo_piv[-1][1]
+            if len(lo_piv) >= 2:
+                (j1, v1), (j2, v2) = lo_piv[-2], lo_piv[-1]
+                if v2 > v1:  # rising support only
+                    sup_line[i] = v2 + (v2 - v1) / (j2 - j1) * (i - j2)
+        if hi_piv:
+            res_swing[i] = hi_piv[-1][1]
+            if len(hi_piv) >= 2:
+                (j1, v1), (j2, v2) = hi_piv[-2], hi_piv[-1]
+                if v2 < v1:  # falling resistance only
+                    res_line[i] = v2 + (v2 - v1) / (j2 - j1) * (i - j2)
+    return sup_swing, res_swing, sup_line, res_line
+
+
 DEFAULT_STRAT = {
     # All defaults preserve the current engine behavior exactly.
     # Entry fill model (backlog #4). "taker": current behavior — market order at the
@@ -313,6 +357,21 @@ DEFAULT_STRAT = {
     "entry_confirm_bars": None,
     "short_threshold_mult": 1.0,  # >1 = stricter shorts (asymmetry)
     "long_threshold_mult": 1.0,
+    # Geometric-structure research knobs (opt-in, probe_geometry.py; NOT live).
+    # Causal swing pivots: a swing low at bar j (lowest low within `wing` bars
+    # each side) is CONFIRMED only at j+wing; bar i sees confirmed pivots only.
+    # Trendline = line through the last TWO confirmed pivot lows, rising only
+    # (mirror: swing highs, falling only, for shorts). struct_pivot_n None
+    # disables every structure feature (engine-identical). TP1/TP2 stay the
+    # ATR-based rails even when the SL moves (trailing owns the exits).
+    "struct_pivot_n": None,        # int pivot wing width (bars each side)
+    "sl_structure": None,          # None | "swing" | "trendline" — structural SL source
+    "sl_structure_mode": "widen",  # "widen" (only move SL beyond ATR stop) |
+    #                                "tighten" (only pull it closer) | "replace"
+    "sl_structure_buffer_atr": 0.25,  # SL sits buffer*ATR beyond the structure level
+    "sl_structure_size_comp": False,  # scale risk by atr_dist/struct_dist (cap [0.25,1])
+    "entry_struct_max_atr": None,  # only enter within X ATR of swing support/resistance
+    "struct_break_exit": None,     # None | "swing" | "trendline": close on bar-close through level
     "max_positions": 1,           # >1 allows pyramiding same-direction entries
     # Ex-ante exposure controls; None preserves the uncapped behavior.
     "global_max_positions": None, # open positions + resting maker entries
@@ -475,6 +534,14 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
         raise ValueError("maker_queue_penetration_bps must be non-negative")
     if not 0 <= st["maker_fill_probability"] <= 1:
         raise ValueError("maker_fill_probability must be between 0 and 1")
+    # Geometric structure levels (research; None = every structure feature off)
+    struct_levels = None
+    if st["struct_pivot_n"]:
+        _lo = np.array([ind.low if ind is not None else np.nan
+                        for ind in pre.primary], dtype=float)
+        _hi = np.array([ind.high if ind is not None else np.nan
+                        for ind in pre.primary], dtype=float)
+        struct_levels = compute_structure_levels(_lo, _hi, int(st["struct_pivot_n"]))
     tr = config.trading
     tier = tr.active_leverage_tier
     sc = config.scoring
@@ -762,6 +829,39 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                         "streak_applied": True,
                     })
 
+        # Geometric structure-break exit (research knob): the bar closed through
+        # the causal swing/trendline level backing the position — exit at close
+        # (taker+slip), same fee/streak accounting as signal_flip/decay_exit.
+        # The level updates as new pivots confirm (a natural structural trail).
+        if (st["struct_break_exit"] is not None and struct_levels is not None
+                and port.open_trades):
+            _ss, _rs, _sl_ln, _rs_ln = struct_levels
+            for trade in list(port.open_trades):
+                src = st["struct_break_exit"]
+                if trade.direction == "LONG":
+                    lvl = _sl_ln[i] if src == "trendline" else _ss[i]
+                    if lvl != lvl and src == "trendline":
+                        lvl = _ss[i]
+                    broke = lvl == lvl and bar_close < lvl
+                else:
+                    lvl = _rs_ln[i] if src == "trendline" else _rs[i]
+                    if lvl != lvl and src == "trendline":
+                        lvl = _rs[i]
+                    broke = lvl == lvl and bar_close > lvl
+                if broke:
+                    fill = (bar_close * (1 - slip) if trade.direction == "LONG"
+                            else bar_close * (1 + slip))
+                    port.close_trade(trade, fill, ts, "struct_break")
+                    outcome_streak = update_outcome_streak(
+                        outcome_streak, trade.net_pnl > 0
+                    )
+                    if not hasattr(port, "_risk_events"):
+                        port._risk_events = []
+                    port._risk_events.append({
+                        "loss": trade.net_pnl <= 0, "sl": False,
+                        "streak_applied": True,
+                    })
+
         if signal in (SignalStrength.STRONG, SignalStrength.MARGINAL) and targets:
             if cooldown > 0:
                 pass
@@ -833,11 +933,32 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                         rising_block = True
                     if st["entry_slope_max"] is not None and delta > st["entry_slope_max"]:
                         rising_block = True
+                # Geometric entry-proximity gate (research): only enter within
+                # X ATR of the confirmed swing support (LONG) / resistance
+                # (SHORT) — "buy near structure, not extended". No structure
+                # yet, or structure on the wrong side of price, blocks too.
+                struct_gate_block = False
+                if (st["entry_struct_max_atr"] is not None and struct_levels is not None
+                        and prim.atr_14):
+                    _ss, _rs, _unused_l, _unused_r = struct_levels
+                    if direction_str == "LONG":
+                        lvl = _ss[i]
+                        struct_gate_block = (
+                            lvl != lvl or lvl >= bar_close
+                            or (bar_close - lvl) > st["entry_struct_max_atr"] * prim.atr_14
+                        )
+                    else:
+                        lvl = _rs[i]
+                        struct_gate_block = (
+                            lvl != lvl or lvl <= bar_close
+                            or (lvl - bar_close) > st["entry_struct_max_atr"] * prim.atr_14
+                        )
                 can_enter = (committed < slots
                              and global_slot_ok
                              and all(t.direction == direction_str for t in port.open_trades)
                              and pend_ok)
-                if not fails and can_enter and not fund_block and not rising_block:
+                if (not fails and can_enter and not fund_block and not rising_block
+                        and not struct_gate_block):
                     gate_accept = True
                     if signal == SignalStrength.MARGINAL:
                         marginal_candidates += 1
@@ -868,6 +989,47 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                             outcome_streak, st["anti_martingale_step"],
                             st["anti_martingale_min"], st["anti_martingale_max"],
                         )
+                        # Structural stop override (research): move ONLY the
+                        # executed SL to the geometric level. Thresholds,
+                        # filters and TP rails all saw the baseline ATR
+                        # geometry — this isolates stop PLACEMENT. Liquidation
+                        # modeling still bounds an over-wide stop at 25x.
+                        if (st["sl_structure"] is not None and struct_levels is not None
+                                and prim.atr_14):
+                            _ss, _rs, _sl_ln, _rs_ln = struct_levels
+                            src = st["sl_structure"]
+                            buf = st["sl_structure_buffer_atr"] * prim.atr_14
+                            atr_sl = targets.stop_loss
+                            mode = st["sl_structure_mode"]
+                            new_sl = None
+                            if direction_str == "LONG":
+                                lvl = _sl_ln[i] if src == "trendline" else _ss[i]
+                                if lvl != lvl and src == "trendline":
+                                    lvl = _ss[i]
+                                if lvl == lvl and lvl < bar_close:
+                                    cand = lvl - buf
+                                    new_sl = (min(atr_sl, cand) if mode == "widen"
+                                              else max(atr_sl, cand) if mode == "tighten"
+                                              else cand)
+                                    if not (new_sl < bar_close):
+                                        new_sl = None
+                            else:
+                                lvl = _rs_ln[i] if src == "trendline" else _rs[i]
+                                if lvl != lvl and src == "trendline":
+                                    lvl = _rs[i]
+                                if lvl == lvl and lvl > bar_close:
+                                    cand = lvl + buf
+                                    new_sl = (max(atr_sl, cand) if mode == "widen"
+                                              else min(atr_sl, cand) if mode == "tighten"
+                                              else cand)
+                                    if not (new_sl > bar_close):
+                                        new_sl = None
+                            if new_sl is not None and new_sl != atr_sl:
+                                if st["sl_structure_size_comp"]:
+                                    ratio = (abs(bar_close - atr_sl)
+                                             / max(1e-9, abs(bar_close - new_sl)))
+                                    risk_eff *= max(0.25, min(1.0, ratio))
+                                targets.stop_loss = new_sl
                         committed_margin = sum(
                             t.remaining_size * t.entry_price / t.leverage
                             for t in port.open_trades if t.leverage > 0

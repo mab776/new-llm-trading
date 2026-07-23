@@ -130,6 +130,25 @@ lost) — the working band starts ≥$115. Ops layout: PAPER_LIVE_READINESS_REVI
 § "Aggressive sub-account bot". Maiden bar (20:00 UTC Jul 22): BTC+ETH maker entries filled
 2/2 zero-retry while the capped standard bot MIN_SIZE_SKIPped the identical signals.
 
+## 10. Trendline-tightened stops as a ROBUSTNESS knob (growth version rejected)
+*Origin: Marc, 2026-07-23 — the live whipsaw day put every ATR stop just above the rising
+trendline BTC tagged and bounced from; "the bot doesn't see geometric supports?". Searched
+the same day; growth verdict negative, DD signal unexpected.*
+
+Causal swing-pivot/trendline features (`opt/fastbt.py` structure knobs, `opt/probe_geometry.py`).
+Growth gates: entry-proximity gate **catastrophic** (0/9, best −66 geo — extended entries ARE
+the edge), structure-break exit 0/6, and the structural-stop TRAIN winner
+(trendline/**tighten** w5 b0.25: pull the SL up to just below the rising trendline when that
+is closer than the ATR stop) passed TRAIN (+171.7 vs +166.4) but **failed TEST** (+63.2 vs
++66.8) = split-disagreement noise. **But** (post-hoc, unselected): that cell is return-neutral
+on FULL (300.8 vs 301.6 geo/f) while cutting **max DD on every split** — TRAIN 14.5↓15.6,
+TEST 18.6↓23.9, FULL 18.1↓23.5. Same pattern class as #4. Note: on the motivating live day
+the ATR stops were already tighter than the trendline — even this variant would have traded
+that day identically; the stop-outs were the strategy's real cost.
+**Why parked:** the DD effect is not what the protocol selected for.
+**Unblocks when:** a robustness/DD-targeted pre-committed protocol (select on DD/worst-fold,
+not geo) — natural to run jointly with #4. Full grids: `opt/probe_geometry_results.txt`.
+
 ---
 
 **Already-scheduled decision (not an idea):** maker-vs-taker entry, ~**2026-07-30** — the 86%
@@ -138,5 +157,6 @@ rule on the live fill funnel decides; every maker placement is evidence. Don't p
 **Not on this list (graveyard — don't re-pitch without a new mechanism):** LLM gate/consensus,
 decay exits & slope gating, marginal half-size, 1d adx_di overlay, regime-switching overlays,
 anti-martingale sizing, 1h/5m static transplants, 5m scalping & 15m mean-reversion, reserved
-per-asset capital, rotation-for-growth, consecutive-loss penalty, NeuTTS-style CPU ideas.
+per-asset capital, rotation-for-growth, consecutive-loss penalty, NeuTTS-style CPU ideas,
+geometric entry-proximity gating & structure-break exits (probe_geometry 2026-07-23).
 See `opt/README.md` round history and the probe results files.
