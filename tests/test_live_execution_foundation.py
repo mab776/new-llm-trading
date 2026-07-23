@@ -382,6 +382,45 @@ def test_maker_retry_replaces_rejected_order(monkeypatch, tmp_path) -> None:
     assert [r["action"] for r in logged] == ["MAKER_RETRY"]
 
 
+def test_maker_retry_uses_unique_attempt_oid(monkeypatch, tmp_path) -> None:
+    """Every retry must carry a fresh oid derived from the ORIGINAL entry oid
+    (root-rN). Recomputing _entry_client_oid() at reconcile time collapsed all
+    retries onto one eternal H("manual") oid — Bitget's clientOid idempotency
+    then resurrected a dead order from an earlier bar and reconcile "filled"
+    it again (phantom fills, 2026-07-23)."""
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)
+    scheduler.config.trading.maker_retry_max = 3
+    scheduler._pending_orders["ord-1"] = _rejected_pending()
+    logged, placed = [], []
+    _wire_retry(scheduler, monkeypatch, logged, placed, bid=98.0)
+    scheduler._reconcile_pending_orders()
+    assert placed[0]["client_oid"] == "llt-old-r1"
+    new = scheduler._pending_orders["retry-1"]
+    assert new["entry_oid_root"] == "llt-old"
+    assert new["client_oid"] == "llt-old-r1"
+    # Second rejection: attempt 2 derives from the SAME root, not from r1.
+    scheduler._reconcile_pending_orders()
+    assert placed[1]["client_oid"] == "llt-old-r2"
+    assert scheduler._pending_orders["retry-2"]["entry_oid_root"] == "llt-old"
+
+
+def test_activation_refuses_foreign_client_oid(monkeypatch, tmp_path) -> None:
+    """If the exchange resolves a pending order to an order carrying a
+    DIFFERENT clientOid (stale idempotency adoption), activation must refuse:
+    no lot built or overwritten, pending dropped, mismatch logged."""
+    scheduler = TradingScheduler(_config(), log_dir=tmp_path)
+    scheduler._pending_orders["ord-1"] = _rejected_pending()
+    logged = []
+    monkeypatch.setattr(scheduler, "_log_decision", lambda rec: logged.append(rec))
+    scheduler._activate_filled_pending("ord-1", {
+        "state": "filled", "clientOid": "llt-someone-else",
+        "baseVolume": "1", "priceAvg": "100",
+    })
+    assert scheduler._pending_orders == {}
+    assert scheduler._tracked_trades == {}
+    assert [r["action"] for r in logged] == ["MAKER_ACTIVATE_MISMATCH"]
+
+
 def test_maker_retry_never_chases_above_intended(monkeypatch, tmp_path) -> None:
     """If the market bounced back above the intended limit, re-place AT the
     intended limit (rests normally) — the retry must never chase price up."""

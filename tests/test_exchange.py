@@ -128,6 +128,55 @@ class TestRequestSigning:
         assert result.order_id == "accepted"
         assert calls[-1][2]["params"]["clientOid"] == "stable"
 
+    def test_definite_rejection_never_recovers_stale_order(self, monkeypatch):
+        """HTTP 4xx means Bitget REJECTED the request (e.g. duplicate
+        clientOid). Recovery must not adopt whatever order currently holds
+        that oid — that resurrected a filled order from an earlier bar and
+        double-counted its fill (phantom fills, 2026-07-23)."""
+        from types import SimpleNamespace
+        client = BitgetClient(BitgetConfig())
+        targets = TradeTargets(100, 90, 110, 120, 10, 10, 20, Direction.BULLISH)
+        monkeypatch.setattr(client, "set_leverage", lambda *a, **k: {})
+        lookups = []
+
+        def fake_request(method, path, **kwargs):
+            if method == "POST":
+                raise requests.HTTPError(
+                    "400 duplicate clientOid",
+                    response=SimpleNamespace(status_code=400),
+                )
+            lookups.append(path)
+            return {"data": {"orderId": "stale-zombie", "clientOid": "stable"}}
+
+        monkeypatch.setattr(client, "_request", fake_request)
+        with pytest.raises(requests.HTTPError):
+            client.place_order(
+                "BTCUSDT", "buy", 1, targets, 5, client_oid="stable",
+            )
+        assert lookups == []  # definite rejection → no clientOid lookup
+
+    def test_gateway_5xx_still_recovers_by_client_oid(self, monkeypatch):
+        """A gateway 5xx leaves the outcome unknown — the order may have been
+        accepted — so clientOid recovery must still apply there."""
+        from types import SimpleNamespace
+        client = BitgetClient(BitgetConfig())
+        targets = TradeTargets(100, 90, 110, 120, 10, 10, 20, Direction.BULLISH)
+        monkeypatch.setattr(client, "set_leverage", lambda *a, **k: {})
+
+        def fake_request(method, path, **kwargs):
+            if method == "POST":
+                raise requests.HTTPError(
+                    "502 bad gateway",
+                    response=SimpleNamespace(status_code=502),
+                )
+            return {"data": {"orderId": "accepted", "clientOid": "stable"}}
+
+        monkeypatch.setattr(client, "_request", fake_request)
+        result = client.place_order(
+            "BTCUSDT", "buy", 1, targets, 5, client_oid="stable",
+        )
+        assert result.order_id == "accepted"
+
 
 class TestRestContractSemantics:
     def test_private_symbols_are_canonicalized(self, monkeypatch):

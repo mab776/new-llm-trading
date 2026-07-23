@@ -314,6 +314,26 @@ class TradingScheduler:
                 self.exchange.cancel_tpsl_order(symbol, plan.order_id, plan.plan_type)
 
     def _activate_filled_pending(self, order_id: str, detail: dict) -> None:
+        pending = self._pending_orders[order_id]
+        detail_oid = str(detail.get("clientOid") or "")
+        expected_oid = str(pending.get("client_oid") or "")
+        if detail_oid and expected_oid and detail_oid != expected_oid:
+            # The exchange resolved this order id to an order that is NOT the
+            # one this pending entry placed (stale clientOid adoption). Never
+            # build or overwrite a lot from someone else's fill.
+            self._pending_orders.pop(order_id, None)
+            self._save_pending_orders()
+            self._log(
+                f"CRITICAL: pending {order_id} resolved to a foreign order "
+                f"(clientOid {detail_oid} != expected {expected_oid}) — "
+                "dropped without activation"
+            )
+            self._log_decision({
+                "action": "MAKER_ACTIVATE_MISMATCH", "order_id": order_id,
+                "detail_client_oid": detail_oid,
+                "expected_client_oid": expected_oid,
+            })
+            return
         pending = self._pending_orders.pop(order_id)
         fills = self.exchange.get_order_fills(pending["symbol"], order_id, detail)
         if fills:
@@ -384,7 +404,16 @@ class TradingScheduler:
             direction=(Direction.BULLISH if side == "buy"
                        else Direction.BEARISH),
         )
-        client_oid = self._entry_client_oid(side)
+        # Derive the retry oid from the ORIGINAL entry oid, NOT from
+        # _entry_client_oid(): the candidate bar is unset during later
+        # reconcile cycles, which collapsed every retry onto one eternal
+        # H("manual") oid — Bitget's clientOid idempotency then resurrected
+        # a long-dead order and reconcile "filled" it again (phantom fills,
+        # 2026-07-23). Root+attempt is unique per attempt yet deterministic,
+        # so lost-response recovery still finds THIS attempt's order.
+        root = str(pending.get("entry_oid_root")
+                   or pending.get("client_oid") or order_id)
+        client_oid = f"{root}-r{retries + 1}"
         result = self.exchange.place_order(
             symbol=symbol, side=side, size=float(pending["size"]),
             targets=targets, leverage=int(pending.get("leverage") or 1),
@@ -394,6 +423,7 @@ class TradingScheduler:
         new_pending.update({
             "entry": result.price if result.price is not None else reprice,
             "intended_entry": intended,
+            "entry_oid_root": root,
             "client_oid": client_oid,
             "placed_at": now,
             "retries": retries + 1,

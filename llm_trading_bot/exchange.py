@@ -137,6 +137,19 @@ class ContractSpec:
 # Bitget Client
 # ──────────────────────────────────────────────────────────────────────
 
+def _is_definite_rejection(exc: requests.RequestException) -> bool:
+    """True when the exchange definitely REJECTED the request (HTTP 4xx).
+
+    clientOid-recovery exists for AMBIGUOUS failures — a lost response
+    (timeout/connection error) or a gateway 5xx where the order may have been
+    accepted. A definite 4xx (e.g. duplicate clientOid) is not ambiguous;
+    recovering there can adopt a stale order from an earlier attempt/bar and
+    double-count its fill (phantom fills, 2026-07-23).
+    """
+    response = getattr(exc, "response", None)
+    return response is not None and 400 <= response.status_code < 500
+
+
 class BitgetClient:
     """
     Bitget Futures API client with mandatory safety checks.
@@ -514,7 +527,7 @@ class BitgetClient:
             # Never resend an opening POST after an ambiguous transport failure.  A
             # deterministic clientOid lets us discover an order Bitget accepted even
             # when its response was lost.
-            if not client_oid:
+            if not client_oid or _is_definite_rejection(original_error):
                 raise
             try:
                 detail = self.get_order_detail(symbol, client_oid=client_oid)
@@ -961,7 +974,7 @@ class BitgetClient:
         try:
             return self._request("POST", path, body=body)
         except requests.RequestException as original_error:
-            if not client_oid:
+            if not client_oid or _is_definite_rejection(original_error):
                 raise
             try:
                 detail = self.get_order_detail(symbol, client_oid=client_oid)
