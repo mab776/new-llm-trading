@@ -5,7 +5,8 @@
         "timeframes": [
             "1h",
             "4h",
-            "1d"
+            "1d",
+            "1w"
         ],
         "primary_timeframe": "4h",
         "leverage_tiers": {
@@ -67,7 +68,8 @@
         "confidence_max": 95,
         "alignment_scale_by_tf": {
             "1h": 0,
-            "1d": 3
+            "1d": 3,
+            "1w": 2
         }
     },
     "filters": {

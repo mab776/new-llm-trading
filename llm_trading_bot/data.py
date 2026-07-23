@@ -133,6 +133,13 @@ def _period_for_warmup(timeframe: str, warmup_periods: int = 200) -> tuple[int, 
     elif timeframe == "1d":
         days = warmup_periods + 30
         return days, 1
+    elif timeframe == "1w":
+        # Weekly bars: warmup_periods CANDLES = warmup_periods weeks. The +90d
+        # margin keeps the weekly EMA-200 computable (~218 candles at the
+        # scheduler's 210 warmup) so the live vote sees the same indicator set
+        # the backtests did. Bitget returns from listing when asked earlier.
+        days = warmup_periods * 7 + 90
+        return days, 1
     else:
         return warmup_periods + 30, 1
 
