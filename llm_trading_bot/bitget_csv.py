@@ -47,6 +47,10 @@ _TF_MS = {
     "1w": 604_800_000,
 }
 
+# Weekly candles anchor on Monday 00:00 UTC; the epoch (1970-01-01) was a
+# Thursday, so 1w opens sit at epoch + 4 days modulo one week.
+_TF_ANCHOR_MS = {"1w": 4 * 86_400_000}
+
 
 # ---------------------------------------------------------------------------
 # Exchange + windowed fetch (shared with data.py's live fallback)
@@ -126,12 +130,13 @@ def _validate_rows(rows: list[list], timeframe: str) -> None:
         return
 
     gap = _TF_MS[timeframe]
+    anchor = _TF_ANCHOR_MS.get(timeframe, 0)
     previous: int | None = None
     for row in rows:
         if len(row) < 6:
             raise ValueError(f"Malformed {timeframe} OHLCV row: {row!r}")
         ts = int(row[0])
-        if ts % gap:
+        if (ts - anchor) % gap:
             raise ValueError(f"Misaligned {timeframe} candle timestamp: {ts}")
         if previous is not None and ts - previous != gap:
             raise ValueError(

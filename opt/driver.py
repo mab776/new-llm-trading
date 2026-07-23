@@ -55,12 +55,20 @@ class EvaluationContext:
 
 def load_context(symbol: str | None = None, config_path: str = "config.json",
                  data_start: str = "2020-10-01", data_end: str = "2025-06-01",
-                 funding_end: str = "2025-06-02") -> EvaluationContext:
+                 funding_end: str = "2025-06-02",
+                 extra_timeframes: list[str] | None = None) -> EvaluationContext:
     """Load one independent symbol context (safe for multi-asset callers).
 
     ``data_end``/``funding_end`` default to the in-sample cutoff; pass a later
     date (e.g. "2026-06-01") to replay genuinely out-of-sample history."""
     cfg = load_config(config_path)
+    if extra_timeframes:
+        # Research hook (e.g. ["1w"] for a weekly alignment vote). ⚠️ A TF
+        # missing from alignment_scale_by_tf votes at the legacy FLAT
+        # alignment_scale — callers must pass explicit per-TF weights.
+        cfg.trading.timeframes = list(cfg.trading.timeframes) + [
+            tf for tf in extra_timeframes if tf not in cfg.trading.timeframes
+        ]
     configure_cache(cfg.data_cache.ttl_seconds)
     ds = cfg.data_source
     if symbol:
@@ -91,13 +99,13 @@ def load_context(symbol: str | None = None, config_path: str = "config.json",
     return EvaluationContext(pre, cfg, funding, metric)
 
 
-def setup(symbol: str | None = None):
+def setup(symbol: str | None = None, extra_timeframes: list[str] | None = None):
     """Load data + funding and precompute indicators. symbol overrides the config's
     exchange_symbol (e.g. "ETH/USDT:USDT" to evaluate the same strategy on ETH)."""
     global _PRE, _BASE, _FUND, _FMETRIC
     if _PRE is not None:
         return
-    ctx = load_context(symbol)
+    ctx = load_context(symbol, extra_timeframes=extra_timeframes)
     _PRE, _BASE, _FUND, _FMETRIC = (
         ctx.pre, ctx.config, ctx.funding, ctx.funding_metric
     )

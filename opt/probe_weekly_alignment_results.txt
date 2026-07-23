@@ -1,0 +1,113 @@
+    Bitget 1h 2020-09-01 → 2025-06-01... 41641 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2025-06-01... 10591 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2025-06-01... 1736 candles (cached on disk)
+    Bitget 1w 2020-09-01 → 2025-06-01...    Bitget CSV failed (Incomplete cached 1w month: expected 1601510400000..1603584000000, got 1601856000000..1603670400000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)...  BTC/USDT:USDT 1h: 41641 rows 2020-09-01 -> 2025-06-02
+  BTC/USDT:USDT 4h: 10591 rows 2020-08-02 -> 2025-06-02
+  BTC/USDT:USDT 1d: 1736 rows 2020-09-01 -> 2025-06-02
+  BTC/USDT:USDT 1w: 247 rows 2020-09-07 -> 2025-05-26
+  BTC/USDT:USDT funding: 5298 settlements loaded
+ 247 candles
+== 1w alignment vote — TRAIN (select) ==
+  baseline 1w=0          geo  +166.40%/f  cx    134.16x  worst   +43.4%  DD 15.6%  tr 1762
+  1w=1                   geo  +165.40%/f  cx    131.68x  worst   +42.8%  DD 15.9%  tr 1766
+  1w=2                   geo  +174.25%/f  cx    155.13x  worst   +51.1%  DD 15.4%  tr 1761
+  1w=3                   geo  +171.16%/f  cx    146.61x  worst   +43.3%  DD 15.4%  tr 1775
+  1w=5                   geo  +165.11%/f  cx    130.96x  worst   +54.8%  DD 17.1%  tr 1795
+  1d->1w swap (0/3)      geo  +156.12%/f  cx    110.21x  worst   +43.7%  DD 15.6%  tr 1781
+  split 1d=2 1w=2        geo  +163.33%/f  cx    126.63x  worst   +41.6%  DD 15.9%  tr 1777
+
+  TRAIN baseline +166.40 (anchor: must equal the no-1w +166.40)
+  TRAIN winners: ['1w=2', '1w=3']
+
+== TEST (gate) ==
+  baseline 1w=0          geo   +66.79%/f  cx      7.74x  worst   +34.3%  DD 23.9%  tr 1341
+  1w=2                   geo   +70.38%/f  cx      8.43x  worst   +30.9%  DD 24.2%  tr 1333
+  1w=3                   geo   +68.96%/f  cx      8.15x  worst   +28.4%  DD 25.1%  tr 1350
+  1w=2: TEST +70.38 vs baseline +66.79 -> PASS
+  1w=3: TEST +68.96 vs baseline +66.79 -> PASS
+
+== ETH/SOL confirmation ==
+    Bitget 1h 2020-09-01 → 2025-06-01... 41641 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2025-06-01... 10591 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2025-06-01... 1736 candles (cached on disk)
+    Bitget 1w 2020-09-01 → 2025-06-01...    Bitget CSV failed (Incomplete cached 1w month: expected 1601510400000..1603584000000, got 1601856000000..1603670400000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)...  ETH/USDT:USDT 1h: 41641 rows 2020-09-01 -> 2025-06-02
+  ETH/USDT:USDT 4h: 10591 rows 2020-08-02 -> 2025-06-02
+  ETH/USDT:USDT 1d: 1736 rows 2020-09-01 -> 2025-06-02
+  ETH/USDT:USDT 1w: 247 rows 2020-09-07 -> 2025-05-26
+  ETH/USDT:USDT funding: 5298 settlements loaded
+ 247 candles
+== ETH ==
+  ETH base TRAIN             geo  +242.72%/f  cx   472.82x  worst   +55.8%  DD 17.8%  tr 1981
+  ETH 1w=2 TRAIN             geo  +258.15%/f  cx   589.28x  worst   +64.5%  DD 19.1%  tr 1985
+  ETH base TEST              geo  +125.16%/f  cx    25.70x  worst   +25.6%  DD 15.8%  tr 1545
+  ETH 1w=2 TEST              geo  +121.16%/f  cx    23.92x  worst   +23.7%  DD 15.2%  tr 1536
+  -> TRAIN +  TEST -
+    Bitget 1h 2020-09-01 → 2025-06-01... 33839 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2025-06-01... 8461 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2025-06-01... 1411 candles (cached on disk)
+    Bitget 1w 2020-09-01 → 2025-06-01...    Bitget CSV failed (Incomplete cached 1w month: expected 1627776000000..1629849600000, got 1627862400000..1630281600000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)...  SOL/USDT:USDT 1h: 33839 rows 2021-07-23 -> 2025-06-02
+  SOL/USDT:USDT 4h: 8461 rows 2021-07-23 -> 2025-06-02
+  SOL/USDT:USDT 1d: 1411 rows 2021-07-23 -> 2025-06-02
+  SOL/USDT:USDT 1w: 202 rows 2021-07-19 -> 2025-05-26
+  SOL/USDT:USDT funding: 5242 settlements loaded
+ 202 candles
+== SOL ==
+  SOL base TRAIN             geo  +268.79%/f  cx   682.19x  worst    +0.0%  DD 14.8%  tr 1767
+  SOL 1w=2 TRAIN             geo  +257.37%/f  cx   582.92x  worst    +0.0%  DD 14.6%  tr 1766
+  SOL base TEST              geo  +698.48%/f  cx  4064.97x  worst  +423.4%  DD 17.3%  tr 1824
+  SOL 1w=2 TEST              geo  +712.72%/f  cx  4362.81x  worst  +357.4%  DD 17.1%  tr 1810
+  -> TRAIN -  TEST +
+
+== Multi-asset holdout (invariance) ==
+    Bitget 1h 2020-09-01 → 2026-04-30... 49632 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 12588 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1w 2020-09-01 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1601510400000..1603584000000, got 1601856000000..1603670400000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)...  BTC/USDT:USDT 4h: 12588 rows 2020-08-02 -> 2026-04-30
+ 295 candles
+    Bitget 1h 2020-09-01 → 2026-04-30... 49632 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 12588 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1w 2020-09-01 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1601510400000..1603584000000, got 1601856000000..1603670400000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)...  ETH/USDT:USDT 4h: 12588 rows 2020-08-02 -> 2026-04-30
+ 295 candles
+    Bitget 1h 2020-09-01 → 2026-04-30... 41830 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 10458 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 1743 candles (cached on disk)
+    Bitget 1w 2020-09-01 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1627776000000..1629849600000, got 1627862400000..1630281600000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)...  SOL/USDT:USDT 4h: 10458 rows 2021-07-23 -> 2026-04-30
+ 250 candles
+baseline {1h:0,1d:3,1w:0}      5.13x  DD  13.9%  tr 1135  win 76.5%
+candidate {1h:0,1d:3,1w:2}     6.77x  DD  14.2%  tr 1175  win 77.2%
+
+================================ VERDICT (2026-07-23) ================================
+1w=2 PASSES the pre-committed BTC gates — the first split-consistent strategy
+positive since the min-size rescue. AWAITING MARC'S ADOPTION CALL (config change:
+sims done, needs his explicit go + supervised restart).
+
+Evidence for {"1h":0, "1d":3, "1w":2}:
+  BTC TRAIN +174.25 vs +166.40 (GATE 1 PASS)   BTC TEST +70.38 vs +66.79 (GATE 2 PASS)
+  Dose-response humped at w=2 (1: -1.0, 2: +7.9, 3: +4.8, 5: -1.3 TRAIN geo) — an
+  optimum shape, not a monotone overfit ramp.
+  Controls: 1d->1w swap (+156.1) and 1d=2/1w=2 split (+163.3) both WORSE than
+  baseline -> the weekly vote COMPLEMENTS the daily vote, it cannot replace it.
+  ETH/SOL single-asset checks MIXED (ETH TRAIN+/TEST-, SOL TRAIN-/TEST+) — noise
+  in both directions, no consistent transfer at single-asset level.
+  Multi-asset clean holdout (INVARIANCE ONLY, not selection): 5.13x -> 6.77x
+  (+32% compound), DD 13.9 -> 14.2%, trades 1135 -> 1175, win 76.5 -> 77.2%.
+
+Notes:
+  - Anchor sanity passed: w=0 with 1w data loaded reproduces +166.40 exactly.
+  - Weekly indicators need 50 candles; with Bitget history from 2020-08 the 1w
+    vote exists only from ~mid-2021 (21H1 runs without it in every cell alike).
+  - bitget_csv._validate_rows now accepts Monday-anchored 1w timestamps
+    (epoch was a Thursday) — required for live weekly fetch too.
+  - Bounded impact: the vote shifts scores by at most +/-2 — it can flip
+    marginal/threshold decisions, never an established +/-24 position.
+  - Adoption plumbing when Marc says go: add "1w" to trading.timeframes and
+    alignment_scale_by_tf {"1h":0,"1d":3,"1w":2} in the 3 base configs
+    (aggressive/1x inherit via _extends), sim-gate, supervised restart.
+======================================================================================
