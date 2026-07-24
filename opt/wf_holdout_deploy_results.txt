@@ -1,0 +1,11 @@
+static  HOLDOUT:   +65.6%  dd 15.6%  tr 534
+t= 300 seed= 17: tuned   +79.5%  dd 13.1%  tr 645  ratio 1.083
+t= 300 seed= 73: tuned   +71.0%  dd 15.0%  tr 589  ratio 1.032
+t= 300 seed=211: tuned   +96.1%  dd 15.3%  tr 610  ratio 1.184
+t= 300 seed=419: tuned   +52.0%  dd 15.3%  tr 637  ratio 0.918
+t= 300 seed=887: tuned   +96.5%  dd 13.5%  tr 569  ratio 1.186
+  -> t=300: median ratio 1.083, beat static 4/5
+t=1000 seed= 17: tuned   +98.3%  dd 14.9%  tr 622  ratio 1.197
+t=1000 seed= 73: tuned  +108.4%  dd 15.3%  tr 602  ratio 1.258
+t=1000 seed=211: tuned  +103.2%  dd 13.3%  tr 666  ratio 1.227
+  -> t=1000: median ratio 1.227, beat static 3/3
