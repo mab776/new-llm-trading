@@ -1,0 +1,34 @@
+Cross-market context-vote probe | multi-asset half-year folds | maker + sub-bar + funding + 2bps | frictionless folds, mins on holdout only
+sources: btc->(ETH,SOL) | dxy inverted | spx  — discrete votes, select-TRAIN / report-TEST, holdout invariance-only
+
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1h 2020-09-01 → 2026-04-30... 49632 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 12588 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1596240000000..1598313600000, got 1596412800000..1598832000000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 304 candles
+    Bitget 1h 2020-09-01 → 2026-04-30... 49632 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 12588 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1596240000000..1598313600000, got 1596412800000..1598832000000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 304 candles
+    Bitget 1h 2020-09-01 → 2026-04-30... 41830 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 10458 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 1743 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1627776000000..1629849600000, got 1627862400000..1630281600000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 250 candles
+Anchor OK: 21H1 baseline +4275.39 == context_votes=[] (bit-exact). Pre-1w-era btc_delay baseline was +611.9 TRAIN geo (drift awareness only).
+
+      cell  TRAINgeo  worstF trades   folds
+  baseline    +656.8  +209.9   3506   21H1:+4275  22H1:+923  23H1:+210  24H1:+461  25H1:+219
+     btc-2    +587.7  +201.8   3427   21H1:+4054  22H1:+752  23H1:+206  24H1:+371  25H1:+202
+     btc-3    +540.7  +208.4   3402   21H1:+3343  22H1:+701  23H1:+208  24H1:+303  25H1:+215
+     btc-5    +518.4  +224.8   3360   21H1:+3094  22H1:+577  23H1:+225  24H1:+278  25H1:+240
+     dxy-2    +589.6  +172.2   3456   21H1:+4229  22H1:+816  23H1:+195  24H1:+390  25H1:+172
+     dxy-3    +558.8  +160.2   3453   21H1:+4138  22H1:+818  23H1:+204  24H1:+304  25H1:+160
+     spx-2    +599.0  +169.1   3487   21H1:+4917  22H1:+843  23H1:+169  24H1:+376  25H1:+176
+     spx-3    +570.7  +157.2   3461   21H1:+4704  22H1:+883  23H1:+163  24H1:+324  25H1:+157
+
+Baseline TRAIN geo +656.8 | per-source best: btc:btc-2 +587.7, dxy:dxy-2 +589.6, spx:spx-2 +599.0 | GATE-1 winners: NONE
+
+VERDICT (gate 1): no cell beats baseline on TRAIN — mechanism does not help. STOP (TEST/holdout not consulted).

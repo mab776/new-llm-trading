@@ -438,6 +438,17 @@ DEFAULT_STRAT = {
     "daily_trend_k": 40.0,         # saturation scale for linear/tanh (daily-metric units)
     "daily_trend_deadband": 0.0,   # |daily metric| below this contributes 0
     "daily_trend_replace_align": False,  # True ⇒ drop 1d's ±5 alignment vote (no double-count)
+    # CROSS-MARKET CONTEXT VOTES (opt-in, probe_context_votes.py; NOT wired into
+    # live). External daily series (BTC-for-alts, DXY, SPX) cast the same bounded
+    # discrete ±weight vote a secondary-TF alignment casts, keyed on whether the
+    # source's (sign-adjusted) trend agrees with the score's pre-vote sign.
+    # None ⇒ off ⇒ engine-identical. List of dicts:
+    #   {"name": str, "weight": float, "sign": +1|-1 (DXY = -1: dollar strength is
+    #    crypto-bearish), "symbols": tuple of asset labels the vote applies to
+    #    (None = all; labels must match the caller's asset keys, e.g. "BTC"),
+    #    "avail": tz-naive-UTC pd.DatetimeIndex of usable-from times (sorted),
+    #    "trend": np.ndarray of the source's daily trend score per avail row}
+    "context_votes": None,
 }
 
 
@@ -488,6 +499,48 @@ def apply_daily_overlay(result, dind, st, points=None) -> None:
     result.raw_score = round(new, 2)
     result.direction = (Direction.BULLISH if new > 10 else
                         Direction.BEARISH if new < -10 else Direction.NEUTRAL)
+
+
+def apply_context_votes(result, ts, primary_tf: str, symbol: str, st) -> None:
+    """Cross-market context votes on top of ``result.raw_score`` (in place),
+    re-deriving direction — probe_context_votes.py; NOT wired into live.
+
+    Mirrors the discrete secondary-TF alignment vote: each source contributes
+    ±weight by whether its sign-adjusted trend agrees with the score's PRE-vote
+    sign (all sources judge the same sign, like the alignment loop's prim_sign).
+    Causality lives in each vote's precomputed ``avail`` index: the value at
+    position p is usable at decision closes >= avail[p] (external daily bar
+    dated D ⇒ D+1 00:00 UTC; in-house 1d candle open D ⇒ D+1 00:00 UTC), and
+    staying on position p across later bars IS the weekend/holiday forward-fill.
+    Empty/None votes ⇒ no-op (engine-identical)."""
+    votes = st.get("context_votes")
+    if not votes:
+        return
+    base = result.raw_score
+    prim_sign = 1.0 if base > 0 else -1.0 if base < 0 else 0.0
+    if prim_sign == 0.0:
+        return
+    tc = pd.Timestamp(decision_close(pd.Timestamp(ts), primary_tf))
+    if tc.tzinfo is not None:
+        tc = tc.tz_convert("UTC").tz_localize(None)
+    bonus = 0.0
+    for v in votes:
+        syms = v.get("symbols")
+        if syms and symbol not in syms:
+            continue
+        pos = int(v["avail"].searchsorted(tc, side="right")) - 1
+        if pos < 0:
+            continue
+        t = float(v["trend"][pos]) * float(v.get("sign", 1.0))
+        if t == 0.0:
+            continue
+        w = float(v["weight"])
+        bonus += w if (t > 0) == (prim_sign > 0) else -w
+    if bonus:
+        new = max(-100.0, min(100.0, base + bonus))
+        result.raw_score = round(new, 2)
+        result.direction = (Direction.BULLISH if new > 10 else
+                            Direction.BEARISH if new < -10 else Direction.NEUTRAL)
 
 
 def simulate(pre: Precomputed, config, start_date: str, end_date: str,
@@ -549,6 +602,9 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
                         for ind in pre.primary], dtype=float)
         struct_levels = compute_structure_levels(_lo, _hi, int(st["struct_pivot_n"]))
     tr = config.trading
+    # Asset label for context-vote symbol filters ("BTC-USDT" -> "BTC"),
+    # matching the labels multi-asset callers key their assets dicts with.
+    ctx_sym = str(getattr(tr, "symbol", "")).split("/")[0].split("-")[0].upper()
     tier = tr.active_leverage_tier
     sc = config.scoring
     ft = config.filters
@@ -752,6 +808,7 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
             exclude_alignment_tfs=({"1d"} if st.get("daily_trend_replace_align") else None),
         )
         apply_daily_overlay(result, inds_by_tf.get("1d"), st, getattr(sc, "points", None))
+        apply_context_votes(result, pre.timestamps[i], primary_tf, ctx_sym, st)
 
         targets = calculate_targets(
             indicators=prim, direction=result.direction,

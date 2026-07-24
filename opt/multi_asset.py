@@ -28,6 +28,7 @@ from llm_trading_bot.scoring import (
 from opt.fastbt import (
     DEFAULT_STRAT, Precomputed, _check_exits, _ratchet_trailing_stop,
     deterministic_maker_fill, maker_queue_eligible, apply_daily_overlay,
+    apply_context_votes,
 )
 from opt.drawdown import EquityPoint
 
@@ -420,6 +421,7 @@ def simulate_multi(
                 exclude_alignment_tfs=({"1d"} if strategy.get("daily_trend_replace_align") else None),
             )
             apply_daily_overlay(result, inds.get("1d"), strategy, getattr(sc, "points", None))
+            apply_context_votes(result, ts, tr.primary_timeframe, symbol, strategy)
             targets = calculate_targets(
                 prim, result.direction, tr.stop_loss_strategy,
                 sc.atr_sl_multiplier, tier.tp1_rr, tier.tp2_rr,

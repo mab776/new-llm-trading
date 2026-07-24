@@ -166,15 +166,23 @@ not geo) — natural to run jointly with #4. Full grids: `opt/probe_geometry_res
    (e.g. before any size-up).
 
 **Textbook gaps never searched (mechanism-ranked, none validated yet):**
-- **Cross-market context votes** — the strategy is 100% self-referential. The 1w vote
-  (deployed 2026-07-23) proved the mechanism: slow external context at low bounded weight
-  through the alignment machinery. Next family members: daily **DXY/SPX trend vote**
-  (risk-on/off) and **BTC-dominance vote** for ETH/SOL. Data trivial (yfinance/public);
-  same select-TRAIN/report-TEST protocol; ±2-bounded blast radius. TOP research candidate.
+- ~~**Cross-market context votes**~~ — **SEARCHED 2026-07-23, REJECTED at gate 1**
+  (`opt/probe_context_votes.py` + results): daily BTC→ETH/SOL, DXY-inverted and SPX
+  trend votes through the alignment machinery ALL hurt TRAIN geo (+656.8 baseline vs
+  +587.7/+589.6/+599.0 best cells), monotonically worse with weight — external daily
+  context injects noise into the self-referential momentum machine; the 1w vote's win
+  was same-symbol, not "external context". TEST/holdout never consulted. Unselected
+  observation (same class as #4/#10): btc-5 improved TRAIN worst-fold (+224.8 vs
+  +209.9) at heavy geo cost — variance compression, not adoptable, but one more data
+  point for the DD-robustness protocol. Engine knob `context_votes` + pinned
+  history/external/{dxy,spx}_1d.csv retained for any future DD-targeted re-search.
 - **Derivatives positioning data** — zero perp-native signals beyond funding-as-cost: no
   open interest, no long/short ratio, no liquidation clusters. OI divergence is THE
   textbook crypto-perp signal. Blocker: historical data acquisition (Coinglass paid,
-  exchange OI history patchy) — a data project before it's a probe.
+  exchange OI history patchy) — a data project before it's a probe. NOW THE TOP
+  new-research candidate (context votes fell 2026-07-23), tempered by that rejection:
+  external daily series through the score already failed once; OI at least is
+  same-symbol + perp-native.
 - **Event-calendar risk pause** — no new entries in the 4h bar containing FOMC/CPI.
   Real mechanism, public calendar, cheap probe. Medium prior (this system LIKES vol).
 - **Correlation-aware exposure cap** — 3 same-direction crypto positions ≈ one big
@@ -196,5 +204,6 @@ rule on the live fill funnel decides; every maker placement is evidence. Don't p
 decay exits & slope gating, marginal half-size, 1d adx_di overlay, regime-switching overlays,
 anti-martingale sizing, 1h/5m static transplants, 5m scalping & 15m mean-reversion, reserved
 per-asset capital, rotation-for-growth, consecutive-loss penalty, NeuTTS-style CPU ideas,
-geometric entry-proximity gating & structure-break exits (probe_geometry 2026-07-23).
+geometric entry-proximity gating & structure-break exits (probe_geometry 2026-07-23),
+daily external context votes — BTC→alts / DXY / SPX (probe_context_votes 2026-07-23).
 See `opt/README.md` round history and the probe results files.
