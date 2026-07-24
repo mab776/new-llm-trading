@@ -27,6 +27,15 @@ operational retuning would confound live execution validation.
 appetite for an auto-retune pipeline. Explicitly retained as the **leading post-paper research
 item**. Artifacts: `opt/walk_forward_robustness_results.json`, `opt/README.md` (walk-forward
 section).
+**Re-validated on the 1w-vote base 2026-07-23** (`opt/walk_forward_robustness_results_2026-07-23.json`,
+Marc's rerun ask): **18/18 runs still beat static** (static itself rose 10.91×→16.75× — the deployed
+1w vote banked part of the old gap), median ratios 1.36 / 1.76 / 1.76 at 60/300/1,000 trials (was
+1.64 / 1.89 / 2.02), **2025H1 now wins 13/13** (was the weak window), tuned windows don't worsen DD
+(worst 14.3–17.6% vs static 16.3%). Winner non-convergence unchanged: 13 seeds-×-windows, all unique,
+static never chosen — the blocker stands. NEW unselected observation: all nine 1,000-trial winners
+picked trailing **callback 0.25–0.27 (vs static 0.33, bottom of the sampled range) + activation
+0.70–0.99 (8/9 below static 0.94)** — tighter/earlier trailing, same family as GOOD_IDEAS #10;
+one more DD-robustness data point, not a selection.
 
 ## 2. Min-size rescue / conditional cap-overshoot — ✅ DEPLOYED LIVE 2026-07-23
 *Origin: Marc, 2026-07-20 ~01:30, watching the 8pm bar live: ETH fired STRONG +31.2 and got
