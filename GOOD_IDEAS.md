@@ -166,13 +166,28 @@ not geo) — natural to run jointly with #4. Full grids: `opt/probe_geometry_res
 1. ~~Min-size rescue (#2)~~ — **DEPLOYED 2026-07-23** (commit `fc171d6`; release gates
    re-passed on the 1w base with true splittable floors: TRAIN +687 vs +621, TEST +304
    vs +270, holdout 6.96/6.57 = 1.060; watch live MIN_SIZE_RESCUE records).
-2. **Walk-forward retuning (#1)** — the biggest known shelved edge (~2× vs static);
-   unblocks after enough clean live weeks to trust the pipeline end-to-end. NOW THE TOP ITEM.
-3. **DD-robustness protocol (#4 + #10 jointly)** — two INDEPENDENT probes (rotation,
-   trendline-tightened stops) each showed drawdown-cutting at ~zero return cost as
-   unselected observations. A pre-committed DD/worst-fold-targeted search is the most
-   evidence-backed NEW experiment on the shelf. Run when a lower-DD variant matters
-   (e.g. before any size-up).
+2. **⭐ TRAILING RETUNE a0.70/c0.20 — GATES PASSED 2026-07-24, AWAITING MARC'S GO**
+   (`opt/probe_trailing.py` + results): the 2026-07-24 multi-asset walk-forward study's
+   winners clustered on trailing (32/32 activation < static 0.94, med 0.76; 28/32
+   callback in the newly-opened 0.20–0.25 zone); the decomposition cell (trailing-only)
+   chains **8.80×** vs static on 2023-01..2026-04 — more than the walk-forward pipeline's
+   own median (~8.1×). House gates on the full folds (incl. 2021-22): 12/12 cells beat
+   TRAIN baseline; best corner a0.70/c0.20 TRAIN +1121.5 vs +656.8 (worstF +358 vs
+   +210, DD 13.6 vs 18.5); one-shot TEST +521.2 vs +288.3 (every fold up, DD down);
+   holdout 6.43×→**12.20×** (1.897), DD 13.9→10.1. This **graduates the DD-robustness
+   family** (#4, #10, both walk-forward clusters = 5 independent sightings). Caveats:
+   best cell is the grid corner (space may extend below 0.70/0.20 — extending = new
+   search, Marc's call); more trailing exits live = slightly more taker-fee exposure
+   (same class as the known TP-taker gap). Deploy = 3 base configs (profiles inherit),
+   supervised restarts.
+3. **Walk-forward retuning (#1)** — the multi-asset study (2026-07-24) validated the
+   *process* (8/8 beat static, median ~6.4–8×; cadence flat 12M/3M/1M/1W ≈ 8×), **but
+   the decomposition shows trailing IS most of that edge**. If the trailing retune
+   deploys, RE-MEASURE the residual walk-forward edge on the new base before building
+   any pipeline — the remaining value may not justify the operational complexity.
+4. ~~DD-robustness protocol (#4 + #10 jointly)~~ — **RESOLVED by the trailing retune**
+   (item 2 above): the recurring variance-compression signal was tighter trailing all
+   along, and it turned out to be return-POSITIVE, not return-neutral.
 
 **Textbook gaps never searched (mechanism-ranked, none validated yet):**
 - ~~**Cross-market context votes**~~ — **SEARCHED 2026-07-23, REJECTED at gate 1**
