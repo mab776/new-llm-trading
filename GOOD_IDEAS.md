@@ -28,7 +28,7 @@ appetite for an auto-retune pipeline. Explicitly retained as the **leading post-
 item**. Artifacts: `opt/walk_forward_robustness_results.json`, `opt/README.md` (walk-forward
 section).
 
-## 2. Min-size rescue / conditional cap-overshoot — ALL GATES PASSED, awaiting go
+## 2. Min-size rescue / conditional cap-overshoot — ✅ DEPLOYED LIVE 2026-07-23
 *Origin: Marc, 2026-07-20 ~01:30, watching the 8pm bar live: ETH fired STRONG +31.2 and got
 MIN_SIZE_SKIPped at $0.10 free margin while BTC held the whole cap — "what if we could go
 above the max margin, just if squeezed to min-size cancel and the signal is strong enough?"
@@ -154,11 +154,11 @@ not geo) — natural to run jointly with #4. Full grids: `opt/probe_geometry_res
 ## Priority queue (Marc + review, 2026-07-23) — what to harvest next, in order
 
 **Low-hanging fruit (evidence already paid for):**
-1. **Min-size rescue (#2)** — the only item with ALL gates passed; needs scheduler-side code
-   (the live `REFUSED` path) + supervised deploy. Fixes the standard bot's daily ETH/SOL
-   MIN_SIZE_SKIPs at ~$190. Self-retires as balance grows.
+1. ~~Min-size rescue (#2)~~ — **DEPLOYED 2026-07-23** (commit `fc171d6`; release gates
+   re-passed on the 1w base with true splittable floors: TRAIN +687 vs +621, TEST +304
+   vs +270, holdout 6.96/6.57 = 1.060; watch live MIN_SIZE_RESCUE records).
 2. **Walk-forward retuning (#1)** — the biggest known shelved edge (~2× vs static);
-   unblocks after enough clean live weeks to trust the pipeline end-to-end.
+   unblocks after enough clean live weeks to trust the pipeline end-to-end. NOW THE TOP ITEM.
 3. **DD-robustness protocol (#4 + #10 jointly)** — two INDEPENDENT probes (rotation,
    trendline-tightened stops) each showed drawdown-cutting at ~zero return cost as
    unselected observations. A pre-committed DD/worst-fold-targeted search is the most
