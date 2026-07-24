@@ -166,7 +166,7 @@ not geo) — natural to run jointly with #4. Full grids: `opt/probe_geometry_res
 1. ~~Min-size rescue (#2)~~ — **DEPLOYED 2026-07-23** (commit `fc171d6`; release gates
    re-passed on the 1w base with true splittable floors: TRAIN +687 vs +621, TEST +304
    vs +270, holdout 6.96/6.57 = 1.060; watch live MIN_SIZE_RESCUE records).
-2. **⭐ TRAILING RETUNE a0.70/c0.20 — GATES PASSED 2026-07-24, AWAITING MARC'S GO**
+2. **⭐ TRAILING RETUNE a0.70/c0.20 — ✅ DEPLOYED LIVE 2026-07-24 ~09:07 EDT (a8a5d65, Marc's GO; both bots, supervised restarts clean)**
    (`opt/probe_trailing.py` + results): the 2026-07-24 multi-asset walk-forward study's
    winners clustered on trailing (32/32 activation < static 0.94, med 0.76; 28/32
    callback in the newly-opened 0.20–0.25 zone); the decomposition cell (trailing-only)
