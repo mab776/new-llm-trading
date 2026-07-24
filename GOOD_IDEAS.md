@@ -151,6 +151,44 @@ not geo) — natural to run jointly with #4. Full grids: `opt/probe_geometry_res
 
 ---
 
+## Priority queue (Marc + review, 2026-07-23) — what to harvest next, in order
+
+**Low-hanging fruit (evidence already paid for):**
+1. **Min-size rescue (#2)** — the only item with ALL gates passed; needs scheduler-side code
+   (the live `REFUSED` path) + supervised deploy. Fixes the standard bot's daily ETH/SOL
+   MIN_SIZE_SKIPs at ~$190. Self-retires as balance grows.
+2. **Walk-forward retuning (#1)** — the biggest known shelved edge (~2× vs static);
+   unblocks after enough clean live weeks to trust the pipeline end-to-end.
+3. **DD-robustness protocol (#4 + #10 jointly)** — two INDEPENDENT probes (rotation,
+   trendline-tightened stops) each showed drawdown-cutting at ~zero return cost as
+   unselected observations. A pre-committed DD/worst-fold-targeted search is the most
+   evidence-backed NEW experiment on the shelf. Run when a lower-DD variant matters
+   (e.g. before any size-up).
+
+**Textbook gaps never searched (mechanism-ranked, none validated yet):**
+- **Cross-market context votes** — the strategy is 100% self-referential. The 1w vote
+  (deployed 2026-07-23) proved the mechanism: slow external context at low bounded weight
+  through the alignment machinery. Next family members: daily **DXY/SPX trend vote**
+  (risk-on/off) and **BTC-dominance vote** for ETH/SOL. Data trivial (yfinance/public);
+  same select-TRAIN/report-TEST protocol; ±2-bounded blast radius. TOP research candidate.
+- **Derivatives positioning data** — zero perp-native signals beyond funding-as-cost: no
+  open interest, no long/short ratio, no liquidation clusters. OI divergence is THE
+  textbook crypto-perp signal. Blocker: historical data acquisition (Coinglass paid,
+  exchange OI history patchy) — a data project before it's a probe.
+- **Event-calendar risk pause** — no new entries in the 4h bar containing FOMC/CPI.
+  Real mechanism, public calendar, cheap probe. Medium prior (this system LIKES vol).
+- **Correlation-aware exposure cap** — 3 same-direction crypto positions ≈ one big
+  position; caps treat them independently. Risk-control research only — every
+  portfolio-structure probe so far says the shared pot's cross-subsidy is the edge.
+
+**Textbook ideas this system has FALSIFIED for itself (don't relearn them):** buy-near-
+support entry gating (worst probe result ever: −66 geo/fold), stop-below-structure
+widening, entry confirmation/delays, cutting decaying momentum early, marginal
+half-sizing. The strategy is a momentum machine — mean-reversion instincts keep
+failing its gates.
+
+---
+
 **Already-scheduled decision (not an idea):** maker-vs-taker entry, ~**2026-07-30** — the 86%
 rule on the live fill funnel decides; every maker placement is evidence. Don't preempt it.
 
