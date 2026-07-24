@@ -1,0 +1,45 @@
+{
+  "span": [
+    "2023-01-01T00:00:00",
+    "2026-04-30T00:00:00"
+  ],
+  "trials": 300,
+  "runs": [
+    {
+      "cadence": "1W",
+      "seed": 17,
+      "slices": 174,
+      "tuned_x": 33117.897721542686,
+      "static_x": 5034.3905647523725,
+      "ratio": 6.578333026724887,
+      "worst_slice_dd": 10.53,
+      "static_worst_slice_dd": 11.65,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.29418743240275036
+    },
+    {
+      "cadence": "1W",
+      "seed": 73,
+      "slices": 174,
+      "tuned_x": 57649.258886747906,
+      "static_x": 5034.3905647523725,
+      "ratio": 11.451089887695971,
+      "worst_slice_dd": 11.65,
+      "static_worst_slice_dd": 11.65,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.29756325469114486
+    },
+    {
+      "cadence": "1W",
+      "seed": 211,
+      "slices": 174,
+      "tuned_x": 41330.39348168813,
+      "static_x": 5034.3905647523725,
+      "ratio": 8.209612057327748,
+      "worst_slice_dd": 12.67,
+      "static_worst_slice_dd": 11.65,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.2924028302568765
+    }
+  ]
+}

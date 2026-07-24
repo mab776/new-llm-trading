@@ -41,7 +41,8 @@ import opt.walk_forward_multi as wfm
 
 SPAN_START = datetime(2023, 1, 1)
 SPAN_END = datetime(2026, 4, 30)
-CADENCES = {"12M": 12, "3M": 3, "1M": 1}
+CADENCES = {"12M": {"months": 12}, "3M": {"months": 3}, "1M": {"months": 1},
+            "1W": {"weeks": 1}}
 SEEDS = (17, 73, 211)
 TRIALS = 300
 
@@ -54,10 +55,10 @@ RANGES = {  # normalization widths for the churn metric
 }
 
 
-def slices(months: int) -> list[tuple[str, str]]:
+def slices(step: dict) -> list[tuple[str, str]]:
     out, cur = [], SPAN_START
     while cur < SPAN_END:
-        nxt = min(cur + relativedelta(months=months), SPAN_END)
+        nxt = min(cur + relativedelta(**step), SPAN_END)
         out.append((cur.strftime("%Y-%m-%d"), nxt.strftime("%Y-%m-%d")))
         cur = nxt
     return out
@@ -93,8 +94,7 @@ def main() -> None:
 
     with Pool(processes=args.procs) as pool:
         for cad in args.cadences:
-            months = CADENCES[cad]
-            sl = slices(months)
+            sl = slices(CADENCES[cad])
             # static per slice (shared by all seeds)
             for s in sl:
                 key = ("dep", s, "{}")
