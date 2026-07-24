@@ -1,0 +1,117 @@
+{
+  "span": [
+    "2023-01-01T00:00:00",
+    "2026-04-30T00:00:00"
+  ],
+  "trials": 300,
+  "runs": [
+    {
+      "cadence": "12M",
+      "seed": 17,
+      "slices": 4,
+      "tuned_x": 40777.31519562344,
+      "static_x": 4992.222598538084,
+      "ratio": 8.168168464195611,
+      "worst_slice_dd": 14.01,
+      "static_worst_slice_dd": 20.6,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.3572080928330928
+    },
+    {
+      "cadence": "12M",
+      "seed": 73,
+      "slices": 4,
+      "tuned_x": 34060.08749542461,
+      "static_x": 4992.222598538084,
+      "ratio": 6.822629965538541,
+      "worst_slice_dd": 20.3,
+      "static_worst_slice_dd": 20.6,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.3054260862594196
+    },
+    {
+      "cadence": "12M",
+      "seed": 211,
+      "slices": 4,
+      "tuned_x": 50464.94420100778,
+      "static_x": 4992.222598538084,
+      "ratio": 10.108712743655675,
+      "worst_slice_dd": 16.71,
+      "static_worst_slice_dd": 20.6,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.40873607102773774
+    },
+    {
+      "cadence": "3M",
+      "seed": 17,
+      "slices": 14,
+      "tuned_x": 44195.89293755861,
+      "static_x": 4809.705844640243,
+      "ratio": 9.188897276703285,
+      "worst_slice_dd": 16.77,
+      "static_worst_slice_dd": 20.7,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.30117091242091243
+    },
+    {
+      "cadence": "3M",
+      "seed": 73,
+      "slices": 14,
+      "tuned_x": 38532.17895302165,
+      "static_x": 4809.705844640243,
+      "ratio": 8.011337948236578,
+      "worst_slice_dd": 19.29,
+      "static_worst_slice_dd": 20.7,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.27010161135161137
+    },
+    {
+      "cadence": "3M",
+      "seed": 211,
+      "slices": 14,
+      "tuned_x": 33703.165689626534,
+      "static_x": 4809.705844640243,
+      "ratio": 7.007323686371399,
+      "worst_slice_dd": 17.45,
+      "static_worst_slice_dd": 20.7,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.29581968956968957
+    },
+    {
+      "cadence": "1M",
+      "seed": 17,
+      "slices": 40,
+      "tuned_x": 26603.93777027331,
+      "static_x": 5578.939453206338,
+      "ratio": 4.768637120623965,
+      "worst_slice_dd": 16.07,
+      "static_worst_slice_dd": 20.6,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.3024387418137418
+    },
+    {
+      "cadence": "1M",
+      "seed": 73,
+      "slices": 40,
+      "tuned_x": 47072.51701538497,
+      "static_x": 5578.939453206338,
+      "ratio": 8.437538605716785,
+      "worst_slice_dd": 17.47,
+      "static_worst_slice_dd": 20.6,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.2876828958078958
+    },
+    {
+      "cadence": "1M",
+      "seed": 211,
+      "slices": 40,
+      "tuned_x": 63537.23126570158,
+      "static_x": 5578.939453206338,
+      "ratio": 11.388765158436224,
+      "worst_slice_dd": 17.94,
+      "static_worst_slice_dd": 20.6,
+      "winner_changed_frac": 1.0,
+      "mean_churn": 0.30633576300242965
+    }
+  ]
+}
