@@ -1,0 +1,32 @@
+Min-size rescue RELEASE GATE | current base (1w vote) | true live floors {'BTC': 0.0002, 'ETH': 0.02, 'SOL': 0.2} | $189/fold | maker+sub+funding+2bps
+    Bitget 1h 2020-09-01 → 2026-04-30... 49632 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 12588 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1596240000000..1598313600000, got 1596412800000..1598832000000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 304 candles
+    Bitget 1h 2020-09-01 → 2026-04-30... 49632 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 12588 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1596240000000..1598313600000, got 1596412800000..1598832000000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 304 candles
+    Bitget 1h 2020-09-01 → 2026-04-30... 41830 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 10458 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 1743 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1627776000000..1629849600000, got 1627862400000..1630281600000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 250 candles
+
+== TRAIN ==
+  baseline(skip)     geo   +620.9  worst  +198.7  skips  3766  rescues    0  tr 3466
+  rescue O.25/S30    geo   +687.1  worst  +245.9  skips  1762  rescues  579  tr 4109
+
+== TEST ==
+  baseline(skip)     geo   +270.3  worst  +169.3  skips  3601  rescues    0  tr 2798
+  rescue O.25/S30    geo   +304.3  worst  +212.4  skips  1390  rescues  629  tr 3552
+
+== Holdout (invariance) ==
+  baseline  6.57x DD 14.3%   rescue  6.96x DD 14.3%   ratio 1.060  rescues 249
+
+GATE 1 TRAIN better: PASS (+687.1 vs +620.9)
+GATE 2 TEST within tolerance: PASS (+304.3 vs +270.3)
+GATE 3 holdout ratio >= 0.92: PASS (1.060)
+VERDICT: RELEASE OK

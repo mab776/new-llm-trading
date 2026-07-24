@@ -528,6 +528,12 @@ def simulate(pre: Precomputed, config, start_date: str, end_date: str,
     st["dd_throttle_slots"] = getattr(config.risk_management, "dd_throttle_slots", 1)
     st["dd_throttle_risk"] = getattr(config.risk_management, "dd_throttle_risk", 0.5)
     st["entry_mode"] = getattr(config.trading, "entry_mode", "taker")
+    mso = getattr(config.position_sizing, "min_size_overshoot", None)
+    if mso is not None:
+        st["min_size_overshoot"] = mso
+    msos = getattr(config.position_sizing, "min_size_overshoot_score", None)
+    if msos is not None:
+        st["min_size_overshoot_score"] = msos
     if strat:
         st.update(strat)
     if st["maker_queue_penetration_bps"] < 0:

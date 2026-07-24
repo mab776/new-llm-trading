@@ -434,7 +434,7 @@ let sym=localStorage.logsym||"All", hb=localStorage.loghb==="1", paused=false;
 const COL={MAKER_FILL:"#2f6feb",PLACE_BUY_MAKER:"#26a69a",PLACE_SELL_MAKER:"#ef5350",
  MAKER_RETRY:"#e3a008",MAKER_POST_ONLY_CANCELLED:"#d9534f",MAKER_CANCEL_UNFILLED:"#6c757d",
  LOT_CLOSED:"#a06fe6",SIGNAL_FLIP_CLOSE:"#e8833a",TRAIL_RATCHET:"#3aa8a0",
- MIN_SIZE_SKIP:"#5a6270",COOLDOWN_SKIP:"#5a6270",WAIT:"#454b54",HEARTBEAT:"#2f353c"};
+ MIN_SIZE_SKIP:"#5a6270",MIN_SIZE_RESCUE:"#7cb342",COOLDOWN_SKIP:"#5a6270",WAIT:"#454b54",HEARTBEAT:"#2f353c"};
 function chip(cur,cb){const el=document.getElementById("syms");el.innerHTML="";
  for(const s of SYMS){const b=document.createElement("button");
   b.textContent=s==="All"?"All":s.split("-")[0];

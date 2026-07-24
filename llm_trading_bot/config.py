@@ -184,6 +184,16 @@ class PositionSizingConfig(BaseModel):
     global_max_positions: int = Field(0, ge=0)      # all symbols + resting entries; 0 = off
     global_max_margin_pct: float = Field(0.0, ge=0) # committed margin / equity; 0 = off
     global_max_notional_pct: float = Field(0.0, ge=0)  # entry notional / equity; 0 = off
+    # Min-size rescue (opt/probe_overshoot, gates passed 2026-07-20): when a
+    # validated signal's computed size quantizes below the smallest exchange-
+    # executable (TP1-splittable) lot, place that minimum lot anyway — iff
+    # |score| >= min_size_overshoot_score AND committed exposure stays within
+    # the global caps stretched by (1 + min_size_overshoot). Both None = the
+    # legacy fail-closed MIN_SIZE_SKIP. Small-account provision: rescued lots
+    # are minimum-notional slivers; the rescue self-retires as the balance
+    # grows past the quantization floor.
+    min_size_overshoot: float | None = Field(None, ge=0)
+    min_size_overshoot_score: float | None = Field(None, ge=0)
 
     @model_validator(mode="after")
     def validate_anti_martingale_bounds(self):

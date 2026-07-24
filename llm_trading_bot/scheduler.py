@@ -1421,6 +1421,45 @@ class TradingScheduler:
             realized_balance * min(risk_pct, ps.max_position_pct), balance,
         )
         size = (margin * tier.leverage) / targets.entry if targets.entry > 0 else 0.0
+
+        def _rescue_min_size():
+            """Min-size rescue (opt/probe_overshoot, gates passed): return the
+            smallest TP1-splittable lot when the rescue conditions hold, else
+            None. Fires only for a positive-but-sub-minimum computed size —
+            zero cap headroom never reaches this path (risk_pct was 0)."""
+            over = ps.min_size_overshoot
+            score_gate = ps.min_size_overshoot_score
+            if over is None or score_gate is None:
+                return None
+            if abs(decision.scoring_result.raw_score) < score_gate:
+                return None
+            symbol = self.config.trading.symbol
+            spec = self.exchange.get_contract_spec(symbol)
+            step = float(spec.size_step)
+            cand = float(spec.min_size)
+            rescued = None
+            for _ in range(10):  # smallest size whose TP1 split is exchange-valid
+                try:
+                    self.exchange.split_size(symbol, cand, tier.tp1_exit_pct)
+                    rescued = cand
+                    break
+                except SafetyViolation:
+                    cand = round(cand + step, 12)
+            if rescued is None:
+                return None
+            new_margin = rescued * targets.entry / tier.leverage
+            new_notional = rescued * targets.entry
+            if new_margin > balance:
+                return None  # reserved maker margin cannot be committed twice
+            if ps.global_max_margin_pct and (
+                    committed_margin + new_margin
+                    > (1 + over) * ps.global_max_margin_pct * realized_balance):
+                return None
+            if ps.global_max_notional_pct and (
+                    committed_notional + new_notional
+                    > (1 + over) * ps.global_max_notional_pct * realized_balance):
+                return None
+            return rescued
         if size <= 0:
             self._log(
                 f"Computed non-positive size (balance=${balance:,.2f}, margin=${margin:,.2f}) — skipping trade"
@@ -1438,18 +1477,34 @@ class TradingScheduler:
                     self.config.trading.symbol, size, tier.tp1_exit_pct,
                 )
             except SafetyViolation as exc:
+                rescued = _rescue_min_size()
+                if rescued is None:
+                    self._log(
+                        f"MIN-SIZE SKIP: {exc} (margin ${margin:,.2f} @ "
+                        f"{tier.leverage}x -> size {size:.6f})"
+                    )
+                    self._log_decision({
+                        "action": "MIN_SIZE_SKIP",
+                        "bar": self._candidate_analysis_bar,
+                        "score": decision.scoring_result.raw_score,
+                        "margin": margin, "size": size,
+                        "reason": str(exc),
+                    })
+                    return
+                new_margin = rescued * targets.entry / tier.leverage
                 self._log(
-                    f"MIN-SIZE SKIP: {exc} (margin ${margin:,.2f} @ "
-                    f"{tier.leverage}x -> size {size:.6f})"
+                    f"MIN-SIZE RESCUE: computed {size:.6f} -> smallest splittable "
+                    f"lot {rescued} (margin ${new_margin:,.2f}, caps stretched "
+                    f"x{1 + ps.min_size_overshoot:.2f})"
                 )
                 self._log_decision({
-                    "action": "MIN_SIZE_SKIP",
+                    "action": "MIN_SIZE_RESCUE",
                     "bar": self._candidate_analysis_bar,
                     "score": decision.scoring_result.raw_score,
-                    "margin": margin, "size": size,
-                    "reason": str(exc),
+                    "computed_size": size, "size": rescued,
+                    "margin": new_margin,
                 })
-                return
+                size, margin = rescued, new_margin
 
         self._log(
             f"Executing {side.upper()} @ ${targets.entry:,.2f} | "

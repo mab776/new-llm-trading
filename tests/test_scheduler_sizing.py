@@ -312,3 +312,90 @@ def test_min_size_split_refusal_logs_skip_decision(monkeypatch, tmp_path):
     assert placed == []
     assert [r["action"] for r in logged] == ["MIN_SIZE_SKIP"]
     assert "0.0001" in logged[0]["reason"]
+
+
+# ── Min-size rescue (opt/probe_overshoot; live adoption 2026-07-23) ──
+
+def _wire_rescue(sched, monkeypatch, logged, placed, *, accept_at=0.0002):
+    """Common mocks: preflight, spec, stateful split_size (refuses the computed
+    size, accepts candidates >= accept_at), capturing place_order."""
+    from types import SimpleNamespace
+    from llm_trading_bot.exchange import SafetyViolation
+
+    sched.exchange._dry_run = False
+    monkeypatch.setattr(sched.exchange, "get_available_balance", lambda *a, **k: 100.0)
+    monkeypatch.setattr(sched.exchange, "get_account_equity", lambda *a, **k: 100.0)
+    monkeypatch.setattr(sched.exchange, "get_positions", lambda *a, **k: [])
+    monkeypatch.setattr(sched.exchange, "get_pending_orders", lambda *a, **k: [])
+    monkeypatch.setattr(
+        sched.exchange, "get_contract_spec",
+        lambda symbol: SimpleNamespace(min_size=0.0001, size_step=0.0001),
+    )
+    calls = {"n": 0}
+
+    def _split(symbol, size, frac):
+        calls["n"] += 1
+        if calls["n"] == 1 or size < accept_at - 1e-12:
+            raise SafetyViolation(
+                f"REFUSED: Quantized size {size} is below the executable minimum"
+            )
+        return (size * 0.7, size * 0.3)
+
+    monkeypatch.setattr(sched.exchange, "split_size", _split)
+    monkeypatch.setattr(
+        sched.exchange, "place_order",
+        lambda **kw: placed.append(kw) or SimpleNamespace(
+            order_id="rescued-1", price=kw.get("price"), size=kw["size"],
+            stop_loss=kw["targets"].stop_loss,
+            take_profit_1=kw["targets"].take_profit_1,
+            take_profit_2=kw["targets"].take_profit_2,
+            status="submitted", raw_response={},
+        ),
+    )
+    monkeypatch.setattr(sched, "_log_decision", lambda rec: logged.append(rec))
+
+
+def test_min_size_rescue_places_smallest_splittable_lot(monkeypatch, tmp_path):
+    """Knobs on + strong score: a sub-minimum computed size is rescued to the
+    smallest TP1-splittable lot and the order IS placed (MIN_SIZE_RESCUE)."""
+    cfg = _config()
+    cfg.position_sizing.min_size_overshoot = 0.25
+    cfg.position_sizing.min_size_overshoot_score = 30
+    sched = TradingScheduler(cfg, log_dir=tmp_path)
+    logged, placed = [], []
+    _wire_rescue(sched, monkeypatch, logged, placed)
+    sched._execute_trade(_decision())  # raw_score 40 >= 30
+    assert len(placed) == 1
+    assert abs(placed[0]["size"] - 0.0002) < 1e-12
+    actions = [r["action"] for r in logged]
+    assert "MIN_SIZE_RESCUE" in actions and "MIN_SIZE_SKIP" not in actions
+
+
+def test_min_size_rescue_respects_score_gate(monkeypatch, tmp_path):
+    """Below the score gate the legacy fail-closed skip is preserved."""
+    cfg = _config()
+    cfg.position_sizing.min_size_overshoot = 0.25
+    cfg.position_sizing.min_size_overshoot_score = 30
+    sched = TradingScheduler(cfg, log_dir=tmp_path)
+    logged, placed = [], []
+    _wire_rescue(sched, monkeypatch, logged, placed)
+    weak = _decision()
+    weak.scoring_result.raw_score = 20
+    sched._execute_trade(weak)
+    assert placed == []
+    assert [r["action"] for r in logged] == ["MIN_SIZE_SKIP"]
+
+
+def test_min_size_rescue_respects_stretched_caps(monkeypatch, tmp_path):
+    """Even a strong signal is refused when one minimum lot cannot fit within
+    the (1 + overshoot)-stretched global margin cap."""
+    cfg = _config()
+    cfg.position_sizing.min_size_overshoot = 0.25
+    cfg.position_sizing.min_size_overshoot_score = 30
+    cfg.position_sizing.global_max_margin_pct = 0.00001  # stretched cap ~$0.00125
+    sched = TradingScheduler(cfg, log_dir=tmp_path)
+    logged, placed = [], []
+    _wire_rescue(sched, monkeypatch, logged, placed)
+    sched._execute_trade(_decision())
+    assert placed == []
+    assert [r["action"] for r in logged] == ["MIN_SIZE_SKIP"]
