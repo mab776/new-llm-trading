@@ -34,8 +34,8 @@
         "entry_mode": "maker",
         "trailing_stop": {
             "enabled": true,
-            "activation_pct": 0.94,
-            "callback_pct": 0.33
+            "activation_pct": 0.7,
+            "callback_pct": 0.2
         },
         "maker_retry_max": 3
     },
