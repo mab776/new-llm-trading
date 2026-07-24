@@ -1,0 +1,43 @@
+Trailing retune probe | multi-asset half-year folds | maker + sub-bar + funding + 2bps | frictionless folds, mins on holdout only
+    Bitget 1h 2020-09-01 → 2026-04-30... 49632 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 12588 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1596240000000..1598313600000, got 1596412800000..1598832000000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 304 candles
+    Bitget 1h 2020-09-01 → 2026-04-30... 49632 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 12588 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 2068 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1596240000000..1598313600000, got 1596412800000..1598832000000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 304 candles
+    Bitget 1h 2020-09-01 → 2026-04-30... 41830 candles (cached on disk)
+    Bitget 4h 2020-08-02 → 2026-04-30... 10458 candles (cached on disk)
+    Bitget 1d 2020-09-01 → 2026-04-30... 1743 candles (cached on disk)
+    Bitget 1w 2020-07-03 → 2026-04-30...    Bitget CSV failed (Incomplete cached 1w month: expected 1627776000000..1629849600000, got 1627862400000..1630281600000), falling back to windowed ccxt live fetch...
+    Fetching 1w from bitget (windowed)... 250 candles
+
+        cell TRAINgeo  worstF maxDD    tr   folds
+    baseline   +656.8  +209.9  18.5  3506   21H1:+4275  22H1:+923  23H1:+210  24H1:+461  25H1:+219
+   a0.7/c0.2  +1121.5  +358.2  13.6  3879   21H1:+7544  22H1:+1322  23H1:+373  24H1:+1055  25H1:+358
+  a0.7/c0.22  +1062.7  +346.9  13.7  3898   21H1:+7122  22H1:+1273  23H1:+355  24H1:+954  25H1:+347
+  a0.7/c0.26   +958.0  +317.2  14.0  3883   21H1:+6327  22H1:+1146  23H1:+317  24H1:+844  25H1:+320
+  a0.76/c0.2  +1054.1  +364.5  13.4  3811   21H1:+6938  22H1:+1455  23H1:+364  24H1:+761  25H1:+368
+ a0.76/c0.22  +1010.9  +347.2  13.4  3808   21H1:+6587  22H1:+1402  23H1:+347  24H1:+730  25H1:+354
+ a0.76/c0.26   +913.7  +312.1  13.8  3812   21H1:+5841  22H1:+1266  23H1:+312  24H1:+649  25H1:+327
+  a0.82/c0.2   +977.0  +341.6  13.8  3714   21H1:+5407  22H1:+1484  23H1:+342  24H1:+698  25H1:+372
+ a0.82/c0.22   +939.2  +325.0  14.0  3718   21H1:+5267  22H1:+1413  23H1:+325  24H1:+670  25H1:+356
+ a0.82/c0.26   +848.9  +291.9  14.4  3726   21H1:+4675  22H1:+1279  23H1:+292  24H1:+593  25H1:+330
+  a0.88/c0.2   +915.2  +315.5  14.6  3623   21H1:+5180  22H1:+1424  23H1:+346  24H1:+624  25H1:+316
+ a0.88/c0.22   +876.7  +301.8  14.6  3623   21H1:+4935  22H1:+1357  23H1:+332  24H1:+598  25H1:+302
+ a0.88/c0.26   +798.0  +281.2  15.2  3621   21H1:+4421  22H1:+1232  23H1:+300  24H1:+537  25H1:+281
+
+Baseline TRAIN +656.8 | best a0.7/c0.2 +1121.5 | gate-1 winners: 12/12
+
+Gate 1 PASSED. TEST (baseline + best cell only — one shot, no cell-shopping on TEST):
+        cell  TESTgeo  worstF maxDD    tr   folds
+    baseline   +288.3  +159.8  20.6  2793   21H2:+342  22H2:+285  23H2:+160  24H2:+414
+   a0.7/c0.2   +521.2  +373.0  20.0  3086   21H2:+651  22H2:+472  23H2:+373  24H2:+633
+
+Gate 2 PASSED (+521.2 vs +288.3). Holdout @$193 + mins (invariance only):
+  baseline: 6.43x dd 13.9% | a0.7/c0.2: 12.20x dd 10.1% | ratio 1.897
+
+VERDICT: gates passed — candidate for Marc's deploy decision (supervised, all configs + both profiles).
